@@ -27,6 +27,7 @@ from .models.schemas import (
     SpeakerNotesRequest, TTSRequest, EditRequest, ExportRequest,
     LessonPatchRequest, PatchResponse, SlidePatch, CuePatch, ElementPatch
 )
+from .api.v2_lecture import router as v2_lecture_router
 from .services.sprint1.document_parser import ParserFactory
 from .services.sprint2.ai_generator import AIGenerator, TTSService, ContentEditor
 from .services.sprint3.video_exporter import VideoExporter, QueueManager, StorageManager
@@ -873,6 +874,9 @@ async def cleanup_old_files(max_age_days: int = 7):
     except Exception as e:
         logger.error(f"Error cleaning up files: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# Include new API routes
+app.include_router(v2_lecture_router)
 
 # Mount static files
 app.mount("/assets", StaticFiles(directory=".data", html=False), name="assets")

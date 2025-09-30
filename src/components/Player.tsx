@@ -236,127 +236,178 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
     };
   }, [playerState.isPlaying]);
 
-  // Memoized slide effects calculation with fail-safe for targetId
+  // Memoized slide effects calculation with support for both old cues and new visual_cues
   const renderSlideEffects = useMemo(() => {
     if (!manifest || !manifest.slides[playerState.currentSlide] || !slideRef.current) return null;
     
     const currentSlide = manifest.slides[playerState.currentSlide];
-    return currentSlide.cues.map((cue, index) => {
-      const isActive = playerState.currentTime >= cue.t0 && playerState.currentTime <= cue.t1;
-      const isEditing = editingState.editingCue?.cue_id === cue.cue_id;
-      
-      // Show all cues when editing, active cues when playing
-      if (!isActive && !isEditing && !editingState.isEditing) return null;
-
-      if (cue.action === 'highlight' && cue.bbox) {
-        const [x, y, width, height] = cue.bbox;
-        // Apply scale to coordinates with proper centering
-        const scaledX = x * scale.x;
-        const scaledY = y * scale.y;
-        const scaledWidth = width * scale.x;
-        const scaledHeight = height * scale.y;
+    const effects = [];
+    
+    // Render traditional cues (for backward compatibility)
+    if (currentSlide.cues) {
+      currentSlide.cues.forEach((cue, index) => {
+        const isActive = playerState.currentTime >= cue.t0 && playerState.currentTime <= cue.t1;
+        const isEditing = editingState.editingCue?.cue_id === cue.cue_id;
         
-        return (
-          <div
-            key={`highlight-${index}`}
-            className={`absolute border-2 rounded transition-all duration-300 ${
-              isActive 
-                ? 'bg-yellow-300 bg-opacity-50 border-yellow-500' 
-                : isEditing 
-                ? 'bg-blue-300 bg-opacity-50 border-blue-500' 
-                : 'bg-gray-300 bg-opacity-30 border-gray-400'
-            } ${editingState.isEditing ? 'cursor-pointer hover:bg-opacity-70' : ''}`}
-            style={{
-              left: `${scaledX}px`,
-              top: `${scaledY}px`,
-              width: `${scaledWidth}px`,
-              height: `${scaledHeight}px`
-            }}
-            onClick={() => editingState.isEditing && startEditingCue(cue)}
-            data-testid="highlight"
-          >
-            {editingState.isEditing && (
-              <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-1 rounded">
-                {cue.t0.toFixed(1)}s - {cue.t1.toFixed(1)}s
-              </div>
-            )}
-          </div>
-        );
-      }
+        // Show all cues when editing, active cues when playing
+        if (!isActive && !isEditing && !editingState.isEditing) return;
 
-      if (cue.action === 'underline' && cue.bbox) {
-        const [x, y, width, height] = cue.bbox;
-        const scaledX = x * scale.x;
-        const scaledY = y * scale.y;
-        const scaledWidth = width * scale.x;
-        const scaledHeight = height * scale.y;
+        if (cue.action === 'highlight' && cue.bbox) {
+          const [x, y, width, height] = cue.bbox;
+          const scaledX = x * scale.x;
+          const scaledY = y * scale.y;
+          const scaledWidth = width * scale.x;
+          const scaledHeight = height * scale.y;
+          
+          effects.push(
+            <div
+              key={`highlight-${index}`}
+              className={`absolute border-2 rounded transition-all duration-300 ${
+                isActive 
+                  ? 'bg-yellow-300 bg-opacity-50 border-yellow-500' 
+                  : isEditing 
+                  ? 'bg-blue-300 bg-opacity-50 border-blue-500' 
+                  : 'bg-gray-300 bg-opacity-30 border-gray-400'
+              } ${editingState.isEditing ? 'cursor-pointer hover:bg-opacity-70' : ''}`}
+              style={{
+                left: `${scaledX}px`,
+                top: `${scaledY}px`,
+                width: `${scaledWidth}px`,
+                height: `${scaledHeight}px`
+              }}
+              onClick={() => editingState.isEditing && startEditingCue(cue)}
+              data-testid="highlight"
+            >
+              {editingState.isEditing && (
+                <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-1 rounded">
+                  {cue.t0.toFixed(1)}s - {cue.t1.toFixed(1)}s
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        if (cue.action === 'underline' && cue.bbox) {
+          const [x, y, width, height] = cue.bbox;
+          const scaledX = x * scale.x;
+          const scaledY = y * scale.y;
+          const scaledWidth = width * scale.x;
+          const scaledHeight = height * scale.y;
+          
+          effects.push(
+            <div
+              key={`underline-${index}`}
+              className={`absolute border-b-2 transition-all duration-300 ${
+                isActive 
+                  ? 'border-red-500' 
+                  : isEditing 
+                  ? 'border-blue-500' 
+                  : 'border-gray-400'
+              } ${editingState.isEditing ? 'cursor-pointer' : ''}`}
+              style={{
+                left: `${scaledX}px`,
+                top: `${scaledY + scaledHeight - 2}px`,
+                width: `${scaledWidth}px`,
+                height: '2px'
+              }}
+              onClick={() => editingState.isEditing && startEditingCue(cue)}
+            >
+              {editingState.isEditing && (
+                <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-1 rounded">
+                  {cue.t0.toFixed(1)}s - {cue.t1.toFixed(1)}s
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        if (cue.action === 'laser_move' && cue.to) {
+          const [x, y] = cue.to;
+          const scaledX = x * scale.x;
+          const scaledY = y * scale.y;
+          
+          effects.push(
+            <div
+              key={`laser-${index}`}
+              className={`absolute w-2 h-2 rounded-full transition-all duration-300 ${
+                isActive 
+                  ? 'bg-red-500 shadow-lg shadow-red-500' 
+                  : isEditing 
+                  ? 'bg-blue-500' 
+                  : 'bg-gray-400'
+              } ${editingState.isEditing ? 'cursor-pointer' : ''}`}
+              style={{
+                left: `${scaledX - 4}px`,
+                top: `${scaledY - 4}px`,
+                transform: isActive ? 'scale(1.5)' : 'scale(1)'
+              }}
+              onClick={() => editingState.isEditing && startEditingCue(cue)}
+            >
+              {editingState.isEditing && (
+                <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-1 rounded">
+                  {cue.t0.toFixed(1)}s - {cue.t1.toFixed(1)}s
+                </div>
+              )}
+            </div>
+          );
+        }
+      });
+    }
+    
+    // Render new visual_cues based on talk_track timing
+    if (currentSlide.visual_cues && currentSlide.talk_track) {
+      currentSlide.visual_cues.forEach((visualCue, index) => {
+        const targetElement = currentSlide.elements.find(el => el.id === visualCue.targetId);
+        if (!targetElement) {
+          console.warn(`Target element ${visualCue.targetId} not found for visual cue`);
+          return;
+        }
         
-        return (
-          <div
-            key={`underline-${index}`}
-            className={`absolute border-b-2 transition-all duration-300 ${
-              isActive 
-                ? 'border-red-500' 
-                : isEditing 
-                ? 'border-blue-500' 
-                : 'border-gray-400'
-            } ${editingState.isEditing ? 'cursor-pointer' : ''}`}
-            style={{
-              left: `${scaledX}px`,
-              top: `${scaledY + scaledHeight - 2}px`,
-              width: `${scaledWidth}px`,
-              height: '2px'
-            }}
-            onClick={() => editingState.isEditing && startEditingCue(cue)}
-          >
-            {editingState.isEditing && (
-              <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-1 rounded">
-                {cue.t0.toFixed(1)}s - {cue.t1.toFixed(1)}s
-              </div>
-            )}
-          </div>
-        );
-      }
-
-      if (cue.action === 'laser_move' && cue.to) {
-        const [x, y] = cue.to;
-        const scaledX = x * scale.x;
-        const scaledY = y * scale.y;
+        // Find corresponding talk track segment
+        const talkSegment = currentSlide.talk_track.find(segment => segment.kind === visualCue.at);
+        if (!talkSegment) return;
         
-        return (
-          <div
-            key={`laser-${index}`}
-            className={`absolute w-2 h-2 rounded-full transition-all duration-300 ${
-              isActive 
-                ? 'bg-red-500 shadow-lg shadow-red-500' 
-                : isEditing 
-                ? 'bg-blue-500' 
-                : 'bg-gray-400'
-            } ${editingState.isEditing ? 'cursor-pointer' : ''}`}
-            style={{
-              left: `${scaledX - 4}px`,
-              top: `${scaledY - 4}px`,
-              transform: isActive ? 'scale(1.5)' : 'scale(1)'
-            }}
-            onClick={() => editingState.isEditing && startEditingCue(cue)}
-          >
-            {editingState.isEditing && (
-              <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-1 rounded">
-                {cue.t0.toFixed(1)}s - {cue.t1.toFixed(1)}s
-              </div>
-            )}
-          </div>
-        );
-      }
-
-      // Fail-safe: if targetId not found, log warning and skip rendering
-      if (cue.targetId && !currentSlide.elements.find(el => el.id === cue.targetId)) {
-        console.warn(`Target element ${cue.targetId} not found for cue ${cue.cue_id}, skipping rendering`);
-        return null;
-      }
-
-      return null;
-    }).filter(Boolean);
+        // Estimate timing based on talk track position (simplified)
+        const segmentIndex = currentSlide.talk_track.indexOf(talkSegment);
+        const estimatedStartTime = segmentIndex * 10; // 10 seconds per segment
+        const estimatedEndTime = estimatedStartTime + 8; // 8 seconds duration
+        
+        const isActive = playerState.currentTime >= estimatedStartTime && playerState.currentTime <= estimatedEndTime;
+        
+        if (isActive || editingState.isEditing) {
+          const [x, y, width, height] = targetElement.bbox;
+          const scaledX = x * scale.x;
+          const scaledY = y * scale.y;
+          const scaledWidth = width * scale.x;
+          const scaledHeight = height * scale.y;
+          
+          effects.push(
+            <div
+              key={`visual-cue-${index}`}
+              className={`absolute border-2 rounded transition-all duration-300 ${
+                isActive 
+                  ? 'bg-green-300 bg-opacity-50 border-green-500' 
+                  : 'bg-gray-300 bg-opacity-30 border-gray-400'
+              }`}
+              style={{
+                left: `${scaledX}px`,
+                top: `${scaledY}px`,
+                width: `${scaledWidth}px`,
+                height: `${scaledHeight}px`
+              }}
+            >
+              {editingState.isEditing && (
+                <div className="absolute -top-6 left-0 bg-green-500 text-white text-xs px-1 rounded">
+                  {visualCue.at} ({estimatedStartTime.toFixed(1)}s)
+                </div>
+              )}
+            </div>
+          );
+        }
+      });
+    }
+    
+    return effects;
   }, [manifest, playerState.currentSlide, playerState.currentTime, editingState, scale]);
 
   // Event handlers
@@ -864,6 +915,17 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
               {currentSlide.lecture_text ? (
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <div className="text-base leading-relaxed">{currentSlide.lecture_text}</div>
+                </div>
+              ) : currentSlide.talk_track && currentSlide.talk_track.length > 0 ? (
+                <div className="space-y-3">
+                  {currentSlide.talk_track.map((segment, index) => (
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                      <div className="text-sm text-gray-600 mb-1 font-medium capitalize">
+                        {segment.kind}
+                      </div>
+                      <div className="text-base">{segment.text}</div>
+                    </div>
+                  ))}
                 </div>
               ) : currentSlide.speaker_notes && currentSlide.speaker_notes.length > 0 ? (
                 <div className="space-y-2">
