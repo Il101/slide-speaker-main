@@ -31,6 +31,7 @@ from .api.v2_lecture import router as v2_lecture_router
 from .services.sprint1.document_parser import ParserFactory
 from .services.sprint2.ai_generator import AIGenerator, TTSService, ContentEditor
 from .services.sprint3.video_exporter import VideoExporter, QueueManager, StorageManager
+from .pipeline import get_pipeline, BasePipeline
 
 # Configure structured logging
 setup_logging(
@@ -183,6 +184,31 @@ video_exporter = VideoExporter()
 queue_manager = QueueManager()
 storage_manager = StorageManager()
 
+# Pipeline configuration
+PIPELINE_NAME = os.getenv("PIPELINE", "classic")
+
+def pipeline_for_request(request) -> BasePipeline:
+    """Get pipeline instance for request based on query param, header, or env"""
+    # Check query parameter first
+    name = request.query_params.get("pipeline")
+    
+    # Then check header
+    if not name:
+        name = request.headers.get("X-Pipeline")
+    
+    # Finally use environment default
+    if not name:
+        name = PIPELINE_NAME
+    
+    # Validate pipeline name
+    if name not in ["classic", "vision", "hybrid"]:
+        logger.warning(f"Invalid pipeline name '{name}', falling back to 'classic'")
+        name = "classic"
+    
+    pipeline_class = get_pipeline(name)
+    logger.info(f"Using pipeline: {name} ({pipeline_class.__name__})")
+    return pipeline_class()
+
 # Global exception handler
 @app.exception_handler(SlideSpeakerException)
 async def slide_speaker_exception_handler(request, exc):
@@ -236,16 +262,16 @@ async def upload_file(request: Request, file: UploadFile = File(...)):
         
         logger.info(f"Successfully processed document: {lesson_id}")
         
-        # Start full pipeline processing in background
-        from .tasks import process_lesson_full_pipeline
+        # Get pipeline for this request
+        pipeline = pipeline_for_request(request)
         
-        # For debugging: run synchronously instead of through Celery
+        # Run pipeline ingest step
         try:
-            logger.info(f"Starting full pipeline processing for lesson {lesson_id}")
-            pipeline_result = process_lesson_full_pipeline(lesson_id)
-            logger.info(f"Completed full pipeline processing for lesson {lesson_id}: {pipeline_result}")
+            logger.info(f"Starting pipeline ingest for lesson {lesson_id}")
+            pipeline.ingest(str(lesson_dir))
+            logger.info(f"Completed pipeline ingest for lesson {lesson_id}")
         except Exception as e:
-            logger.error(f"Error in pipeline processing for lesson {lesson_id}: {e}")
+            logger.error(f"Error in pipeline ingest for lesson {lesson_id}: {e}")
             # Still return success to user, but log the error
         
     except Exception as e:
@@ -436,84 +462,27 @@ async def generate_speaker_notes(lesson_id: str, slide_id: int, request: Speaker
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/lessons/{lesson_id}/generate-audio")
-async def generate_audio(lesson_id: str, slide_id: int, request: TTSRequest):
-    """Generate audio for speaker notes using configured TTS provider"""
+async def generate_audio(lesson_id: str, request: Request):
+    """Generate audio for lesson using pipeline"""
     
     try:
-        # Try to use configured TTS provider
-        try:
-            from ..services.provider_factory import synthesize_slide_text_google
-            
-            # Generate audio with timing using configured TTS provider
-            slide_notes = [request.text]  # Convert single text to list
-            audio_path, tts_words = synthesize_slide_text_google(
-                slide_notes, 
-                voice=request.voice, 
-                rate=request.speed
-            )
-            
-            # Copy audio file to lesson directory
-            audio_path_dest = settings.DATA_DIR / lesson_id / "audio" / f"{slide_id:03d}.mp3"
-            audio_path_dest.parent.mkdir(exist_ok=True)
-            
-            # Convert WAV to MP3 if needed (simplified - in real implementation use ffmpeg)
-            if audio_path.endswith('.wav'):
-                # For now, just copy the WAV file
-                import shutil
-                shutil.copy2(audio_path, audio_path_dest.with_suffix('.wav'))
-                audio_path_dest = audio_path_dest.with_suffix('.wav')
-            else:
-                import shutil
-                shutil.copy2(audio_path, audio_path_dest)
-            
-            # Save TtsWords.json for timing information
-            tts_words_path = settings.DATA_DIR / lesson_id / "audio" / f"{slide_id:03d}_words.json"
-            import json
-            with open(tts_words_path, 'w', encoding='utf-8') as f:
-                json.dump(tts_words, f, ensure_ascii=False, indent=2)
-            
-            logger.info(f"Generated TTS audio using configured provider for slide {slide_id}")
-            
-            return {
-                "audio_url": f"/assets/{lesson_id}/audio/{slide_id:03d}.mp3",
-                "duration": tts_words["sentences"][-1]["t1"] if tts_words["sentences"] else 0.0,
-                "sentences": tts_words["sentences"]
-            }
-            
-        except Exception as e:
-            logger.warning(f"Failed to use configured TTS provider: {e}, using legacy implementation")
+        # Check if lesson exists
+        lesson_dir = settings.DATA_DIR / lesson_id
+        if not lesson_dir.exists():
+            raise HTTPException(status_code=404, detail="Lesson not found")
         
-        # Fallback to legacy implementation
-        # Import TTS function
-        from ..workers.tts_edge import synthesize_slide_text
+        # Get pipeline for this request
+        pipeline = pipeline_for_request(request)
         
-        # Generate audio with timing
-        slide_notes = [request.text]  # Convert single text to list
-        result = await synthesize_slide_text(
-            slide_notes, 
-            voice=request.voice, 
-            speed=request.speed
-        )
+        # Run pipeline steps
+        logger.info(f"Starting pipeline processing for lesson {lesson_id}")
+        pipeline.plan(str(lesson_dir))
+        pipeline.tts(str(lesson_dir))
+        pipeline.build_manifest(str(lesson_dir))
         
-        # Copy audio file to lesson directory
-        audio_path = settings.DATA_DIR / lesson_id / "audio" / f"{slide_id:03d}.mp3"
-        audio_path.parent.mkdir(exist_ok=True)
+        logger.info(f"Completed pipeline processing for lesson {lesson_id}")
         
-        # Copy the generated audio file
-        import shutil
-        shutil.copy2(result["audio_file"], audio_path)
-        
-        # Save TtsWords.json for timing information
-        tts_words_path = settings.DATA_DIR / lesson_id / "audio" / f"{slide_id:03d}_words.json"
-        shutil.copy2(result["tts_words_file"], tts_words_path)
-        
-        logger.info(f"Generated legacy TTS audio for slide {slide_id}: {result['total_duration']:.2f}s")
-        
-        return {
-            "audio_url": f"/assets/{lesson_id}/audio/{slide_id:03d}.mp3",
-            "duration": result["total_duration"],
-            "sentences": result["sentences"]
-        }
+        return {"status": "success", "message": "Audio generation completed"}
         
     except Exception as e:
         logger.error(f"Error generating audio: {e}")
