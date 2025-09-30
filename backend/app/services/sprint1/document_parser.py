@@ -16,6 +16,73 @@ from ...models.schemas import Slide, Manifest, SlideElement, Cue, ActionType, Ti
 
 logger = logging.getLogger(__name__)
 
+# Constants for fallback elements
+ORIG_W, ORIG_H = 1600, 900
+
+def _placeholder_element():
+    """Create a placeholder element for slides with no detected content"""
+    return {
+        "id": "slide_area",
+        "type": "placeholder", 
+        "text": "",
+        "bbox": [0, 0, ORIG_W, ORIG_H],
+        "confidence": 1.0,
+        "source": "fallback"
+    }
+
+def _ocr_enabled() -> bool:
+    """Check if OCR is enabled in configuration"""
+    try:
+        from ...core.config import settings
+        return settings.OCR_PROVIDER.lower() in ["easyocr", "google"]
+    except:
+        return True
+
+def _extract_with_ocr(slide_png: Path) -> List[Dict[str, Any]]:
+    """Extract elements using configured OCR provider"""
+    try:
+        from ...services.provider_factory import extract_elements_from_pages
+        
+        # Extract elements using configured OCR provider
+        elements_data = extract_elements_from_pages([str(slide_png)])
+        
+        if elements_data and elements_data[0]:
+            logger.info(f"OCR extracted {len(elements_data[0])} elements from {slide_png}")
+            return elements_data[0]
+        else:
+            logger.warning(f"OCR returned no elements for {slide_png}")
+            return []
+            
+    except Exception as e:
+        logger.error(f"OCR extraction failed for {slide_png}: {e}")
+        raise
+
+def _extract_from_vector_layers(slide_png: Path) -> List[Dict[str, Any]]:
+    """Extract elements from vector layers (placeholder for future implementation)"""
+    # TODO: Implement vector layer extraction for PPTX files
+    return []
+
+def build_slide_elements(slide_png: Path) -> List[Dict[str, Any]]:
+    """Build slide elements with fallback guarantees"""
+    elements: List[Dict[str, Any]] = []
+    
+    # Try vector layer extraction first
+    elements += _extract_from_vector_layers(slide_png)
+    
+    # If no elements and OCR is enabled, try OCR
+    if not elements and _ocr_enabled():
+        try:
+            elements += _extract_with_ocr(slide_png)
+        except Exception as e:
+            logger.warning("OCR failed %s: %s", slide_png, e)
+    
+    # Guarantee at least one element
+    if not elements:
+        elements = [_placeholder_element()]
+        logger.info(f"Using fallback placeholder element for {slide_png}")
+    
+    return elements
+
 # OCR cache for repeated processing of same images
 @lru_cache(maxsize=100)
 def _get_image_hash(image_path: str) -> str:
@@ -215,38 +282,26 @@ class PPTXParser(DocumentParser):
         img.save(image_path)
     
     async def detect_elements(self, slide_image_path: Path) -> List[SlideElement]:
-        """Detect text elements using configured OCR provider"""
+        """Detect text elements using configured OCR provider with fallback guarantees"""
         logger.info(f"Detecting elements in slide: {slide_image_path}")
         
-        try:
-            # Try to use Google Cloud Document AI if configured
-            from ...services.provider_factory import extract_elements_from_pages
-            
-            # Extract elements using configured OCR provider
-            elements_data = extract_elements_from_pages([str(slide_image_path)])
-            
-            if elements_data and elements_data[0]:
-                # Convert to SlideElement objects
-                elements = []
-                for element_data in elements_data[0]:
-                    element = SlideElement(
-                        id=element_data.get("id", f"element_{uuid.uuid4().hex[:8]}"),
-                        type=element_data.get("type", "text"),
-                        bbox=element_data.get("bbox", [0, 0, 100, 50]),
-                        text=element_data.get("text", ""),
-                        confidence=element_data.get("confidence", 0.9)
-                    )
-                    elements.append(element)
-                
-                logger.info(f"Detected {len(elements)} elements using configured OCR provider")
-                return elements
-            
-        except Exception as e:
-            logger.error(f"Failed to use configured OCR provider: {e}")
-            # Return empty elements instead of falling back to EasyOCR to avoid PIL issues
-            return []
+        # Use the new build_slide_elements function with fallback guarantees
+        elements_data = build_slide_elements(slide_image_path)
         
-        # EasyOCR fallback removed to avoid PIL issues
+        # Convert to SlideElement objects
+        elements = []
+        for element_data in elements_data:
+            element = SlideElement(
+                id=element_data.get("id", f"element_{uuid.uuid4().hex[:8]}"),
+                type=element_data.get("type", "text"),
+                bbox=element_data.get("bbox", [0, 0, 100, 50]),
+                text=element_data.get("text", ""),
+                confidence=element_data.get("confidence", 0.9)
+            )
+            elements.append(element)
+        
+        logger.info(f"Detected {len(elements)} elements for slide: {slide_image_path}")
+        return elements
     
     async def _detect_elements_easyocr(self, slide_image_path: Path) -> List[SlideElement]:
         """Detect text elements using EasyOCR (fallback) with caching"""
@@ -419,38 +474,26 @@ class PDFParser(DocumentParser):
         return slides
     
     async def detect_elements(self, slide_image_path: Path) -> List[SlideElement]:
-        """Detect text elements using configured OCR provider"""
+        """Detect text elements using configured OCR provider with fallback guarantees"""
         logger.info(f"Detecting elements in page: {slide_image_path}")
         
-        try:
-            # Try to use Google Cloud Document AI if configured
-            from ...services.provider_factory import extract_elements_from_pages
-            
-            # Extract elements using configured OCR provider
-            elements_data = extract_elements_from_pages([str(slide_image_path)])
-            
-            if elements_data and elements_data[0]:
-                # Convert to SlideElement objects
-                elements = []
-                for element_data in elements_data[0]:
-                    element = SlideElement(
-                        id=element_data.get("id", f"element_{uuid.uuid4().hex[:8]}"),
-                        type=element_data.get("type", "text"),
-                        bbox=element_data.get("bbox", [0, 0, 100, 50]),
-                        text=element_data.get("text", ""),
-                        confidence=element_data.get("confidence", 0.9)
-                    )
-                    elements.append(element)
-                
-                logger.info(f"Detected {len(elements)} elements using configured OCR provider")
-                return elements
-            
-        except Exception as e:
-            logger.error(f"Failed to use configured OCR provider: {e}")
-            # Return empty elements instead of falling back to EasyOCR to avoid PIL issues
-            return []
+        # Use the new build_slide_elements function with fallback guarantees
+        elements_data = build_slide_elements(slide_image_path)
         
-        # EasyOCR fallback removed to avoid PIL issues
+        # Convert to SlideElement objects
+        elements = []
+        for element_data in elements_data:
+            element = SlideElement(
+                id=element_data.get("id", f"element_{uuid.uuid4().hex[:8]}"),
+                type=element_data.get("type", "text"),
+                bbox=element_data.get("bbox", [0, 0, 100, 50]),
+                text=element_data.get("text", ""),
+                confidence=element_data.get("confidence", 0.9)
+            )
+            elements.append(element)
+        
+        logger.info(f"Detected {len(elements)} elements for page: {slide_image_path}")
+        return elements
     
     async def _detect_elements_easyocr(self, slide_image_path: Path) -> List[SlideElement]:
         """Detect text elements using EasyOCR (fallback) with caching"""
