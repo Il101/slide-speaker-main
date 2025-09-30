@@ -1,11 +1,133 @@
 """Sprint 2: AI content generation service"""
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
+import json
+import subprocess
+from pathlib import Path
 
 from ...core.exceptions import AIGenerationError
 from ...core.config import settings
 
 logger = logging.getLogger(__name__)
+
+def _probe_audio_duration(audio_path: str) -> float:
+    """Get audio duration using ffprobe"""
+    try:
+        # Handle both absolute and relative paths
+        if audio_path.startswith("/"):
+            full_path = audio_path
+        else:
+            full_path = str(settings.DATA_DIR / audio_path.lstrip("/"))
+        
+        result = subprocess.run([
+            "ffprobe", "-v", "quiet", "-show_entries", "format=duration",
+            "-of", "csv=p=0", full_path
+        ], capture_output=True, text=True, timeout=10)
+        
+        if result.returncode == 0:
+            duration = float(result.stdout.strip())
+            logger.debug(f"Audio duration for {audio_path}: {duration}s")
+            return duration
+        else:
+            logger.warning(f"ffprobe failed for {audio_path}: {result.stderr}")
+            return 5.0  # Default duration
+    except Exception as e:
+        logger.warning(f"Could not probe audio duration for {audio_path}: {e}")
+        return 5.0  # Default duration
+
+def _normalize_cues(cues: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Normalize cues to ensure proper timing and remove overlaps"""
+    if not cues:
+        return []
+    
+    # Sort by start time
+    sorted_cues = sorted(cues, key=lambda c: c.get("t0", 0))
+    
+    normalized = []
+    for i, cue in enumerate(sorted_cues):
+        # Ensure t1 > t0
+        if cue.get("t1", 0) <= cue.get("t0", 0):
+            cue["t1"] = cue["t0"] + 0.5
+        
+        # Avoid overlaps with previous cue
+        if i > 0 and cue.get("t0", 0) < normalized[-1].get("t1", 0):
+            cue["t0"] = normalized[-1]["t1"] + 0.1
+        
+        normalized.append(cue)
+    
+    return normalized
+
+def build_cues_for_slide(notes: List[Dict], tts: Dict, elements_by_id: Dict[str, Dict]) -> List[Dict]:
+    """Build cues from notes and TTS timing information"""
+    sents = tts.get("sentences", [])
+    cues = []
+    
+    for note, s in zip(notes, sents):
+        target = note.get("targetId") or note.get("target")
+        
+        # Skip if target element not found
+        if isinstance(target, str):
+            if target not in elements_by_id:
+                logger.warning(f"Target element {target} not found in elements_by_id")
+                continue
+            tgt = {"targetId": target}
+        elif isinstance(target, dict):
+            tgt = {"target": target}  # table_region etc.
+        else:
+            logger.warning(f"Invalid target in note: {target}")
+            continue
+        
+        # Create highlight cue
+        highlight_cue = {
+            "t0": float(s["t0"]),
+            "t1": float(s["t1"]),
+            "action": "highlight",
+            **tgt
+        }
+        cues.append(highlight_cue)
+        
+        # Create laser move cue after highlight
+        laser_cue = {
+            "t0": float(s["t1"]),
+            "t1": float(s["t1"]) + 0.3,
+            "action": "laser_move",
+            **tgt
+        }
+        cues.append(laser_cue)
+    
+    return _normalize_cues(cues)
+
+def inject_slide_changes(manifest: Dict[str, Any]) -> None:
+    """Inject slide_change events into timeline"""
+    timeline = []
+    t = 0.0
+    
+    for i, slide in enumerate(manifest.get("slides", []), start=1):
+        # Add slide change event
+        timeline.append({
+            "t0": round(t, 3),
+            "action": "slide_change",
+            "slide": i
+        })
+        
+        # Calculate slide end time
+        end = t
+        
+        # Check cues for end time
+        if slide.get("cues"):
+            cue_end = max(c.get("t1", 0) for c in slide["cues"] if "t1" in c)
+            end = max(end, cue_end)
+        
+        # Check audio for end time
+        if slide.get("audio"):
+            audio_duration = _probe_audio_duration(slide["audio"])
+            end = max(end, t + audio_duration)
+        
+        # Move to next slide
+        t = end
+    
+    manifest["timeline"] = timeline
+    logger.info(f"Injected {len(timeline)} slide_change events into timeline")
 
 class AIGenerator:
     """AI content generation service"""

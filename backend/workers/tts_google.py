@@ -121,73 +121,26 @@ class GoogleTTSWorker:
             rate = rate or self.speaking_rate
             pitch = pitch or self.pitch
             
-            # Split texts into sentences
+            # Combine all texts into single input
+            input_text = "\n".join(texts)
+            
+            # Generate MP3 directly using Google Cloud TTS
+            mp3_path = self._synthesize_to_mp3(input_text, voice, rate, pitch)
+            
+            # Estimate sentence timings
             sentences = self._split_into_sentences(texts)
-            
-            if not sentences:
-                raise ValueError("No sentences found in texts")
-            
-            # Generate audio for each sentence
-            audio_segments = []
-            sentence_timings = []
-            current_time = 0.0
-            
-            for i, sentence in enumerate(sentences):
-                logger.info(f"Synthesizing sentence {i+1}/{len(sentences)}: {sentence[:50]}...")
-                
-                # Generate audio for this sentence
-                audio_data = self._synthesize_sentence(sentence, voice, rate, pitch)
-                
-                # Calculate duration
-                duration = self._get_audio_duration(audio_data)
-                
-                # Store timing information
-                timing_info = {
-                    "text": sentence.strip(),
-                    "t0": current_time,
-                    "t1": current_time + duration,
-                    "duration": duration,
-                    "index": i
-                }
-                
-                audio_segments.append(audio_data)
-                sentence_timings.append(timing_info)
-                
-                current_time += duration
-                
-                # Add small pause between sentences
-                if i < len(sentences) - 1:
-                    pause_duration = 0.3  # 300ms pause
-                    current_time += pause_duration
-            
-            # Concatenate all audio segments
-            full_audio = self._concatenate_audio_segments(audio_segments)
-            
-            # Save audio file
-            audio_filename = f"synthesized_{uuid.uuid4().hex[:8]}.wav"
-            audio_path = Path(f"/tmp/audio/{audio_filename}")
-            audio_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            with open(audio_path, 'wb') as f:
-                f.write(full_audio)
+            sentence_timings = self._approx_sentence_timings(sentences, mp3_path)
             
             # Create TtsWords.json structure
             tts_words = {
-                "audio": str(audio_path),
-                "sentences": [
-                    {
-                        "text": timing["text"],
-                        "t0": timing["t0"],
-                        "t1": timing["t1"]
-                    }
-                    for timing in sentence_timings
-                ],
+                "audio": str(mp3_path),
+                "sentences": sentence_timings,
                 "words": []  # Word-level timing would require SSML with marks
             }
             
-            logger.info(f"Generated TTS: {len(full_audio)} bytes, {len(sentence_timings)} sentences, {current_time:.2f}s total")
+            logger.info(f"Generated MP3 TTS: {mp3_path}, {len(sentence_timings)} sentences")
             
-            return str(audio_path), tts_words
+            return str(mp3_path), tts_words
             
         except Exception as e:
             logger.error(f"Error synthesizing slide text: {e}")
@@ -195,25 +148,25 @@ class GoogleTTSWorker:
             logger.info("Falling back to mock TTS")
             return self._synthesize_mock(texts)
     
-    def _synthesize_sentence(self, sentence: str, voice: str, rate: float, pitch: float) -> bytes:
-        """Synthesize audio for a single sentence"""
+    def _synthesize_to_mp3(self, text: str, voice: str, rate: float, pitch: float) -> str:
+        """Synthesize text directly to MP3 file"""
         try:
             # Prepare synthesis input
-            synthesis_input = texttospeech.SynthesisInput(text=sentence)
+            synthesis_input = texttospeech.SynthesisInput(text=text)
             
             # Configure voice
             voice_config = texttospeech.VoiceSelectionParams(
-                language_code=voice.split('-')[0] + '-' + voice.split('-')[1],  # Extract language code
+                language_code=voice.split('-')[0] + '-' + voice.split('-')[1],
                 name=voice,
                 ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
             )
             
-            # Configure audio
+            # Configure audio for MP3 output
             audio_config = texttospeech.AudioConfig(
-                audio_encoding=texttospeech.AudioEncoding.LINEAR16,
+                audio_encoding=texttospeech.AudioEncoding.MP3,
                 speaking_rate=rate,
                 pitch=pitch,
-                sample_rate_hertz=22050
+                sample_rate_hertz=24000
             )
             
             # Perform synthesis
@@ -223,12 +176,79 @@ class GoogleTTSWorker:
                 audio_config=audio_config
             )
             
-            return response.audio_content
+            # Save MP3 file
+            mp3_filename = f"synthesized_{uuid.uuid4().hex[:8]}.mp3"
+            mp3_path = Path(f"/tmp/audio/{mp3_filename}")
+            mp3_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            with open(mp3_path, 'wb') as f:
+                f.write(response.audio_content)
+            
+            logger.info(f"Generated MP3 file: {mp3_path}")
+            return str(mp3_path)
             
         except Exception as e:
-            logger.error(f"Error synthesizing sentence: {e}")
-            # Fallback to mock audio
-            return self._generate_mock_audio(sentence)
+            logger.error(f"Error synthesizing to MP3: {e}")
+            raise
+    
+    def _approx_sentence_timings(self, sentences: List[str], mp3_path: str) -> List[Dict]:
+        """Estimate sentence timings for MP3 file"""
+        try:
+            # Get total duration
+            total_duration = self._get_mp3_duration(mp3_path)
+            
+            # Estimate timing based on text length
+            total_chars = sum(len(s) for s in sentences)
+            timings = []
+            current_time = 0.0
+            
+            for sentence in sentences:
+                # Estimate duration based on character count
+                char_ratio = len(sentence) / total_chars if total_chars > 0 else 1.0 / len(sentences)
+                duration = total_duration * char_ratio
+                
+                timing = {
+                    "text": sentence.strip(),
+                    "t0": current_time,
+                    "t1": current_time + duration
+                }
+                timings.append(timing)
+                current_time += duration
+            
+            return timings
+            
+        except Exception as e:
+            logger.error(f"Error estimating sentence timings: {e}")
+            # Fallback to simple timing
+            timings = []
+            current_time = 0.0
+            for sentence in sentences:
+                duration = max(1.0, len(sentence) * 0.1)  # Rough estimate
+                timings.append({
+                    "text": sentence.strip(),
+                    "t0": current_time,
+                    "t1": current_time + duration
+                })
+                current_time += duration
+            return timings
+    
+    def _get_mp3_duration(self, mp3_path: str) -> float:
+        """Get MP3 file duration using ffprobe"""
+        try:
+            import subprocess
+            result = subprocess.run([
+                "ffprobe", "-v", "quiet", "-show_entries", "format=duration",
+                "-of", "csv=p=0", mp3_path
+            ], capture_output=True, text=True, timeout=10)
+            
+            if result.returncode == 0:
+                return float(result.stdout.strip())
+            else:
+                logger.warning(f"ffprobe failed for {mp3_path}: {result.stderr}")
+                return 5.0  # Default duration
+        except Exception as e:
+            logger.warning(f"Could not get MP3 duration for {mp3_path}: {e}")
+            return 5.0  # Default duration
     
     def _split_into_sentences(self, texts: List[str]) -> List[str]:
         """Split texts into sentences for timing analysis"""
@@ -337,7 +357,7 @@ class GoogleTTSWorker:
         return wav_header + audio_data
     
     def _synthesize_mock(self, texts: List[str]) -> Tuple[str, Dict]:
-        """Mock TTS synthesis for testing"""
+        """Mock TTS synthesis for testing with MP3 output"""
         try:
             # Combine all texts
             full_text = " ".join(texts)
@@ -364,20 +384,20 @@ class GoogleTTSWorker:
                 sentence_timings.append(timing_info)
                 current_time += duration + 0.3  # Add pause
             
-            # Generate mock audio
-            mock_audio = self._generate_mock_audio(full_text)
+            # Generate mock MP3 file
+            mock_mp3 = self._generate_mock_mp3(full_text)
             
-            # Save mock audio file
-            audio_filename = f"mock_{uuid.uuid4().hex[:8]}.wav"
-            audio_path = Path(f"/tmp/audio/{audio_filename}")
-            audio_path.parent.mkdir(parents=True, exist_ok=True)
+            # Save mock MP3 file
+            mp3_filename = f"mock_{uuid.uuid4().hex[:8]}.mp3"
+            mp3_path = Path(f"/tmp/audio/{mp3_filename}")
+            mp3_path.parent.mkdir(parents=True, exist_ok=True)
             
-            with open(audio_path, 'wb') as f:
-                f.write(mock_audio)
+            with open(mp3_path, 'wb') as f:
+                f.write(mock_mp3)
             
             # Create TtsWords.json structure
             tts_words = {
-                "audio": str(audio_path),
+                "audio": str(mp3_path),
                 "sentences": [
                     {
                         "text": timing["text"],
@@ -389,13 +409,29 @@ class GoogleTTSWorker:
                 "words": []
             }
             
-            logger.info(f"Mock TTS generated: {len(mock_audio)} bytes, {len(sentence_timings)} sentences, {current_time:.2f}s total")
+            logger.info(f"Mock TTS generated MP3: {len(mock_mp3)} bytes, {len(sentence_timings)} sentences, {current_time:.2f}s total")
             
-            return str(audio_path), tts_words
+            return str(mp3_path), tts_words
             
         except Exception as e:
             logger.error(f"Error in mock TTS: {e}")
             raise
+    
+    def _generate_mock_mp3(self, text: str) -> bytes:
+        """Generate mock MP3 data for testing"""
+        # Create a simple MP3 file with silence
+        duration = max(1.0, len(text) * 0.1)  # Rough estimate: 0.1s per character
+        sample_rate = 24000
+        samples = int(duration * sample_rate)
+        
+        # Generate silence (zeros)
+        audio_data = struct.pack(f'{samples}h', *[0] * samples)
+        
+        # Create minimal MP3 header (simplified)
+        # In real implementation, you'd use proper MP3 encoding
+        mp3_header = b'\xff\xfb\x90\x00'  # Minimal MP3 frame header
+        
+        return mp3_header + audio_data
 
 # Utility functions for integration
 def synthesize_slide_text_google(texts: List[str], voice: str = None, 
