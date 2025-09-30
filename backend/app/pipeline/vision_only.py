@@ -88,7 +88,7 @@ class VisionPipeline(BasePipeline):
                     lecture_title=lecture_title,
                     prev_summary=prev_summary,
                     provider=settings.LLM_PROVIDER,
-                    model=getattr(settings, 'VISION_MODEL', 'gpt-4o-mini')
+                    model=getattr(settings, 'VISION_MODEL', 'x-ai/grok-4-fast:free')
                 )
                 
                 # Update slide with vision results
