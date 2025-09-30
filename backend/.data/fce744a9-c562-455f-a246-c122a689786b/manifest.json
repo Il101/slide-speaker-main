@@ -1,0 +1,88 @@
+{
+  "slides": [
+    {
+      "id": 1,
+      "image": "/assets/fce744a9-c562-455f-a246-c122a689786b/slides/001.png",
+      "audio": "/assets/fce744a9-c562-455f-a246-c122a689786b/audio/001.mp3",
+      "elements": [
+        {
+          "id": "slide_area",
+          "type": "placeholder",
+          "bbox": [
+            0,
+            0,
+            1190,
+            1684
+          ],
+          "text": "Slide content area",
+          "confidence": 1.0
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 2,
+      "image": "/assets/fce744a9-c562-455f-a246-c122a689786b/slides/002.png",
+      "audio": "/assets/fce744a9-c562-455f-a246-c122a689786b/audio/002.mp3",
+      "elements": [
+        {
+          "id": "slide_area",
+          "type": "placeholder",
+          "bbox": [
+            0,
+            0,
+            1190,
+            1684
+          ],
+          "text": "Slide content area",
+          "confidence": 1.0
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    }
+  ],
+  "timeline": {
+    "rules": [
+      {
+        "action_type": "highlight",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 1,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "underline",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 2,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "laser_move",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 3,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      }
+    ],
+    "default_duration": 2.0,
+    "transition_duration": 0.5,
+    "min_highlight_duration": 0.8,
+    "min_gap": 0.2,
+    "max_total_duration": 90.0,
+    "smoothness_enabled": true,
+    "slide_change_events": []
+  },
+  "metadata": {
+    "source_file": ".data/fce744a9-c562-455f-a246-c122a689786b/test.pdf",
+    "parser": "pdf",
+    "total_slides": 2
+  }
+}

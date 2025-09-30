@@ -1,0 +1,406 @@
+{
+  "slides": [
+    {
+      "id": 1,
+      "image": "/assets/c71814ab-067a-44f1-94f8-05ea4e8c2aad/slides/001.png",
+      "audio": "/assets/c71814ab-067a-44f1-94f8-05ea4e8c2aad/audio/001.mp3",
+      "elements": [
+        {
+          "id": "element_d8d92994",
+          "type": "text",
+          "bbox": [
+            197,
+            155,
+            580,
+            64
+          ],
+          "text": "Welcome to Slide Speaker",
+          "confidence": 0.9226610451693824
+        },
+        {
+          "id": "element_014f8b79",
+          "type": "text",
+          "bbox": [
+            198,
+            264,
+            562,
+            52
+          ],
+          "text": "Al-powered presentation converter",
+          "confidence": 0.9800097544129629
+        },
+        {
+          "id": "element_0cc24d21",
+          "type": "text",
+          "bbox": [
+            197,
+            369,
+            420,
+            44
+          ],
+          "text": "This is a test PDF for Sprint 1",
+          "confidence": 0.6916364318427425
+        }
+      ],
+      "cues": [
+        {
+          "cue_id": "cue_6d80167c",
+          "t0": 0.5,
+          "t1": 2.5,
+          "action": "highlight",
+          "bbox": [
+            197,
+            155,
+            580,
+            64
+          ],
+          "to": null,
+          "element_id": "element_d8d92994"
+        },
+        {
+          "cue_id": "cue_dc1bee29",
+          "t0": 1.0,
+          "t1": 3.0,
+          "action": "underline",
+          "bbox": [
+            197,
+            215,
+            580,
+            4
+          ],
+          "to": null,
+          "element_id": "element_d8d92994"
+        },
+        {
+          "cue_id": "cue_79025899",
+          "t0": 2.5,
+          "t1": 3.0,
+          "action": "laser_move",
+          "bbox": null,
+          "to": [
+            479,
+            290
+          ],
+          "element_id": null
+        },
+        {
+          "cue_id": "cue_d66ec390",
+          "t0": 3.5,
+          "t1": 5.5,
+          "action": "highlight",
+          "bbox": [
+            198,
+            264,
+            562,
+            52
+          ],
+          "to": null,
+          "element_id": "element_014f8b79"
+        },
+        {
+          "cue_id": "cue_a0415150",
+          "t0": 4.0,
+          "t1": 6.0,
+          "action": "underline",
+          "bbox": [
+            198,
+            312,
+            562,
+            4
+          ],
+          "to": null,
+          "element_id": "element_014f8b79"
+        },
+        {
+          "cue_id": "cue_0771c6fe",
+          "t0": 5.5,
+          "t1": 6.0,
+          "action": "laser_move",
+          "bbox": null,
+          "to": [
+            407,
+            391
+          ],
+          "element_id": null
+        },
+        {
+          "cue_id": "cue_1d3baf7e",
+          "t0": 6.5,
+          "t1": 8.5,
+          "action": "highlight",
+          "bbox": [
+            197,
+            369,
+            420,
+            44
+          ],
+          "to": null,
+          "element_id": "element_0cc24d21"
+        },
+        {
+          "cue_id": "cue_2822b86d",
+          "t0": 7.0,
+          "t1": 9.0,
+          "action": "underline",
+          "bbox": [
+            197,
+            409,
+            420,
+            4
+          ],
+          "to": null,
+          "element_id": "element_0cc24d21"
+        }
+      ],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 2,
+      "image": "/assets/c71814ab-067a-44f1-94f8-05ea4e8c2aad/slides/002.png",
+      "audio": "/assets/c71814ab-067a-44f1-94f8-05ea4e8c2aad/audio/002.mp3",
+      "elements": [
+        {
+          "id": "element_064cad42",
+          "type": "text",
+          "bbox": [
+            198,
+            158,
+            196,
+            50
+          ],
+          "text": "Features",
+          "confidence": 0.9999927085841969
+        },
+        {
+          "id": "element_ac71701d",
+          "type": "text",
+          "bbox": [
+            197,
+            267,
+            408,
+            42
+          ],
+          "text": "Automatic slide detection",
+          "confidence": 0.997497210497041
+        },
+        {
+          "id": "element_6db5cf96",
+          "type": "text",
+          "bbox": [
+            198,
+            370,
+            357,
+            43
+          ],
+          "text": "Visual effects generation",
+          "confidence": 0.8429112424458179
+        },
+        {
+          "id": "element_a0d18037",
+          "type": "text",
+          "bbox": [
+            199,
+            471,
+            294,
+            42
+          ],
+          "text": "Export to МP4 video",
+          "confidence": 0.7416777575816406
+        }
+      ],
+      "cues": [
+        {
+          "cue_id": "cue_4bacc69c",
+          "t0": 0.5,
+          "t1": 2.5,
+          "action": "highlight",
+          "bbox": [
+            198,
+            158,
+            196,
+            50
+          ],
+          "to": null,
+          "element_id": "element_064cad42"
+        },
+        {
+          "cue_id": "cue_6108d10e",
+          "t0": 1.0,
+          "t1": 3.0,
+          "action": "underline",
+          "bbox": [
+            198,
+            204,
+            196,
+            4
+          ],
+          "to": null,
+          "element_id": "element_064cad42"
+        },
+        {
+          "cue_id": "cue_16789270",
+          "t0": 2.5,
+          "t1": 3.0,
+          "action": "laser_move",
+          "bbox": null,
+          "to": [
+            401,
+            288
+          ],
+          "element_id": null
+        },
+        {
+          "cue_id": "cue_de7b5f17",
+          "t0": 3.5,
+          "t1": 5.5,
+          "action": "highlight",
+          "bbox": [
+            197,
+            267,
+            408,
+            42
+          ],
+          "to": null,
+          "element_id": "element_ac71701d"
+        },
+        {
+          "cue_id": "cue_353cb22f",
+          "t0": 4.0,
+          "t1": 6.0,
+          "action": "underline",
+          "bbox": [
+            197,
+            305,
+            408,
+            4
+          ],
+          "to": null,
+          "element_id": "element_ac71701d"
+        },
+        {
+          "cue_id": "cue_d6021b1a",
+          "t0": 5.5,
+          "t1": 6.0,
+          "action": "laser_move",
+          "bbox": null,
+          "to": [
+            376,
+            391
+          ],
+          "element_id": null
+        },
+        {
+          "cue_id": "cue_61ab8d38",
+          "t0": 6.5,
+          "t1": 8.5,
+          "action": "highlight",
+          "bbox": [
+            198,
+            370,
+            357,
+            43
+          ],
+          "to": null,
+          "element_id": "element_6db5cf96"
+        },
+        {
+          "cue_id": "cue_bb1e7315",
+          "t0": 7.0,
+          "t1": 9.0,
+          "action": "underline",
+          "bbox": [
+            198,
+            409,
+            357,
+            4
+          ],
+          "to": null,
+          "element_id": "element_6db5cf96"
+        },
+        {
+          "cue_id": "cue_47757c84",
+          "t0": 8.5,
+          "t1": 9.0,
+          "action": "laser_move",
+          "bbox": null,
+          "to": [
+            346,
+            492
+          ],
+          "element_id": null
+        },
+        {
+          "cue_id": "cue_e214a9cd",
+          "t0": 9.5,
+          "t1": 11.5,
+          "action": "highlight",
+          "bbox": [
+            199,
+            471,
+            294,
+            42
+          ],
+          "to": null,
+          "element_id": "element_a0d18037"
+        },
+        {
+          "cue_id": "cue_3c98451a",
+          "t0": 10.0,
+          "t1": 12.0,
+          "action": "underline",
+          "bbox": [
+            199,
+            509,
+            294,
+            4
+          ],
+          "to": null,
+          "element_id": "element_a0d18037"
+        }
+      ],
+      "speaker_notes": null,
+      "duration": null
+    }
+  ],
+  "timeline": {
+    "rules": [
+      {
+        "action_type": "highlight",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 1,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "underline",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 2,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "laser_move",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 3,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      }
+    ],
+    "default_duration": 2.0,
+    "transition_duration": 0.5,
+    "min_highlight_duration": 0.8,
+    "min_gap": 0.2,
+    "max_total_duration": 90.0,
+    "smoothness_enabled": true,
+    "slide_change_events": []
+  },
+  "metadata": {
+    "source_file": ".data/c71814ab-067a-44f1-94f8-05ea4e8c2aad/test.pdf",
+    "parser": "pdf",
+    "total_slides": 2
+  }
+}

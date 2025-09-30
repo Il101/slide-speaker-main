@@ -1,0 +1,7 @@
+<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1920" height="1080" fill="#ffffff"/>
+  <text x="960" y="200" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" fill="#333333">Features</text>
+  <text x="960" y="350" font-family="Arial, sans-serif" font-size="48" text-anchor="middle" fill="#666666">Automatic slide detection</text>
+  <text x="960" y="450" font-family="Arial, sans-serif" font-size="48" text-anchor="middle" fill="#666666">Natural voice synthesis</text>
+  <text x="960" y="550" font-family="Arial, sans-serif" font-size="48" text-anchor="middle" fill="#666666">Visual effects synchronization</text>
+</svg>

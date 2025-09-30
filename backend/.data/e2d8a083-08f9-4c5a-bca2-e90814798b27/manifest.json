@@ -1,0 +1,158 @@
+{
+  "slides": [
+    {
+      "id": 1,
+      "image": "/assets/e2d8a083-08f9-4c5a-bca2-e90814798b27/slides/001.png",
+      "audio": "/assets/e2d8a083-08f9-4c5a-bca2-e90814798b27/audio/001.mp3",
+      "elements": [
+        {
+          "id": "slide_area",
+          "type": "placeholder",
+          "bbox": [
+            0,
+            0,
+            1920,
+            1080
+          ],
+          "text": "Slide content area",
+          "confidence": 1.0
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "This slide introduces the main topic, highlighting the key objective of the presentation.",
+          "targetId": "heading1"
+        },
+        {
+          "text": "The table summarizes performance metrics, showing growth in sales from Q1 to Q4.",
+          "target": {
+            "type": "table_region",
+            "tableId": "data_table",
+            "cells": [
+              "r1c1",
+              "r2c2",
+              "r3c3",
+              "r4c4"
+            ]
+          }
+        },
+        {
+          "text": "Focus on the chart to illustrate trends, emphasizing the upward trajectory in user engagement.",
+          "targetId": "chart1"
+        }
+      ],
+      "duration": null
+    },
+    {
+      "id": 2,
+      "image": "/assets/e2d8a083-08f9-4c5a-bca2-e90814798b27/slides/002.png",
+      "audio": "/assets/e2d8a083-08f9-4c5a-bca2-e90814798b27/audio/002.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            959,
+            435,
+            78,
+            7
+          ],
+          "text": "Text segment 0-16",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "This paragraph introduces the core concept of the presentation, highlighting the main objectives and benefits.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Focus on the key details in the text segment, such as the challenges addressed and proposed solutions, to engage the audience.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Emphasize the importance of the outlined steps in elem_1 to guide the audience through the process effectively.",
+          "targetId": "elem_1"
+        }
+      ],
+      "duration": 2.2566893424036283
+    },
+    {
+      "id": 3,
+      "image": "/assets/e2d8a083-08f9-4c5a-bca2-e90814798b27/slides/003.png",
+      "audio": "/assets/e2d8a083-08f9-4c5a-bca2-e90814798b27/audio/003.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            960,
+            435,
+            50,
+            7
+          ],
+          "text": "Text segment 0-11",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "This paragraph introduces the core concepts of the topic, highlighting key segments from 0 to 11 that build the foundational argument.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Emphasize the progression in text segments 0-11, as they logically connect ideas to support the slide's main thesis.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Draw attention to specific details within segments 5-8 of elem_1, which provide critical examples illustrating the concept.",
+          "targetId": "elem_1"
+        }
+      ],
+      "duration": 2.2142403628117915
+    }
+  ],
+  "timeline": {
+    "rules": [
+      {
+        "action_type": "highlight",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 1,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "underline",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 2,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "laser_move",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 3,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      }
+    ],
+    "default_duration": 2.0,
+    "transition_duration": 0.5,
+    "min_highlight_duration": 0.8,
+    "min_gap": 0.2,
+    "max_total_duration": 90.0,
+    "smoothness_enabled": true,
+    "slide_change_events": []
+  },
+  "metadata": {
+    "source_file": ".data/e2d8a083-08f9-4c5a-bca2-e90814798b27/test_presentation.pptx",
+    "parser": "pptx",
+    "total_slides": 3
+  }
+}

@@ -1,0 +1,2594 @@
+{
+  "slides": [
+    {
+      "id": 1,
+      "image": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/slides/001.png",
+      "audio": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/audio/001.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            91,
+            36,
+            239,
+            74
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            225,
+            216,
+            959,
+            42
+          ],
+          "text": "Text segment 22-59",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            275,
+            305,
+            246,
+            30
+          ],
+          "text": "Text segment 59-71",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            163,
+            689,
+            102,
+            37
+          ],
+          "text": "Text segment 71-91",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            181,
+            727,
+            66,
+            15
+          ],
+          "text": "Text segment 91-104",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            434,
+            739,
+            13,
+            13
+          ],
+          "text": "Text segment 104-106",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            675,
+            664,
+            101,
+            14
+          ],
+          "text": "Text segment 106-124",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            693,
+            680,
+            68,
+            14
+          ],
+          "text": "Text segment 124-137",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Introduce the main topic by highlighting the overview in the first paragraph, emphasizing its relevance to the audience.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Explain the core challenges outlined in the second and third segments, using examples to illustrate how they impact the process.",
+          "targetId": "elem_2"
+        },
+        {
+          "text": "Discuss the proposed solutions in segments four through six, stressing their benefits and implementation steps for clarity.",
+          "targetId": "elem_4"
+        },
+        {
+          "text": "Conclude with the key takeaways from the final segments, reinforcing the call to action for the audience.",
+          "targetId": "elem_8"
+        }
+      ],
+      "duration": 36.341315192743764
+    },
+    {
+      "id": 2,
+      "image": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/slides/002.png",
+      "audio": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/audio/002.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            37,
+            238,
+            74
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            363,
+            92,
+            714,
+            48
+          ],
+          "text": "Text segment 22-44",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            95,
+            217,
+            984,
+            122
+          ],
+          "text": "Text segment 44-141",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            97,
+            380,
+            936,
+            40
+          ],
+          "text": "Text segment 141-188",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            463,
+            1010,
+            39
+          ],
+          "text": "Text segment 188-237",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            129,
+            559,
+            20,
+            6
+          ],
+          "text": "Text segment 237-239",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            95,
+            544,
+            975,
+            40
+          ],
+          "text": "Text segment 239-288",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            94,
+            622,
+            1117,
+            206
+          ],
+          "text": "Text segment 288-429",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            95,
+            869,
+            1005,
+            40
+          ],
+          "text": "Text segment 429-481",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            97,
+            948,
+            466,
+            43
+          ],
+          "text": "Text segment 481-504",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Begin by outlining the key objectives in the initial text segment to set the context for the audience.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Highlight the core challenges discussed in this longer segment, emphasizing how they impact the overall strategy.",
+          "targetId": "elem_3"
+        },
+        {
+          "text": "Conclude with the recommendations from the final segments, stressing actionable steps for implementation.",
+          "targetId": "elem_8"
+        }
+      ],
+      "duration": 24.226757369614514
+    },
+    {
+      "id": 3,
+      "image": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/slides/003.png",
+      "audio": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/audio/003.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            93,
+            37,
+            237,
+            74
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            381,
+            164,
+            680,
+            47
+          ],
+          "text": "Text segment 22-44",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            141,
+            320,
+            670,
+            152
+          ],
+          "text": "Text segment 44-134",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            140,
+            548,
+            669,
+            159
+          ],
+          "text": "Text segment 134-228",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            141,
+            777,
+            673,
+            39
+          ],
+          "text": "Text segment 228-262",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            141,
+            839,
+            442,
+            32
+          ],
+          "text": "Text segment 262-286",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            143,
+            893,
+            591,
+            45
+          ],
+          "text": "Text segment 286-318",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Introduce the core concept by highlighting the initial overview in the first segment, setting the stage for the audience's understanding of the topic.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Explain the progression of ideas from segments two and three, emphasizing how they build on each other to illustrate key challenges and solutions.",
+          "targetId": "elem_2"
+        },
+        {
+          "text": "Summarize the detailed analysis in the longer segments four through six, pointing out critical data points that support the main argument.",
+          "targetId": "elem_4"
+        },
+        {
+          "text": "Conclude with the final insights from segment seven, reinforcing the call to action and its implications for the audience.",
+          "targetId": "elem_7"
+        }
+      ],
+      "duration": 40.76462585034014
+    },
+    {
+      "id": 4,
+      "image": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/slides/004.png",
+      "audio": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/audio/004.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            36,
+            237,
+            75
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            236,
+            152,
+            971,
+            60
+          ],
+          "text": "Text segment 22-53",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            77,
+            299,
+            11,
+            9
+          ],
+          "text": "Text segment 53-55",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            132,
+            291,
+            398,
+            27
+          ],
+          "text": "Text segment 55-80",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            78,
+            358,
+            11,
+            9
+          ],
+          "text": "Text segment 80-82",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            133,
+            347,
+            379,
+            37
+          ],
+          "text": "Text segment 82-108",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            77,
+            418,
+            11,
+            9
+          ],
+          "text": "Text segment 108-110",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            129,
+            407,
+            470,
+            36
+          ],
+          "text": "Text segment 110-140",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            77,
+            478,
+            11,
+            9
+          ],
+          "text": "Text segment 140-142",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            130,
+            469,
+            499,
+            82
+          ],
+          "text": "Text segment 142-196",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            78,
+            586,
+            11,
+            9
+          ],
+          "text": "Text segment 196-198",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            128,
+            578,
+            616,
+            33
+          ],
+          "text": "Text segment 198-235",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_13",
+          "type": "paragraph",
+          "bbox": [
+            130,
+            625,
+            118,
+            32
+          ],
+          "text": "Text segment 235-243",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_14",
+          "type": "paragraph",
+          "bbox": [
+            77,
+            744,
+            578,
+            34
+          ],
+          "text": "Text segment 243-277",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_15",
+          "type": "paragraph",
+          "bbox": [
+            78,
+            921,
+            13,
+            11
+          ],
+          "text": "Text segment 277-279",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_16",
+          "type": "paragraph",
+          "bbox": [
+            130,
+            802,
+            554,
+            85
+          ],
+          "text": "Text segment 279-340",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_17",
+          "type": "paragraph",
+          "bbox": [
+            128,
+            915,
+            617,
+            80
+          ],
+          "text": "Text segment 340-420",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_18",
+          "type": "paragraph",
+          "bbox": [
+            973,
+            269,
+            95,
+            13
+          ],
+          "text": "Text segment 420-432",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_19",
+          "type": "paragraph",
+          "bbox": [
+            986,
+            462,
+            104,
+            17
+          ],
+          "text": "Text segment 432-444",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_20",
+          "type": "paragraph",
+          "bbox": [
+            847,
+            480,
+            12,
+            11
+          ],
+          "text": "Text segment 444-446",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_21",
+          "type": "paragraph",
+          "bbox": [
+            1014,
+            578,
+            98,
+            16
+          ],
+          "text": "Text segment 446-459",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_22",
+          "type": "paragraph",
+          "bbox": [
+            971,
+            825,
+            101,
+            16
+          ],
+          "text": "Text segment 459-472",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_23",
+          "type": "paragraph",
+          "bbox": [
+            1255,
+            269,
+            111,
+            15
+          ],
+          "text": "Text segment 472-486",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_24",
+          "type": "paragraph",
+          "bbox": [
+            642,
+            1052,
+            424,
+            18
+          ],
+          "text": "Text segment 486-531",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_25",
+          "type": "paragraph",
+          "bbox": [
+            1170,
+            1015,
+            139,
+            13
+          ],
+          "text": "Text segment 531-548",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_26",
+          "type": "paragraph",
+          "bbox": [
+            1131,
+            1049,
+            196,
+            16
+          ],
+          "text": "Text segment 548-571",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Introduce the main topic by highlighting the key objectives outlined in the initial segments, setting the stage for the discussion.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Emphasize the core challenges and strategies detailed in the middle sections, using examples to illustrate their impact on the project.",
+          "targetId": "elem_10"
+        },
+        {
+          "text": "Conclude with the recommended actions and benefits summarized in the final paragraphs, reinforcing the call to implementation.",
+          "targetId": "elem_26"
+        }
+      ],
+      "duration": 29.158911564625853
+    },
+    {
+      "id": 5,
+      "image": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/slides/005.png",
+      "audio": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/audio/005.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            93,
+            37,
+            237,
+            73
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            56,
+            168,
+            783,
+            39
+          ],
+          "text": "Text segment 22-61",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            74,
+            451,
+            661,
+            33
+          ],
+          "text": "Text segment 61-99",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            442,
+            495,
+            386,
+            39
+          ],
+          "text": "Text segment 99-123",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            72,
+            741,
+            737,
+            33
+          ],
+          "text": "Text segment 123-165",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            1197,
+            157,
+            208,
+            29
+          ],
+          "text": "Text segment 165-178",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            437,
+            922,
+            396,
+            38
+          ],
+          "text": "Text segment 178-202",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            591,
+            998,
+            384,
+            35
+          ],
+          "text": "Text segment 202-225",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            1215,
+            995,
+            101,
+            18
+          ],
+          "text": "Text segment 225-238",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            1215,
+            1021,
+            172,
+            19
+          ],
+          "text": "Text segment 238-257",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            1214,
+            1047,
+            206,
+            20
+          ],
+          "text": "Text segment 257-281",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Introduce the main topic by highlighting the overview in the first segment, setting the context for the audience.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Explain the key challenges outlined in segments 2 through 4, emphasizing how they impact the overall process.",
+          "targetId": "elem_2"
+        },
+        {
+          "text": "Discuss the proposed solutions in segments 5 to 7, noting their benefits and implementation steps.",
+          "targetId": "elem_5"
+        },
+        {
+          "text": "Conclude with the outcomes and next steps from the final segments, reinforcing the call to action.",
+          "targetId": "elem_11"
+        }
+      ],
+      "duration": 33.412335600907035
+    },
+    {
+      "id": 6,
+      "image": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/slides/006.png",
+      "audio": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/audio/006.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            37,
+            238,
+            33
+          ],
+          "text": "Text segment 0-12",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            73,
+            215,
+            39
+          ],
+          "text": "Text segment 12-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            245,
+            180,
+            951,
+            62
+          ],
+          "text": "Text segment 22-52",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            503,
+            294,
+            661,
+            84
+          ],
+          "text": "Text segment 52-118",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            606,
+            458,
+            736,
+            37
+          ],
+          "text": "Text segment 118-162",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            627,
+            603,
+            771,
+            80
+          ],
+          "text": "Text segment 162-241",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            653,
+            790,
+            651,
+            132
+          ],
+          "text": "Text segment 241-353",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            482,
+            966,
+            549,
+            30
+          ],
+          "text": "Text segment 353-385",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            414,
+            1030,
+            214,
+            25
+          ],
+          "text": "Text segment 385-398",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Introduce the topic by highlighting the initial overview in the first paragraph, setting the stage for the audience.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Emphasize the core challenges discussed in the middle section, using examples to illustrate key issues.",
+          "targetId": "elem_3"
+        },
+        {
+          "text": "Summarize the solutions proposed in the later paragraphs, stressing their practical benefits and implementation steps.",
+          "targetId": "elem_7"
+        }
+      ],
+      "duration": 25.710839002267573
+    },
+    {
+      "id": 7,
+      "image": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/slides/007.png",
+      "audio": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/audio/007.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            93,
+            37,
+            237,
+            73
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            198,
+            146,
+            1044,
+            52
+          ],
+          "text": "Text segment 22-54",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            109,
+            231,
+            284,
+            28
+          ],
+          "text": "Text segment 54-72",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            24,
+            277,
+            348,
+            36
+          ],
+          "text": "Text segment 72-97",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            463,
+            292,
+            192,
+            14
+          ],
+          "text": "Text segment 97-121",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            150,
+            412,
+            89,
+            24
+          ],
+          "text": "Text segment 121-127",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            48,
+            527,
+            321,
+            31
+          ],
+          "text": "Text segment 127-145",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            106,
+            684,
+            191,
+            26
+          ],
+          "text": "Text segment 145-156",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            121,
+            815,
+            148,
+            31
+          ],
+          "text": "Text segment 156-165",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            91,
+            932,
+            193,
+            85
+          ],
+          "text": "Text segment 165-185",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            764,
+            289,
+            114,
+            38
+          ],
+          "text": "Text segment 185-211",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            820,
+            343,
+            101,
+            43
+          ],
+          "text": "Text segment 211-230",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_13",
+          "type": "paragraph",
+          "bbox": [
+            957,
+            381,
+            283,
+            28
+          ],
+          "text": "Text segment 230-248",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_14",
+          "type": "paragraph",
+          "bbox": [
+            982,
+            423,
+            251,
+            29
+          ],
+          "text": "Text segment 248-265",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_15",
+          "type": "paragraph",
+          "bbox": [
+            826,
+            782,
+            97,
+            17
+          ],
+          "text": "Text segment 265-276",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_16",
+          "type": "paragraph",
+          "bbox": [
+            812,
+            847,
+            73,
+            16
+          ],
+          "text": "Text segment 276-286",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_17",
+          "type": "paragraph",
+          "bbox": [
+            743,
+            919,
+            105,
+            14
+          ],
+          "text": "Text segment 286-300",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_18",
+          "type": "paragraph",
+          "bbox": [
+            511,
+            927,
+            61,
+            40
+          ],
+          "text": "Text segment 300-313",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_19",
+          "type": "paragraph",
+          "bbox": [
+            946,
+            647,
+            82,
+            16
+          ],
+          "text": "Text segment 313-323",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_20",
+          "type": "paragraph",
+          "bbox": [
+            1071,
+            664,
+            133,
+            15
+          ],
+          "text": "Text segment 323-336",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_21",
+          "type": "paragraph",
+          "bbox": [
+            1070,
+            687,
+            62,
+            14
+          ],
+          "text": "Text segment 336-345",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_22",
+          "type": "paragraph",
+          "bbox": [
+            916,
+            710,
+            45,
+            13
+          ],
+          "text": "Text segment 345-351",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_23",
+          "type": "paragraph",
+          "bbox": [
+            952,
+            986,
+            205,
+            32
+          ],
+          "text": "Text segment 351-391",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_24",
+          "type": "paragraph",
+          "bbox": [
+            952,
+            1020,
+            256,
+            12
+          ],
+          "text": "Text segment 391-425",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Introduce the main topic by highlighting the foundational concepts outlined in the initial segments, emphasizing their relevance to the overall strategy.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Explain the key challenges and solutions presented in the middle sections, using examples to illustrate how these elements interconnect for better outcomes.",
+          "targetId": "elem_11"
+        },
+        {
+          "text": "Conclude by summarizing the benefits and next steps from the final paragraphs, reinforcing the call to action for the audience.",
+          "targetId": "elem_24"
+        }
+      ],
+      "duration": 32.88920634920635
+    },
+    {
+      "id": 8,
+      "image": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/slides/008.png",
+      "audio": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/audio/008.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            36,
+            238,
+            76
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            365,
+            152,
+            709,
+            49
+          ],
+          "text": "Text segment 22-44",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            122,
+            351,
+            370,
+            28
+          ],
+          "text": "Text segment 44-63",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            120,
+            399,
+            339,
+            37
+          ],
+          "text": "Text segment 63-85",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            615,
+            259,
+            165,
+            28
+          ],
+          "text": "Text segment 85-97",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            120,
+            596,
+            419,
+            29
+          ],
+          "text": "Text segment 97-118",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            120,
+            648,
+            700,
+            31
+          ],
+          "text": "Text segment 118-161",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            119,
+            840,
+            368,
+            31
+          ],
+          "text": "Text segment 161-181",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            120,
+            893,
+            701,
+            31
+          ],
+          "text": "Text segment 181-224",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            120,
+            937,
+            525,
+            37
+          ],
+          "text": "Text segment 224-257",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            120,
+            989,
+            373,
+            30
+          ],
+          "text": "Text segment 257-279",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            12,
+            1055,
+            528,
+            23
+          ],
+          "text": "Text segment 279-329",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_13",
+          "type": "paragraph",
+          "bbox": [
+            1052,
+            251,
+            171,
+            27
+          ],
+          "text": "Text segment 329-341",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_14",
+          "type": "paragraph",
+          "bbox": [
+            1059,
+            427,
+            140,
+            31
+          ],
+          "text": "Text segment 341-351",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_15",
+          "type": "paragraph",
+          "bbox": [
+            1059,
+            673,
+            141,
+            31
+          ],
+          "text": "Text segment 351-361",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_16",
+          "type": "paragraph",
+          "bbox": [
+            1062,
+            917,
+            142,
+            33
+          ],
+          "text": "Text segment 361-371",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_17",
+          "type": "paragraph",
+          "bbox": [
+            1026,
+            1014,
+            225,
+            29
+          ],
+          "text": "Text segment 371-386",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Introduce the topic by highlighting the key objectives outlined in the opening segments, setting the stage for the discussion.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Explain the core methodology, emphasizing how elements in segments 44-63 build on previous points to demonstrate process flow.",
+          "targetId": "elem_3"
+        },
+        {
+          "text": "Summarize the benefits and outcomes, drawing attention to the detailed analysis in the later segments to reinforce the presentation's main thesis.",
+          "targetId": "elem_12"
+        }
+      ],
+      "duration": 31.84263038548753
+    },
+    {
+      "id": 9,
+      "image": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/slides/009.png",
+      "audio": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/audio/009.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            37,
+            238,
+            33
+          ],
+          "text": "Text segment 0-12",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            93,
+            77,
+            216,
+            34
+          ],
+          "text": "Text segment 12-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            308,
+            145,
+            828,
+            69
+          ],
+          "text": "Text segment 22-49",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            616,
+            580,
+            281,
+            25
+          ],
+          "text": "Text segment 49-69",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            401,
+            744,
+            170,
+            66
+          ],
+          "text": "Text segment 69-92",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            304,
+            826,
+            371,
+            32
+          ],
+          "text": "Text segment 92-117",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            900,
+            739,
+            139,
+            28
+          ],
+          "text": "Text segment 117-127",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            881,
+            785,
+            172,
+            23
+          ],
+          "text": "Text segment 127-140",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            852,
+            827,
+            242,
+            24
+          ],
+          "text": "Text segment 140-157",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            856,
+            933,
+            287,
+            31
+          ],
+          "text": "Text segment 157-175",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            912,
+            979,
+            171,
+            24
+          ],
+          "text": "Text segment 175-186",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Start by introducing the core concept outlined in the first segment, emphasizing its foundational role in the overall topic to engage the audience immediately.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Highlight the key developments in segments 22-49, explaining how they build on the initial idea and provide evidence for the main argument.",
+          "targetId": "elem_3"
+        },
+        {
+          "text": "Conclude with the implications from segments 69-92, underscoring their practical applications to leave the audience with actionable insights.",
+          "targetId": "elem_5"
+        }
+      ],
+      "duration": 35.51773242630386
+    },
+    {
+      "id": 10,
+      "image": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/slides/010.png",
+      "audio": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/audio/010.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            37,
+            238,
+            33
+          ],
+          "text": "Text segment 0-12",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            93,
+            77,
+            216,
+            34
+          ],
+          "text": "Text segment 12-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            82,
+            154,
+            1284,
+            52
+          ],
+          "text": "Text segment 22-63",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            224,
+            259,
+            992,
+            40
+          ],
+          "text": "Text segment 63-115",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            75,
+            1042,
+            277,
+            23
+          ],
+          "text": "Text segment 115-144",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            891,
+            501,
+            178,
+            36
+          ],
+          "text": "Text segment 144-153",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            591,
+            578,
+            614,
+            43
+          ],
+          "text": "Text segment 153-183",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            589,
+            659,
+            687,
+            127
+          ],
+          "text": "Text segment 183-226",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            588,
+            822,
+            698,
+            123
+          ],
+          "text": "Text segment 226-286",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Begin by summarizing the introduction in elem_1, highlighting how it sets the stage for the subsequent details in elem_2.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Emphasize the core challenges outlined in elem_3, using elem_4 to illustrate real-world examples that make the content relatable.",
+          "targetId": "elem_3"
+        },
+        {
+          "text": "Transition to solutions by discussing strategies from elem_7 and reinforce their benefits with data from elem_8.",
+          "targetId": "elem_7"
+        },
+        {
+          "text": "Conclude with key takeaways from elem_9, encouraging the audience to apply these insights immediately.",
+          "targetId": "elem_9"
+        }
+      ],
+      "duration": 46.71233560090703
+    },
+    {
+      "id": 11,
+      "image": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/slides/011.png",
+      "audio": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/audio/011.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            36,
+            237,
+            73
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            86,
+            138,
+            487,
+            42
+          ],
+          "text": "Text segment 22-48",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            86,
+            228,
+            463,
+            81
+          ],
+          "text": "Text segment 48-99",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            86,
+            372,
+            397,
+            85
+          ],
+          "text": "Text segment 99-145",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            891,
+            134,
+            17,
+            10
+          ],
+          "text": "Text segment 145-148",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            983,
+            358,
+            11,
+            10
+          ],
+          "text": "Text segment 148-150",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            1005,
+            270,
+            19,
+            12
+          ],
+          "text": "Text segment 150-153",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            1013,
+            432,
+            10,
+            11
+          ],
+          "text": "Text segment 153-155",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            1271,
+            564,
+            49,
+            15
+          ],
+          "text": "Text segment 155-161",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            975,
+            736,
+            13,
+            10
+          ],
+          "text": "Text segment 161-164",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            1076,
+            628,
+            12,
+            7
+          ],
+          "text": "Text segment 164-167",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            1075,
+            699,
+            14,
+            10
+          ],
+          "text": "Text segment 167-170",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_13",
+          "type": "paragraph",
+          "bbox": [
+            80,
+            606,
+            1253,
+            302
+          ],
+          "text": "Text segment 170-178",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_14",
+          "type": "paragraph",
+          "bbox": [
+            969,
+            854,
+            14,
+            9
+          ],
+          "text": "Text segment 178-181",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_15",
+          "type": "paragraph",
+          "bbox": [
+            478,
+            1021,
+            529,
+            22
+          ],
+          "text": "Text segment 181-231",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_16",
+          "type": "paragraph",
+          "bbox": [
+            1326,
+            984,
+            32,
+            11
+          ],
+          "text": "Text segment 231-237",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Start by introducing the core concept outlined in the opening segment, highlighting how it sets the foundation for the discussion.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Emphasize the key challenges described in the middle section, using examples to illustrate their impact on the overall process.",
+          "targetId": "elem_3"
+        },
+        {
+          "text": "Conclude with the recommendations in the final paragraphs, stressing actionable steps that the audience can implement immediately.",
+          "targetId": "elem_15"
+        }
+      ],
+      "duration": 28.94816326530612
+    },
+    {
+      "id": 12,
+      "image": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/slides/012.png",
+      "audio": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/audio/012.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            93,
+            37,
+            237,
+            34
+          ],
+          "text": "Text segment 0-12",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            76,
+            216,
+            35
+          ],
+          "text": "Text segment 12-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            80,
+            171,
+            1284,
+            53
+          ],
+          "text": "Text segment 22-63",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            558,
+            1008,
+            303,
+            19
+          ],
+          "text": "Text segment 63-92",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            912,
+            341,
+            196,
+            26
+          ],
+          "text": "Text segment 92-104",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            912,
+            411,
+            167,
+            29
+          ],
+          "text": "Text segment 104-114",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            912,
+            481,
+            306,
+            37
+          ],
+          "text": "Text segment 114-132",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            913,
+            552,
+            327,
+            36
+          ],
+          "text": "Text segment 132-153",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            912,
+            630,
+            141,
+            30
+          ],
+          "text": "Text segment 153-163",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            910,
+            698,
+            204,
+            34
+          ],
+          "text": "Text segment 163-175",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            911,
+            771,
+            117,
+            28
+          ],
+          "text": "Text segment 175-182",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            908,
+            846,
+            99,
+            30
+          ],
+          "text": "Text segment 182-188",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Start by introducing the core concept outlined in the opening segments, emphasizing how elem_1 sets the foundation and elem_2 builds on it to highlight initial challenges.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Dive into the detailed analysis in elem_3, which covers the main body of data from segments 22-63, and stress the key implications for the audience.",
+          "targetId": "elem_3"
+        },
+        {
+          "text": "Conclude with the summary in elem_8 through elem_12, reinforcing the actionable takeaways from segments 132-188 to drive home the presentation's message.",
+          "targetId": "elem_8"
+        }
+      ],
+      "duration": 45.92902494331066
+    },
+    {
+      "id": 13,
+      "image": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/slides/013.png",
+      "audio": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/audio/013.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            93,
+            37,
+            237,
+            34
+          ],
+          "text": "Text segment 0-12",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            93,
+            75,
+            213,
+            35
+          ],
+          "text": "Text segment 12-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            103,
+            143,
+            1238,
+            54
+          ],
+          "text": "Text segment 22-63",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            156,
+            257,
+            1130,
+            39
+          ],
+          "text": "Text segment 63-118",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            340,
+            357,
+            179,
+            38
+          ],
+          "text": "Text segment 118-127",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            39,
+            439,
+            617,
+            36
+          ],
+          "text": "Text segment 127-157",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            38,
+            517,
+            686,
+            44
+          ],
+          "text": "Text segment 157-189",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            39,
+            603,
+            239,
+            38
+          ],
+          "text": "Text segment 189-200",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            35,
+            680,
+            699,
+            41
+          ],
+          "text": "Text segment 200-234",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            37,
+            762,
+            498,
+            42
+          ],
+          "text": "Text segment 234-260",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            948,
+            1039,
+            477,
+            30
+          ],
+          "text": "Text segment 260-292",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Start by introducing the core concept outlined in the opening segments, highlighting how it sets the foundation for the discussion.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Emphasize the key developments in the middle section, explaining how these build on the initial ideas to drive the narrative forward.",
+          "targetId": "elem_3"
+        },
+        {
+          "text": "Conclude with the implications from the later segments, underscoring their relevance to the overall message and encouraging audience reflection.",
+          "targetId": "elem_9"
+        }
+      ],
+      "duration": 30.245396825396824
+    },
+    {
+      "id": 14,
+      "image": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/slides/014.png",
+      "audio": "/assets/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/audio/014.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            93,
+            37,
+            236,
+            35
+          ],
+          "text": "Text segment 0-12",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            76,
+            215,
+            35
+          ],
+          "text": "Text segment 12-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            102,
+            170,
+            1239,
+            55
+          ],
+          "text": "Text segment 22-63",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            856,
+            282,
+            196,
+            27
+          ],
+          "text": "Text segment 63-75",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            856,
+            353,
+            166,
+            28
+          ],
+          "text": "Text segment 75-85",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            854,
+            419,
+            307,
+            39
+          ],
+          "text": "Text segment 85-103",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            856,
+            492,
+            329,
+            37
+          ],
+          "text": "Text segment 103-124",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            855,
+            570,
+            141,
+            30
+          ],
+          "text": "Text segment 124-134",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            854,
+            714,
+            117,
+            26
+          ],
+          "text": "Text segment 134-141",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            855,
+            787,
+            148,
+            26
+          ],
+          "text": "Text segment 141-149",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            851,
+            856,
+            97,
+            31
+          ],
+          "text": "Text segment 149-155",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            483,
+            1020,
+            303,
+            18
+          ],
+          "text": "Text segment 155-184",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_13",
+          "type": "paragraph",
+          "bbox": [
+            852,
+            996,
+            432,
+            83
+          ],
+          "text": "Text segment 184-224",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Begin by outlining the core problem in the slide's opening segment, emphasizing how it sets the stage for the discussion ahead.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Highlight the key challenges detailed in the middle sections, connecting elem_2 and elem_3 to show progression in the analysis.",
+          "targetId": "elem_2"
+        },
+        {
+          "text": "Explain the proposed solutions in the later paragraphs, using elem_7 to underscore the benefits and actionable steps for the audience.",
+          "targetId": "elem_7"
+        },
+        {
+          "text": "Conclude with the final recommendations in elem_13, reinforcing the overall impact and calling for audience engagement.",
+          "targetId": "elem_13"
+        }
+      ],
+      "duration": 44.71986394557823
+    }
+  ],
+  "timeline": {
+    "rules": [
+      {
+        "action_type": "highlight",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 1,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "underline",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 2,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "laser_move",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 3,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      }
+    ],
+    "default_duration": 2.0,
+    "transition_duration": 0.5,
+    "min_highlight_duration": 0.8,
+    "min_gap": 0.2,
+    "max_total_duration": 90.0,
+    "smoothness_enabled": true,
+    "slide_change_events": []
+  },
+  "metadata": {
+    "source_file": ".data/3d7645ec-3d69-4ad9-b5ae-6c29cb4ec0a2/Kurs_09.pdf",
+    "parser": "pdf",
+    "total_slides": 14
+  }
+}

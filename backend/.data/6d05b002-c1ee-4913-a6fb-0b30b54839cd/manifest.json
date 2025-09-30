@@ -1,0 +1,156 @@
+{
+  "slides": [
+    {
+      "id": 1,
+      "image": "/assets/6d05b002-c1ee-4913-a6fb-0b30b54839cd/slides/001.png",
+      "audio": "/assets/6d05b002-c1ee-4913-a6fb-0b30b54839cd/audio/001.mp3",
+      "elements": [
+        {
+          "id": "slide_area",
+          "type": "placeholder",
+          "bbox": [
+            0,
+            0,
+            1920,
+            1080
+          ],
+          "text": "Slide content area",
+          "confidence": 1.0
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "This slide introduces the main topic, highlighting the importance of effective presentation skills in professional settings.",
+          "targetId": "heading1"
+        },
+        {
+          "text": "The table summarizes key data points; for instance, row 1 column 1 shows the baseline metric, while row 2 column 3 indicates a 20% improvement.",
+          "target": {
+            "type": "table_region",
+            "tableId": "data_table",
+            "cells": [
+              "r1c1",
+              "r2c3"
+            ]
+          }
+        },
+        {
+          "text": "Emphasize the visual chart in figure1, which illustrates trends over time to support the narrative on growth strategies.",
+          "targetId": "figure1"
+        }
+      ],
+      "duration": null
+    },
+    {
+      "id": 2,
+      "image": "/assets/6d05b002-c1ee-4913-a6fb-0b30b54839cd/slides/002.png",
+      "audio": "/assets/6d05b002-c1ee-4913-a6fb-0b30b54839cd/audio/002.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            959,
+            435,
+            78,
+            7
+          ],
+          "text": "Text segment 0-16",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "This text segment outlines the core message of the slide, spanning from introduction to conclusion in segments 0-16.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Highlight the progression of ideas in elem_1 to build a logical flow for the audience.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Use elem_1 to emphasize key takeaways, ensuring the presenter pauses for emphasis on critical segments.",
+          "targetId": "elem_1"
+        }
+      ],
+      "duration": 2.2566893424036283
+    },
+    {
+      "id": 3,
+      "image": "/assets/6d05b002-c1ee-4913-a6fb-0b30b54839cd/slides/003.png",
+      "audio": "/assets/6d05b002-c1ee-4913-a6fb-0b30b54839cd/audio/003.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            960,
+            435,
+            50,
+            7
+          ],
+          "text": "Text segment 0-11",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "This text segment outlines the core objectives and strategies, covering points from 0 to 11 to provide a comprehensive overview.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Highlight the progression in the paragraph, as it builds from foundational ideas in segments 0-5 to advanced applications in 6-11.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Use this content to emphasize how these elements interconnect, ensuring the audience grasps the unified message.",
+          "targetId": "elem_1"
+        }
+      ],
+      "duration": 2.2142403628117915
+    }
+  ],
+  "timeline": {
+    "rules": [
+      {
+        "action_type": "highlight",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 1,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "underline",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 2,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "laser_move",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 3,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      }
+    ],
+    "default_duration": 2.0,
+    "transition_duration": 0.5,
+    "min_highlight_duration": 0.8,
+    "min_gap": 0.2,
+    "max_total_duration": 90.0,
+    "smoothness_enabled": true,
+    "slide_change_events": []
+  },
+  "metadata": {
+    "source_file": ".data/6d05b002-c1ee-4913-a6fb-0b30b54839cd/test_presentation.pptx",
+    "parser": "pptx",
+    "total_slides": 3
+  }
+}

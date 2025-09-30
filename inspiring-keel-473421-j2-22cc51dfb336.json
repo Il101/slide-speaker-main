@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "inspiring-keel-473421-j2",
+  "private_key_id": "22cc51dfb33699dc67c0c6f8c7b0622a138e0e7c",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCUrZEr8yelr2xM\nn7d87vI3ldSfZnyMXh+9YZFSrUi0HXk2TP4e75WivnHRd7vlVaGebSb95K3OFwQn\nhTVKlCRLYo6lvspjaRe5fXiMstuHN/ril4FSFWW4JKWGPk47qRMWKpfPMix/Ca70\nChpcypuP6b240bE54Fsa1PNiOIzg8UGP0sVdPRUbifPMsMw1Qc07H2Mv1hcxHNcd\nMfqFsY/ES5568Qj5Ccy5A3AFzAb7tjiV1KgxDybRo2HGNrz8no9HTGIru+EgEksv\n7fUsMKKZbM+jI67/GxRnhAhzPTtsOJjPgZXYMyR92ppMOUg7CIZWVPZf9ODhomhD\n+vHVi9CrAgMBAAECggEAOuzHWnnWPs5Vx9CNMlCpYupZCIvf1OoA/lfK9s+Cvw/n\nWGQPW0dtMMD17yTbLTtRAK8WAw487C8nEFq1EkfAUrhO/NWu9NNT+coGmwzQALlp\nD6EoOdYNKHwtthS/gNmznNdor0+dXwQBeOsAI8KRAOqMrNE+wkdvFCVOCKGNBCE/\nPid2/h1m+1xjFzAUKXR2hQS64lABEH0/orpQ/hweKslcqGQUc/G2EXM55GNsVCOi\n42nECwmEexBE7jaSOSbz4rn0k9NUcHIXJAprp4B+c9WK9NNV+MFu3RwXQYl0Qf/b\n9F5AhS9I0o6vP7w6SD9Ad90FopLjS34pGhnv1UllgQKBgQDITvg7a9noxm+1lKPn\nS1T6hDx4TThEAheQGICfe4iZx6gViibgrXh1iykd/jXGQDxZT7KJdigsNnQ+Yn1e\n2tJWcLdb1kAUKgamf1iqwi96SktDADD1bLicodC5yzmklbSlkNsDWlApzBBKNYv/\n6sHavgs7ZBpUBGcx+YRuo0soywKBgQC+A8djHUg8WczZZWp5O0pHLZl9v8vb0AuG\nX3yg9Dqy7/f3jBLd4c+mbgCvvo+GJIWSK37zBUew25h6tYOg4TCa6J7E84kVe917\nWjWcjglguL+DgZev2lbhhZtzvQAVHlhJ22sXodzteCMyPY3cgP0yUMcfnh4u+Npr\nkeOZdXVboQKBgDKT3hIC9Y7VLDfJRGmOl/J5mVs3BFIHxTNZPIEIjEFoLITj0VVB\n9/yWGte77JAWgCZ8/TPAZfxj844dCFL/JcU1yNajjqKIyg0YcqcLSTmzsLVGQxZ1\nUVgbc7y2F+P6+RYlMWfzUfJ72FEknCkOecxl2Cgy6oL0aaowusPE76FpAoGANhQl\nPxQqZuK35ndyoiY5saBMuvlHL7w6S3gJpFVeD2c0j4OSKwwFaTyNfXciqe7jBQLU\nEp5CFReqgeH/IF520t+5sBwPu8mQ83ZtI61ZBeoOt4K+hRIDABRidcIor9n/DqYg\nCI3MrtkuSzIxmbwsU5Gh2mHJ/Vxd7ZeLyzUevYECgYBtc0tqzi+UTh7aeWHBC7Qu\nlzruA9RkNMjF5YaQ8yQY/uJfWByARcnngLepSukC0cpkxbp1dy9GKvAd/sF+COrm\nhiPcIy5uIBvFmOt42/JFx1UsPPGBmaHl+qhCY9Y1egOlmjynQjAFCRT4awiTxEXV\n4ZxkNOzPmY/EYxYQO9xx5A==\n-----END PRIVATE KEY-----\n",
+  "client_email": "slide-speaker-service@inspiring-keel-473421-j2.iam.gserviceaccount.com",
+  "client_id": "103971952315261247656",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/slide-speaker-service%40inspiring-keel-473421-j2.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

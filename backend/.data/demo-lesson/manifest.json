@@ -1,0 +1,97 @@
+{
+  "slides": [
+    {
+      "id": 1,
+      "image": "/assets/demo-lesson/slides/001.svg",
+      "audio": "/assets/demo-lesson/audio/001.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "text",
+          "bbox": [
+            120,
+            80,
+            980,
+            150
+          ],
+          "text": "Welcome to Slide Speaker",
+          "confidence": 0.95
+        },
+        {
+          "id": "elem_2",
+          "type": "text",
+          "bbox": [
+            140,
+            220,
+            860,
+            260
+          ],
+          "text": "AI-powered presentation converter",
+          "confidence": 0.92
+        }
+      ],
+      "cues": [
+        {
+          "t0": 0.6,
+          "t1": 2.2,
+          "action": "highlight",
+          "bbox": [
+            120,
+            80,
+            980,
+            150
+          ],
+          "element_id": "elem_1"
+        },
+        {
+          "t0": 2.3,
+          "t1": 5.0,
+          "action": "underline",
+          "bbox": [
+            140,
+            220,
+            860,
+            4
+          ],
+          "element_id": "elem_2"
+        },
+        {
+          "t0": 5.1,
+          "t1": 6.5,
+          "action": "laser_move",
+          "to": [
+            900,
+            520
+          ]
+        }
+      ]
+    }
+  ],
+  "timeline": {
+    "rules": [
+      {
+        "action_type": "highlight",
+        "duration": 2.0,
+        "priority": 1
+      },
+      {
+        "action_type": "underline",
+        "duration": 1.5,
+        "priority": 2
+      },
+      {
+        "action_type": "laser_move",
+        "duration": 0.5,
+        "priority": 3
+      }
+    ],
+    "default_duration": 2.0,
+    "transition_duration": 0.5,
+    "slide_change_events": []
+  },
+  "metadata": {
+    "source_file": "demo-lesson",
+    "parser": "demo",
+    "total_slides": 1
+  }
+}

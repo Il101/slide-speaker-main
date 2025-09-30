@@ -1,0 +1,80 @@
+{
+  "slides": [
+    {
+      "id": 1,
+      "image": "/assets/demo-lesson/slides/001.svg",
+      "audio": "/assets/demo-lesson/audio/001.mp3",
+      "elements": [
+        {"id": "elem_1", "type": "text", "bbox": [120, 80, 980, 150], "text": "Welcome to Slide Speaker", "confidence": 0.95},
+        {"id": "elem_2", "type": "text", "bbox": [140, 220, 860, 260], "text": "AI-powered presentation converter", "confidence": 0.92}
+      ],
+      "cues": [
+        {"t0": 0.6, "t1": 2.2, "action": "highlight", "bbox": [120, 80, 980, 150], "element_id": "elem_1"},
+        {"t0": 2.3, "t1": 5.0, "action": "underline", "bbox": [140, 220, 860, 4], "element_id": "elem_2"},
+        {"t0": 5.1, "t1": 6.5, "action": "laser_move", "to": [900, 520]}
+      ]
+    },
+    {
+      "id": 2,
+      "image": "/assets/demo-lesson/slides/002.svg",
+      "audio": "/assets/demo-lesson/audio/002.mp3",
+      "elements": [
+        {"id": "elem_3", "type": "text", "bbox": [80, 180, 720, 100], "text": "Features", "confidence": 0.98},
+        {"id": "elem_4", "type": "text", "bbox": [120, 320, 600, 4], "text": "Automatic slide detection", "confidence": 0.90}
+      ],
+      "cues": [
+        {"t0": 1.0, "t1": 3.0, "action": "laser_move", "to": [200, 150]},
+        {"t0": 4.0, "t1": 7.0, "action": "highlight", "bbox": [80, 180, 720, 100], "element_id": "elem_3"},
+        {"t0": 8.0, "t1": 11.0, "action": "underline", "bbox": [120, 320, 600, 4], "element_id": "elem_4"}
+      ]
+    },
+    {
+      "id": 3,
+      "image": "/assets/demo-lesson/slides/003.svg",
+      "audio": "/assets/demo-lesson/audio/003.mp3",
+      "elements": [
+        {"id": "elem_5", "type": "text", "bbox": [150, 60, 600, 80], "text": "Export to MP4", "confidence": 0.96},
+        {"id": "elem_6", "type": "text", "bbox": [100, 250, 700, 120], "text": "Professional video output", "confidence": 0.94}
+      ],
+      "cues": [
+        {"t0": 1.5, "t1": 4.0, "action": "highlight", "bbox": [150, 60, 600, 80], "element_id": "elem_5"},
+        {"t0": 5.0, "t1": 7.5, "action": "laser_move", "to": [300, 200]},
+        {"t0": 8.0, "t1": 11.0, "action": "highlight", "bbox": [100, 250, 700, 120], "element_id": "elem_6"}
+      ]
+    }
+  ],
+  "timeline": {
+    "rules": [
+      {
+        "action_type": "highlight",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 1,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "underline",
+        "min_duration": 0.5,
+        "max_duration": 3.0,
+        "priority": 2,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "laser_move",
+        "min_duration": 0.3,
+        "max_duration": 2.0,
+        "priority": 3,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      }
+    ],
+    "default_duration": 2.0,
+    "transition_duration": 0.5,
+    "min_highlight_duration": 0.8,
+    "min_gap": 0.2,
+    "max_total_duration": 90.0,
+    "smoothness_enabled": true
+  }
+}

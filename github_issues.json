@@ -1,0 +1,175 @@
+{
+  "issues": [
+    {
+      "title": "🎯 Epic: Sprint 1 - Real Document Parsing (PPTX/PDF → PNG + bbox + manifest.json)",
+      "body": "## Overview\nReplace mock data with real document parsing capabilities for PPTX and PDF files.\n\n## Goals\n- Extract slides/pages as high-quality PNG images\n- Detect text elements and their bounding boxes\n- Generate structured manifest.json files\n- Optimize images without quality loss\n- Validate uploaded files\n\n## Acceptance Criteria\n- [ ] PPTX files are parsed and converted to PNG slides\n- [ ] PDF files are parsed and converted to PNG pages  \n- [ ] Text elements are detected with accurate bounding boxes\n- [ ] Manifest.json is generated with slide metadata\n- [ ] Images are optimized for web delivery\n- [ ] File validation prevents corrupted uploads\n\n## Technical Requirements\n- Use python-pptx for PPTX parsing\n- Use PyMuPDF/pdf2image for PDF parsing\n- Implement OCR (Tesseract/EasyOCR) for text detection\n- Create efficient image processing pipeline\n- Add comprehensive error handling\n\n## Estimated Effort: 2-3 weeks\n",
+      "labels": [
+        "epic",
+        "sprint-1",
+        "document-parsing",
+        "high-priority"
+      ],
+      "milestone": "Sprint 1: Document Parsing"
+    },
+    {
+      "title": "📄 Implement PPTX parsing with slide extraction",
+      "body": "## Description\nImplement PPTX file parsing to extract individual slides as PNG images.\n\n## Tasks\n- [ ] Install and configure python-pptx library\n- [ ] Create PPTXParser class in document_parser.py\n- [ ] Implement slide extraction to PNG conversion\n- [ ] Handle different slide layouts and content types\n- [ ] Add error handling for corrupted PPTX files\n- [ ] Write unit tests for PPTX parsing\n\n## Acceptance Criteria\n- PPTX files are successfully parsed\n- Each slide is converted to high-quality PNG\n- Slides are saved to organized directory structure\n- Error handling for invalid PPTX files\n\n## Estimated Effort: 1 week\n",
+      "labels": [
+        "sprint-1",
+        "pptx",
+        "parsing",
+        "medium-priority"
+      ]
+    },
+    {
+      "title": "📑 Implement PDF parsing with page extraction",
+      "body": "## Description\nImplement PDF file parsing to extract pages as PNG images.\n\n## Tasks\n- [ ] Install and configure PyMuPDF/pdf2image libraries\n- [ ] Create PDFParser class in document_parser.py\n- [ ] Implement page extraction to PNG conversion\n- [ ] Handle different PDF formats and layouts\n- [ ] Add error handling for corrupted PDF files\n- [ ] Write unit tests for PDF parsing\n\n## Acceptance Criteria\n- PDF files are successfully parsed\n- Each page is converted to high-quality PNG\n- Pages are saved to organized directory structure\n- Error handling for invalid PDF files\n\n## Estimated Effort: 1 week\n",
+      "labels": [
+        "sprint-1",
+        "pdf",
+        "parsing",
+        "medium-priority"
+      ]
+    },
+    {
+      "title": "🔍 Implement OCR text detection with bounding boxes",
+      "body": "## Description\nImplement OCR-based text detection to identify text elements and their coordinates.\n\n## Tasks\n- [ ] Install and configure Tesseract/EasyOCR\n- [ ] Implement text detection algorithm\n- [ ] Extract bounding boxes for text elements\n- [ ] Handle different fonts and text sizes\n- [ ] Optimize OCR accuracy and performance\n- [ ] Write unit tests for text detection\n\n## Acceptance Criteria\n- Text elements are accurately detected\n- Bounding boxes are precise and consistent\n- OCR works with various text styles\n- Performance is acceptable for large documents\n\n## Estimated Effort: 1 week\n",
+      "labels": [
+        "sprint-1",
+        "ocr",
+        "text-detection",
+        "medium-priority"
+      ]
+    },
+    {
+      "title": "📋 Generate structured manifest.json files",
+      "body": "## Description\nCreate structured manifest.json files with slide metadata and element information.\n\n## Tasks\n- [ ] Define manifest.json schema\n- [ ] Implement manifest generation logic\n- [ ] Include slide images, audio placeholders, and cues\n- [ ] Add metadata (source file, parser type, etc.)\n- [ ] Validate manifest structure\n- [ ] Write unit tests for manifest generation\n\n## Acceptance Criteria\n- Manifest.json is properly structured\n- All slide information is included\n- Metadata is accurate and complete\n- Schema validation passes\n\n## Estimated Effort: 3 days\n",
+      "labels": [
+        "sprint-1",
+        "manifest",
+        "json",
+        "low-priority"
+      ]
+    },
+    {
+      "title": "🤖 Epic: Sprint 2 - AI Speaker Notes + TTS with Timing Synchronization",
+      "body": "## Overview\nAdd AI-powered speaker notes generation and text-to-speech with visual effect synchronization.\n\n## Goals\n- Generate contextual speaker notes using LLM\n- Convert text to high-quality speech\n- Synchronize audio with visual effects\n- Provide editing interface for generated content\n- Support multiple TTS voices and settings\n\n## Acceptance Criteria\n- [ ] LLM generates relevant speaker notes for each slide\n- [ ] TTS produces high-quality audio\n- [ ] Visual effects are synchronized with audio timing\n- [ ] Users can edit generated content\n- [ ] Multiple voice options are available\n- [ ] Preview functionality works correctly\n\n## Technical Requirements\n- Integrate OpenAI/Anthropic APIs\n- Implement TTS (OpenAI/ElevenLabs/Azure)\n- Create timing synchronization system\n- Build content editing interface\n- Add preview and validation features\n\n## Estimated Effort: 3-4 weeks\n",
+      "labels": [
+        "epic",
+        "sprint-2",
+        "ai-generation",
+        "tts",
+        "high-priority"
+      ],
+      "milestone": "Sprint 2: AI Generation"
+    },
+    {
+      "title": "🧠 Integrate LLM for speaker notes generation",
+      "body": "## Description\nIntegrate Large Language Model (OpenAI/Anthropic) to generate contextual speaker notes.\n\n## Tasks\n- [ ] Set up OpenAI/Anthropic API integration\n- [ ] Create AIGenerator service class\n- [ ] Implement speaker notes generation logic\n- [ ] Add custom prompt support\n- [ ] Handle API rate limiting and errors\n- [ ] Write unit tests for LLM integration\n\n## Acceptance Criteria\n- LLM generates relevant speaker notes\n- Custom prompts are supported\n- Error handling for API failures\n- Rate limiting is properly managed\n\n## Estimated Effort: 1 week\n",
+      "labels": [
+        "sprint-2",
+        "llm",
+        "speaker-notes",
+        "medium-priority"
+      ]
+    },
+    {
+      "title": "🎤 Implement TTS with multiple voice options",
+      "body": "## Description\nImplement text-to-speech conversion with multiple voice options and quality settings.\n\n## Tasks\n- [ ] Integrate TTS service (OpenAI/ElevenLabs/Azure)\n- [ ] Create TTSService class\n- [ ] Implement voice selection and settings\n- [ ] Add audio quality optimization\n- [ ] Handle TTS API errors and retries\n- [ ] Write unit tests for TTS functionality\n\n## Acceptance Criteria\n- High-quality audio generation\n- Multiple voice options available\n- Configurable speed and tone\n- Robust error handling\n\n## Estimated Effort: 1 week\n",
+      "labels": [
+        "sprint-2",
+        "tts",
+        "audio",
+        "medium-priority"
+      ]
+    },
+    {
+      "title": "⏱️ Implement timing synchronization system",
+      "body": "## Description\nCreate system to synchronize visual effects with audio timing.\n\n## Tasks\n- [ ] Analyze audio duration and timing\n- [ ] Generate visual cue timestamps\n- [ ] Implement timing validation\n- [ ] Create synchronization algorithm\n- [ ] Add timing adjustment features\n- [ ] Write unit tests for timing system\n\n## Acceptance Criteria\n- Visual effects are properly timed\n- Timing validation prevents errors\n- Users can adjust timing manually\n- Synchronization is accurate\n\n## Estimated Effort: 1 week\n",
+      "labels": [
+        "sprint-2",
+        "timing",
+        "synchronization",
+        "medium-priority"
+      ]
+    },
+    {
+      "title": "✏️ Build content editing interface",
+      "body": "## Description\nCreate interface for editing generated speaker notes and audio timing.\n\n## Tasks\n- [ ] Design editing UI components\n- [ ] Implement speaker notes editor\n- [ ] Add audio timing adjustment controls\n- [ ] Create preview functionality\n- [ ] Implement save/undo features\n- [ ] Write unit tests for editing features\n\n## Acceptance Criteria\n- Users can edit speaker notes\n- Audio timing can be adjusted\n- Preview shows changes immediately\n- Changes are saved properly\n\n## Estimated Effort: 1 week\n",
+      "labels": [
+        "sprint-2",
+        "ui",
+        "editing",
+        "medium-priority"
+      ]
+    },
+    {
+      "title": "🎬 Epic: Sprint 3 - Video Export + Production Stability",
+      "body": "## Overview\nImplement final video export to MP4 and create production-ready system with queues and monitoring.\n\n## Goals\n- Export lessons to high-quality MP4 videos\n- Implement background task processing\n- Add reliable file storage and management\n- Create monitoring and logging system\n- Optimize performance for large presentations\n- Add comprehensive testing\n\n## Acceptance Criteria\n- [ ] MP4 videos are exported with visual effects\n- [ ] Background processing handles long operations\n- [ ] File storage is reliable and scalable\n- [ ] System monitoring and logging work\n- [ ] Performance is optimized\n- [ ] Comprehensive test coverage exists\n\n## Technical Requirements\n- FFmpeg integration for video export\n- Celery/Redis for task queues\n- Robust file storage system\n- Monitoring and alerting\n- Performance optimization\n- Unit and integration tests\n\n## Estimated Effort: 2-3 weeks\n",
+      "labels": [
+        "epic",
+        "sprint-3",
+        "video-export",
+        "production",
+        "high-priority"
+      ],
+      "milestone": "Sprint 3: Production Ready"
+    },
+    {
+      "title": "🎥 Implement MP4 video export with FFmpeg",
+      "body": "## Description\nImplement video export functionality using FFmpeg to create MP4 videos with visual effects.\n\n## Tasks\n- [ ] Integrate FFmpeg for video processing\n- [ ] Create VideoExporter service class\n- [ ] Implement slide-to-video conversion\n- [ ] Add visual effects rendering\n- [ ] Support different quality settings\n- [ ] Write unit tests for video export\n\n## Acceptance Criteria\n- MP4 videos are successfully exported\n- Visual effects are rendered correctly\n- Multiple quality options available\n- Export process is reliable\n\n## Estimated Effort: 1 week\n",
+      "labels": [
+        "sprint-3",
+        "video",
+        "ffmpeg",
+        "export",
+        "medium-priority"
+      ]
+    },
+    {
+      "title": "⚡ Implement background task processing with Celery",
+      "body": "## Description\nImplement background task processing using Celery and Redis for long-running operations.\n\n## Tasks\n- [ ] Set up Celery and Redis\n- [ ] Create background task definitions\n- [ ] Implement task status tracking\n- [ ] Add task retry and error handling\n- [ ] Create task monitoring interface\n- [ ] Write unit tests for task processing\n\n## Acceptance Criteria\n- Long operations run in background\n- Task status is trackable\n- Error handling and retries work\n- Monitoring interface is functional\n\n## Estimated Effort: 1 week\n",
+      "labels": [
+        "sprint-3",
+        "celery",
+        "redis",
+        "background-tasks",
+        "medium-priority"
+      ]
+    },
+    {
+      "title": "💾 Implement reliable file storage and management",
+      "body": "## Description\nCreate robust file storage system with cleanup, monitoring, and backup capabilities.\n\n## Tasks\n- [ ] Design file storage architecture\n- [ ] Implement file cleanup system\n- [ ] Add storage monitoring and statistics\n- [ ] Create backup and recovery features\n- [ ] Add file validation and integrity checks\n- [ ] Write unit tests for storage system\n\n## Acceptance Criteria\n- File storage is reliable and scalable\n- Cleanup prevents storage bloat\n- Monitoring provides useful insights\n- Backup system works correctly\n\n## Estimated Effort: 1 week\n",
+      "labels": [
+        "sprint-3",
+        "storage",
+        "file-management",
+        "medium-priority"
+      ]
+    },
+    {
+      "title": "📊 Add monitoring, logging, and performance optimization",
+      "body": "## Description\nImplement comprehensive monitoring, logging, and performance optimization for production use.\n\n## Tasks\n- [ ] Set up application logging\n- [ ] Implement performance monitoring\n- [ ] Add error tracking and alerting\n- [ ] Optimize database queries and file operations\n- [ ] Create health check endpoints\n- [ ] Write performance tests\n\n## Acceptance Criteria\n- Comprehensive logging is in place\n- Performance monitoring works\n- Error tracking and alerts function\n- System performance is optimized\n\n## Estimated Effort: 1 week\n",
+      "labels": [
+        "sprint-3",
+        "monitoring",
+        "logging",
+        "performance",
+        "medium-priority"
+      ]
+    },
+    {
+      "title": "🧪 Add comprehensive testing suite",
+      "body": "## Description\nCreate comprehensive test suite with unit tests, integration tests, and end-to-end tests.\n\n## Tasks\n- [ ] Write unit tests for all services\n- [ ] Create integration tests for API endpoints\n- [ ] Add end-to-end tests for user workflows\n- [ ] Implement test data fixtures\n- [ ] Set up CI/CD testing pipeline\n- [ ] Add performance and load tests\n\n## Acceptance Criteria\n- High test coverage (>80%)\n- All critical paths are tested\n- CI/CD pipeline runs tests automatically\n- Performance tests validate system limits\n\n## Estimated Effort: 1 week\n",
+      "labels": [
+        "sprint-3",
+        "testing",
+        "ci-cd",
+        "quality",
+        "medium-priority"
+      ]
+    }
+  ],
+  "created_at": "2025-09-25T15:15:39.717451",
+  "total_count": 16
+}

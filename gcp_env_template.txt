@@ -1,0 +1,41 @@
+# Google Cloud Services Configuration для Slide Speaker
+# ======================================================
+
+# Основные настройки Google Cloud
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/service-account-key.json
+GCP_PROJECT_ID=your-project-id
+GCP_LOCATION=us-central1
+
+# Document AI (OCR) настройки - ВАШ ID УЖЕ НАСТРОЕН ✅
+GCP_DOC_AI_PROCESSOR_ID=1fdcd3b6d56635be
+OCR_BATCH_SIZE=10
+
+# Gemini (LLM) настройки
+GEMINI_MODEL=gemini-1.5-flash
+GEMINI_LOCATION=us-central1
+LLM_TEMPERATURE=0.2
+
+# Google Cloud Text-to-Speech настройки
+GOOGLE_TTS_VOICE=ru-RU-Neural2-B
+GOOGLE_TTS_SPEAKING_RATE=1.0
+GOOGLE_TTS_PITCH=0.0
+
+# Выбор провайдеров (установите именно эти значения)
+OCR_PROVIDER=google
+LLM_PROVIDER=gemini
+TTS_PROVIDER=google
+
+# Google Cloud Storage (опционально, для хранения файлов)
+GCS_BUCKET=your-bucket-name
+GCS_BASE_URL=https://storage.googleapis.com/your-bucket-name
+
+# Другие настройки
+LOG_LEVEL=INFO
+
+# ======================================================
+# ИНСТРУКЦИЯ ПО НАСТРОЙКЕ:
+# ======================================================
+# 1. Замените "your-project-id" на ваш реальный Project ID
+# 2. Укажите путь к скачанному Service Account JSON ключу
+# 3. Сохраните файл как backend/.env
+# 4. Запустите тест: python test_gcp_integration.py

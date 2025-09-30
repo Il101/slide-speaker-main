@@ -1,0 +1,70 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/.data:/app/.data
+      - ./backend/.env:/app/.env
+      - ./keys/gcp-sa.json:/app/keys/gcp-sa.json:ro
+    env_file:
+      - ./backend_env_docker.env
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      - redis
+      - minio
+
+  frontend:
+    build: .
+    ports:
+      - "3000:5173"
+    environment:
+      - VITE_API_BASE=http://localhost:8000
+    depends_on:
+      - backend
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  celery:
+    build: ./backend
+    command: celery -A app.tasks worker --loglevel=info
+    volumes:
+      - ./backend/.data:/app/.data
+      - ./backend/.env:/app/.env
+      - ./keys/gcp-sa.json:/app/keys/gcp-sa.json:ro
+    env_file:
+      - ./backend_env_docker.env
+    depends_on:
+      - redis
+      - minio
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+volumes:
+  redis_data:
+  minio_data:
