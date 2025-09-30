@@ -119,7 +119,7 @@ async def metrics_middleware(request, call_next):
 @app.get("/health")
 async def health_check():
     """Basic health check endpoint"""
-    return {"status": "healthy", "service": "slide-speaker-api"}
+    return {"status": "ok"}
 
 @app.get("/health/detailed")
 async def detailed_health_check():
