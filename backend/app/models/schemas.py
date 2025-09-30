@@ -66,13 +66,18 @@ class Cue(BaseModel):
         return v
 
 class Slide(BaseModel):
-    """Slide data structure"""
+    """Slide data structure with new concept-based approach"""
     id: int = Field(..., description="Slide number")
     image: str = Field(..., description="Path to slide image")
     audio: str = Field(..., description="Path to audio file")
     elements: List[SlideElement] = Field(default_factory=list, description="Detected elements")
     cues: List[Cue] = Field(default_factory=list, description="Visual effects")
     speaker_notes: Optional[List[Dict[str, Any]]] = Field(None, description="Generated speaker notes")
+    lecture_text: Optional[str] = Field(None, description="Generated lecture text from talk_track")
+    talk_track: Optional[List[Dict[str, Any]]] = Field(None, description="Structured talk track")
+    visual_cues: Optional[List[Dict[str, Any]]] = Field(None, description="Visual cues for talk track")
+    concepts: Optional[Dict[str, Any]] = Field(None, description="Extracted slide concepts")
+    terms_to_define: Optional[List[str]] = Field(None, description="Terms that need definition")
     duration: Optional[float] = Field(None, description="Audio duration in seconds")
 
 class TimelineRule(BaseModel):
@@ -127,9 +132,14 @@ class Timeline(BaseModel):
         return self.rules
 
 class Manifest(BaseModel):
-    """Lesson manifest structure"""
+    """Lesson manifest structure with lecture outline"""
     slides: List[Slide] = Field(..., description="List of slides")
     timeline: Optional[Timeline] = Field(None, description="Timeline configuration")
+    lecture_outline: Optional[Dict[str, Any]] = Field(None, description="Lecture outline for coherence")
+    course_title: Optional[str] = Field(None, description="Course title")
+    lecture_title: Optional[str] = Field(None, description="Lecture title")
+    audience_level: Optional[str] = Field(None, description="Target audience level")
+    style_preset: Optional[str] = Field(None, description="Presentation style preset")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
 
 class UploadResponse(BaseModel):
@@ -152,12 +162,32 @@ class ProcessingStatus(BaseModel):
     message: Optional[str] = Field(None, description="Status message")
     error: Optional[str] = Field(None, description="Error message if failed")
 
-# Sprint 2: AI Generation schemas
+# Sprint 2: AI Generation schemas with new approach
 class SpeakerNotesRequest(BaseModel):
-    """Request for generating speaker notes"""
+    """Request for generating speaker notes with new approach"""
     lesson_id: str = Field(..., description="Lesson identifier")
     slide_id: int = Field(..., description="Slide number")
+    course_title: Optional[str] = Field(None, description="Course title")
+    lecture_title: Optional[str] = Field(None, description="Lecture title")
+    audience_level: Optional[str] = Field("undergrad", description="Target audience level")
+    style_preset: Optional[str] = Field("explanatory", description="Presentation style")
     custom_prompt: Optional[str] = Field(None, description="Custom prompt for generation")
+
+class LectureOutlineRequest(BaseModel):
+    """Request for generating lecture outline"""
+    lesson_id: str = Field(..., description="Lesson identifier")
+    lecture_title: str = Field(..., description="Lecture title")
+    course_title: Optional[str] = Field(None, description="Course title")
+    audience_level: Optional[str] = Field("undergrad", description="Target audience level")
+
+class TalkTrackResponse(BaseModel):
+    """Response with structured talk track"""
+    talk_track: List[Dict[str, Any]] = Field(..., description="Structured talk track")
+    visual_cues: List[Dict[str, Any]] = Field(default_factory=list, description="Visual cues")
+    terms_to_define: List[str] = Field(default_factory=list, description="Terms to define")
+    concepts: Dict[str, Any] = Field(default_factory=dict, description="Extracted concepts")
+    overlap_score: Optional[float] = Field(None, description="Overlap with slide text")
+    regeneration_attempts: Optional[int] = Field(None, description="Number of regeneration attempts")
 
 class TTSRequest(BaseModel):
     """Request for text-to-speech generation"""
