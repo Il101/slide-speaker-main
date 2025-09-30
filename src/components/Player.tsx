@@ -236,7 +236,7 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
     };
   }, [playerState.isPlaying]);
 
-  // Memoized slide effects calculation
+  // Memoized slide effects calculation with fail-safe for targetId
   const renderSlideEffects = useMemo(() => {
     if (!manifest || !manifest.slides[playerState.currentSlide] || !slideRef.current) return null;
     
@@ -273,6 +273,7 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
               height: `${scaledHeight}px`
             }}
             onClick={() => editingState.isEditing && startEditingCue(cue)}
+            data-testid="highlight"
           >
             {editingState.isEditing && (
               <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-1 rounded">
@@ -346,6 +347,12 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
             )}
           </div>
         );
+      }
+
+      // Fail-safe: if targetId not found, log warning and skip rendering
+      if (cue.targetId && !currentSlide.elements.find(el => el.id === cue.targetId)) {
+        console.warn(`Target element ${cue.targetId} not found for cue ${cue.cue_id}, skipping rendering`);
+        return null;
       }
 
       return null;
