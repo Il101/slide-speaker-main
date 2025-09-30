@@ -1,0 +1,148 @@
+{
+  "slides": [
+    {
+      "id": 1,
+      "image": "/assets/f320b7ce-d3e8-4a97-a9e6-e98cffe8824f/slides/001.png",
+      "audio": "/assets/f320b7ce-d3e8-4a97-a9e6-e98cffe8824f/audio/001.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            196,
+            159,
+            571,
+            47
+          ],
+          "text": "Text segment 0-25",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            199,
+            271,
+            553,
+            37
+          ],
+          "text": "Text segment 25-59",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            201,
+            373,
+            412,
+            32
+          ],
+          "text": "Text segment 59-91",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 2,
+      "image": "/assets/f320b7ce-d3e8-4a97-a9e6-e98cffe8824f/slides/002.png",
+      "audio": "/assets/f320b7ce-d3e8-4a97-a9e6-e98cffe8824f/audio/002.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            203,
+            164,
+            184,
+            37
+          ],
+          "text": "Text segment 0-9",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            198,
+            274,
+            401,
+            27
+          ],
+          "text": "Text segment 9-35",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            200,
+            371,
+            349,
+            36
+          ],
+          "text": "Text segment 35-61",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            201,
+            473,
+            286,
+            32
+          ],
+          "text": "Text segment 61-81",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    }
+  ],
+  "timeline": {
+    "rules": [
+      {
+        "action_type": "highlight",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 1,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "underline",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 2,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "laser_move",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 3,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      }
+    ],
+    "default_duration": 2.0,
+    "transition_duration": 0.5,
+    "min_highlight_duration": 0.8,
+    "min_gap": 0.2,
+    "max_total_duration": 90.0,
+    "smoothness_enabled": true,
+    "slide_change_events": []
+  },
+  "metadata": {
+    "source_file": ".data/f320b7ce-d3e8-4a97-a9e6-e98cffe8824f/test.pdf",
+    "parser": "pdf",
+    "total_slides": 2
+  }
+}

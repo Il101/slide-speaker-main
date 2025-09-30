@@ -1,0 +1,3670 @@
+{
+  "slides": [
+    {
+      "id": 1,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/001.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/001.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            91,
+            36,
+            239,
+            74
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            225,
+            216,
+            959,
+            41
+          ],
+          "text": "Text segment 22-58",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            195,
+            353,
+            949,
+            44
+          ],
+          "text": "Text segment 58-98",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            262,
+            952,
+            12,
+            9
+          ],
+          "text": "Text segment 98-100",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            578,
+            987,
+            55,
+            18
+          ],
+          "text": "Text segment 100-106",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            760,
+            1026,
+            638,
+            49
+          ],
+          "text": "Text segment 106-229",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 2,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/002.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/002.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            37,
+            238,
+            74
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            363,
+            92,
+            714,
+            48
+          ],
+          "text": "Text segment 22-44",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            97,
+            217,
+            983,
+            41
+          ],
+          "text": "Text segment 44-96",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            95,
+            299,
+            866,
+            40
+          ],
+          "text": "Text segment 96-142",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            96,
+            381,
+            944,
+            40
+          ],
+          "text": "Text segment 142-190",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            129,
+            479,
+            20,
+            6
+          ],
+          "text": "Text segment 190-192",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            93,
+            462,
+            1010,
+            204
+          ],
+          "text": "Text segment 192-334",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            94,
+            702,
+            1072,
+            127
+          ],
+          "text": "Text segment 334-422",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            94,
+            866,
+            1005,
+            127
+          ],
+          "text": "Text segment 422-497",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 3,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/003.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/003.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            93,
+            37,
+            236,
+            74
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            345,
+            149,
+            752,
+            68
+          ],
+          "text": "Text segment 22-47",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            193,
+            281,
+            1067,
+            96
+          ],
+          "text": "Text segment 47-148",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            176,
+            435,
+            1127,
+            203
+          ],
+          "text": "Text segment 148-376",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            176,
+            672,
+            1100,
+            88
+          ],
+          "text": "Text segment 376-462",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            176,
+            790,
+            1139,
+            89
+          ],
+          "text": "Text segment 462-584",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            175,
+            913,
+            1133,
+            86
+          ],
+          "text": "Text segment 584-702",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 4,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/004.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/004.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            37,
+            238,
+            74
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            478,
+            145,
+            484,
+            56
+          ],
+          "text": "Text segment 22-37",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            13,
+            354,
+            337,
+            38
+          ],
+          "text": "Text segment 37-53",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            18,
+            472,
+            330,
+            41
+          ],
+          "text": "Text segment 53-69",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            13,
+            579,
+            306,
+            40
+          ],
+          "text": "Text segment 69-84",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            121,
+            592,
+            21,
+            15
+          ],
+          "text": "Text segment 84-86",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            13,
+            635,
+            249,
+            101
+          ],
+          "text": "Text segment 86-112",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            403,
+            325,
+            123,
+            138
+          ],
+          "text": "Text segment 112-161",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            414,
+            927,
+            153,
+            20
+          ],
+          "text": "Text segment 161-177",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            415,
+            954,
+            95,
+            19
+          ],
+          "text": "Text segment 177-188",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            794,
+            766,
+            52,
+            10
+          ],
+          "text": "Text segment 188-196",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            771,
+            803,
+            64,
+            21
+          ],
+          "text": "Text segment 196-210",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_13",
+          "type": "paragraph",
+          "bbox": [
+            980,
+            345,
+            400,
+            36
+          ],
+          "text": "Text segment 210-227",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_14",
+          "type": "paragraph",
+          "bbox": [
+            851,
+            633,
+            95,
+            47
+          ],
+          "text": "Text segment 227-246",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_15",
+          "type": "paragraph",
+          "bbox": [
+            992,
+            623,
+            417,
+            31
+          ],
+          "text": "Text segment 246-266",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_16",
+          "type": "paragraph",
+          "bbox": [
+            357,
+            1044,
+            801,
+            20
+          ],
+          "text": "Text segment 266-343",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 5,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/005.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/005.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            36,
+            238,
+            76
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            399,
+            387,
+            15,
+            14
+          ],
+          "text": "Text segment 22-24",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            472,
+            137,
+            484,
+            59
+          ],
+          "text": "Text segment 24-39",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            440,
+            273,
+            669,
+            43
+          ],
+          "text": "Text segment 39-69",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            453,
+            371,
+            441,
+            47
+          ],
+          "text": "Text segment 69-91",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            398,
+            476,
+            713,
+            33
+          ],
+          "text": "Text segment 91-129",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            451,
+            532,
+            114,
+            33
+          ],
+          "text": "Text segment 129-136",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            397,
+            632,
+            363,
+            30
+          ],
+          "text": "Text segment 136-153",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            453,
+            724,
+            382,
+            42
+          ],
+          "text": "Text segment 153-173",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            452,
+            821,
+            534,
+            46
+          ],
+          "text": "Text segment 173-201",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            398,
+            923,
+            631,
+            33
+          ],
+          "text": "Text segment 201-232",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            13,
+            1024,
+            1263,
+            49
+          ],
+          "text": "Text segment 232-407",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 6,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/006.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/006.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            37,
+            238,
+            73
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            218,
+            131,
+            1007,
+            61
+          ],
+          "text": "Text segment 22-53",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            433,
+            252,
+            527,
+            36
+          ],
+          "text": "Text segment 53-80",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            131,
+            321,
+            1130,
+            33
+          ],
+          "text": "Text segment 80-148",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            335,
+            435,
+            400,
+            42
+          ],
+          "text": "Text segment 148-164",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            857,
+            434,
+            228,
+            42
+          ],
+          "text": "Text segment 164-174",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            856,
+            523,
+            297,
+            46
+          ],
+          "text": "Text segment 174-186",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            460,
+            563,
+            275,
+            41
+          ],
+          "text": "Text segment 186-197",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            858,
+            614,
+            248,
+            46
+          ],
+          "text": "Text segment 197-207",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            856,
+            704,
+            291,
+            45
+          ],
+          "text": "Text segment 207-219",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            338,
+            738,
+            412,
+            46
+          ],
+          "text": "Text segment 219-236",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            858,
+            796,
+            263,
+            45
+          ],
+          "text": "Text segment 236-247",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_13",
+          "type": "paragraph",
+          "bbox": [
+            858,
+            895,
+            169,
+            36
+          ],
+          "text": "Text segment 247-254",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_14",
+          "type": "paragraph",
+          "bbox": [
+            479,
+            936,
+            256,
+            42
+          ],
+          "text": "Text segment 254-265",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_15",
+          "type": "paragraph",
+          "bbox": [
+            852,
+            985,
+            143,
+            44
+          ],
+          "text": "Text segment 265-271",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 7,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/007.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/007.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            36,
+            238,
+            75
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            225,
+            155,
+            994,
+            57
+          ],
+          "text": "Text segment 22-52",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            572,
+            221,
+            293,
+            56
+          ],
+          "text": "Text segment 52-62",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            403,
+            361,
+            12,
+            10
+          ],
+          "text": "Text segment 62-64",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            402,
+            350,
+            577,
+            36
+          ],
+          "text": "Text segment 64-101",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            403,
+            481,
+            12,
+            10
+          ],
+          "text": "Text segment 101-103",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            403,
+            553,
+            12,
+            10
+          ],
+          "text": "Text segment 103-105",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            404,
+            673,
+            11,
+            9
+          ],
+          "text": "Text segment 105-107",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            437,
+            402,
+            192,
+            31
+          ],
+          "text": "Text segment 107-120",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            435,
+            473,
+            448,
+            28
+          ],
+          "text": "Text segment 120-146",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            435,
+            545,
+            597,
+            80
+          ],
+          "text": "Text segment 146-217",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            435,
+            663,
+            555,
+            82
+          ],
+          "text": "Text segment 217-265",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_13",
+          "type": "paragraph",
+          "bbox": [
+            438,
+            783,
+            492,
+            34
+          ],
+          "text": "Text segment 265-295",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_14",
+          "type": "paragraph",
+          "bbox": [
+            435,
+            831,
+            484,
+            81
+          ],
+          "text": "Text segment 295-332",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_15",
+          "type": "paragraph",
+          "bbox": [
+            1172,
+            912,
+            80,
+            31
+          ],
+          "text": "Text segment 332-339",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_16",
+          "type": "paragraph",
+          "bbox": [
+            752,
+            1003,
+            638,
+            49
+          ],
+          "text": "Text segment 339-462",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 8,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/008.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/008.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            91,
+            35,
+            240,
+            76
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            113,
+            437,
+            12,
+            11
+          ],
+          "text": "Text segment 22-24",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            113,
+            716,
+            12,
+            11
+          ],
+          "text": "Text segment 24-26",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            113,
+            797,
+            13,
+            11
+          ],
+          "text": "Text segment 26-28",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            306,
+            148,
+            834,
+            57
+          ],
+          "text": "Text segment 28-53",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            163,
+            285,
+            416,
+            41
+          ],
+          "text": "Text segment 53-75",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            165,
+            346,
+            278,
+            39
+          ],
+          "text": "Text segment 75-87",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            167,
+            424,
+            625,
+            44
+          ],
+          "text": "Text segment 87-122",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            167,
+            484,
+            229,
+            39
+          ],
+          "text": "Text segment 122-133",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            164,
+            564,
+            592,
+            100
+          ],
+          "text": "Text segment 133-196",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            165,
+            703,
+            474,
+            41
+          ],
+          "text": "Text segment 196-219",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            164,
+            788,
+            524,
+            33
+          ],
+          "text": "Text segment 219-245",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_13",
+          "type": "paragraph",
+          "bbox": [
+            1102,
+            526,
+            13,
+            11
+          ],
+          "text": "Text segment 245-247",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_14",
+          "type": "paragraph",
+          "bbox": [
+            864,
+            746,
+            420,
+            30
+          ],
+          "text": "Text segment 247-274",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_15",
+          "type": "paragraph",
+          "bbox": [
+            750,
+            1011,
+            637,
+            48
+          ],
+          "text": "Text segment 274-397",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 9,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/009.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/009.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            91,
+            36,
+            238,
+            75
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            307,
+            145,
+            830,
+            61
+          ],
+          "text": "Text segment 22-47",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            86,
+            276,
+            630,
+            41
+          ],
+          "text": "Text segment 47-80",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            87,
+            547,
+            12,
+            11
+          ],
+          "text": "Text segment 80-82",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            88,
+            741,
+            11,
+            10
+          ],
+          "text": "Text segment 82-84",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            87,
+            878,
+            12,
+            10
+          ],
+          "text": "Text segment 84-86",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            120,
+            353,
+            444,
+            39
+          ],
+          "text": "Text segment 86-109",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            121,
+            402,
+            642,
+            84
+          ],
+          "text": "Text segment 109-158",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            120,
+            541,
+            204,
+            33
+          ],
+          "text": "Text segment 158-168",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            123,
+            589,
+            697,
+            93
+          ],
+          "text": "Text segment 168-244",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            120,
+            726,
+            862,
+            99
+          ],
+          "text": "Text segment 244-326",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            122,
+            862,
+            804,
+            84
+          ],
+          "text": "Text segment 326-380",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_13",
+          "type": "paragraph",
+          "bbox": [
+            1303,
+            893,
+            43,
+            12
+          ],
+          "text": "Text segment 380-386",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_14",
+          "type": "paragraph",
+          "bbox": [
+            746,
+            999,
+            638,
+            48
+          ],
+          "text": "Text segment 386-509",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 10,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/010.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/010.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            62,
+            320,
+            12,
+            10
+          ],
+          "text": "Text segment 0-2",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            62,
+            487,
+            12,
+            10
+          ],
+          "text": "Text segment 2-4",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            90,
+            34,
+            240,
+            79
+          ],
+          "text": "Text segment 4-26",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            304,
+            116,
+            832,
+            65
+          ],
+          "text": "Text segment 26-51",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            63,
+            238,
+            644,
+            36
+          ],
+          "text": "Text segment 51-85",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            97,
+            311,
+            376,
+            38
+          ],
+          "text": "Text segment 85-104",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            97,
+            356,
+            730,
+            85
+          ],
+          "text": "Text segment 104-180",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            95,
+            480,
+            390,
+            34
+          ],
+          "text": "Text segment 180-197",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            98,
+            522,
+            721,
+            41
+          ],
+          "text": "Text segment 197-239",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            60,
+            601,
+            330,
+            38
+          ],
+          "text": "Text segment 239-256",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            96,
+            656,
+            588,
+            35
+          ],
+          "text": "Text segment 256-287",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            894,
+            610,
+            433,
+            106
+          ],
+          "text": "Text segment 287-325",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_13",
+          "type": "paragraph",
+          "bbox": [
+            967,
+            756,
+            288,
+            34
+          ],
+          "text": "Text segment 325-341",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_14",
+          "type": "paragraph",
+          "bbox": [
+            979,
+            828,
+            264,
+            34
+          ],
+          "text": "Text segment 341-355",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_15",
+          "type": "paragraph",
+          "bbox": [
+            970,
+            897,
+            277,
+            40
+          ],
+          "text": "Text segment 355-370",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_16",
+          "type": "paragraph",
+          "bbox": [
+            479,
+            943,
+            450,
+            19
+          ],
+          "text": "Text segment 370-415",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_17",
+          "type": "paragraph",
+          "bbox": [
+            477,
+            962,
+            784,
+            46
+          ],
+          "text": "Text segment 415-478",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_18",
+          "type": "paragraph",
+          "bbox": [
+            478,
+            1000,
+            324,
+            19
+          ],
+          "text": "Text segment 478-509",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 11,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/011.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/011.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            36,
+            237,
+            74
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            215,
+            129,
+            1014,
+            61
+          ],
+          "text": "Text segment 22-53",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            376,
+            221,
+            689,
+            44
+          ],
+          "text": "Text segment 53-85",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            523,
+            283,
+            393,
+            32
+          ],
+          "text": "Text segment 85-107",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            124,
+            340,
+            1191,
+            38
+          ],
+          "text": "Text segment 107-166",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            301,
+            410,
+            225,
+            35
+          ],
+          "text": "Text segment 166-177",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            283,
+            480,
+            262,
+            29
+          ],
+          "text": "Text segment 177-192",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            207,
+            542,
+            415,
+            38
+          ],
+          "text": "Text segment 192-215",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            248,
+            595,
+            334,
+            36
+          ],
+          "text": "Text segment 215-233",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            320,
+            657,
+            186,
+            39
+          ],
+          "text": "Text segment 233-245",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            188,
+            725,
+            454,
+            34
+          ],
+          "text": "Text segment 245-272",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            978,
+            412,
+            250,
+            32
+          ],
+          "text": "Text segment 272-284",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_13",
+          "type": "paragraph",
+          "bbox": [
+            989,
+            480,
+            229,
+            33
+          ],
+          "text": "Text segment 284-299",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_14",
+          "type": "paragraph",
+          "bbox": [
+            916,
+            546,
+            381,
+            81
+          ],
+          "text": "Text segment 299-335",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_15",
+          "type": "paragraph",
+          "bbox": [
+            1019,
+            660,
+            174,
+            37
+          ],
+          "text": "Text segment 335-348",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_16",
+          "type": "paragraph",
+          "bbox": [
+            1311,
+            913,
+            36,
+            12
+          ],
+          "text": "Text segment 348-354",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_17",
+          "type": "paragraph",
+          "bbox": [
+            1013,
+            960,
+            183,
+            27
+          ],
+          "text": "Text segment 354-366",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_18",
+          "type": "paragraph",
+          "bbox": [
+            605,
+            982,
+            42,
+            18
+          ],
+          "text": "Text segment 366-372",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_19",
+          "type": "paragraph",
+          "bbox": [
+            272,
+            1034,
+            265,
+            28
+          ],
+          "text": "Text segment 372-390",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_20",
+          "type": "paragraph",
+          "bbox": [
+            734,
+            1013,
+            638,
+            49
+          ],
+          "text": "Text segment 390-513",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 12,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/012.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/012.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            36,
+            238,
+            75
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            317,
+            137,
+            811,
+            55
+          ],
+          "text": "Text segment 22-47",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            83,
+            340,
+            616,
+            36
+          ],
+          "text": "Text segment 47-85",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            77,
+            387,
+            629,
+            84
+          ],
+          "text": "Text segment 85-138",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            56,
+            532,
+            672,
+            131
+          ],
+          "text": "Text segment 138-227",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            91,
+            723,
+            604,
+            132
+          ],
+          "text": "Text segment 227-335",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            160,
+            868,
+            465,
+            35
+          ],
+          "text": "Text segment 335-362",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            782,
+            848,
+            156,
+            82
+          ],
+          "text": "Text segment 362-391",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            1217,
+            604,
+            180,
+            85
+          ],
+          "text": "Text segment 391-426",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            1029,
+            971,
+            368,
+            22
+          ],
+          "text": "Text segment 426-461",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 13,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/013.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/013.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            37,
+            238,
+            74
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            412,
+            100,
+            596,
+            64
+          ],
+          "text": "Text segment 22-41",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            337,
+            197,
+            767,
+            40
+          ],
+          "text": "Text segment 41-81",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            945,
+            312,
+            179,
+            36
+          ],
+          "text": "Text segment 81-90",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            647,
+            389,
+            541,
+            43
+          ],
+          "text": "Text segment 90-116",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            645,
+            469,
+            685,
+            48
+          ],
+          "text": "Text segment 116-148",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            60,
+            992,
+            93,
+            28
+          ],
+          "text": "Text segment 148-155",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            447,
+            1045,
+            123,
+            17
+          ],
+          "text": "Text segment 155-168",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 14,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/014.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/014.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            36,
+            238,
+            74
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            412,
+            145,
+            598,
+            59
+          ],
+          "text": "Text segment 22-41",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            338,
+            241,
+            764,
+            42
+          ],
+          "text": "Text segment 41-81",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            77,
+            369,
+            840,
+            47
+          ],
+          "text": "Text segment 81-131",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            203,
+            466,
+            712,
+            37
+          ],
+          "text": "Text segment 131-171",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            17,
+            558,
+            900,
+            34
+          ],
+          "text": "Text segment 171-224",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            201,
+            672,
+            714,
+            42
+          ],
+          "text": "Text segment 224-265",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            1088,
+            1048,
+            121,
+            17
+          ],
+          "text": "Text segment 265-278",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 15,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/015.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/015.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            37,
+            238,
+            74
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            433,
+            105,
+            574,
+            57
+          ],
+          "text": "Text segment 22-41",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            823,
+            358,
+            63,
+            157
+          ],
+          "text": "Text segment 41-45",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            49,
+            429,
+            11,
+            11
+          ],
+          "text": "Text segment 45-47",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            49,
+            636,
+            11,
+            10
+          ],
+          "text": "Text segment 47-49",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            55,
+            313,
+            685,
+            42
+          ],
+          "text": "Text segment 49-83",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            101,
+            421,
+            556,
+            33
+          ],
+          "text": "Text segment 83-116",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            101,
+            471,
+            603,
+            85
+          ],
+          "text": "Text segment 116-160",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            102,
+            625,
+            520,
+            37
+          ],
+          "text": "Text segment 160-190",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            103,
+            677,
+            622,
+            40
+          ],
+          "text": "Text segment 190-223",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            102,
+            730,
+            511,
+            37
+          ],
+          "text": "Text segment 223-252",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            99,
+            830,
+            650,
+            93
+          ],
+          "text": "Text segment 252-319",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 16,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/016.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/016.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            91,
+            36,
+            239,
+            74
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            100,
+            789,
+            11,
+            10
+          ],
+          "text": "Text segment 22-24",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            411,
+            127,
+            622,
+            66
+          ],
+          "text": "Text segment 24-44",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            275,
+            297,
+            390,
+            44
+          ],
+          "text": "Text segment 44-64",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            152,
+            392,
+            506,
+            194
+          ],
+          "text": "Text segment 64-164",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            153,
+            635,
+            619,
+            89
+          ],
+          "text": "Text segment 164-210",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            152,
+            777,
+            649,
+            94
+          ],
+          "text": "Text segment 210-278",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            1176,
+            390,
+            159,
+            62
+          ],
+          "text": "Text segment 278-300",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            1178,
+            571,
+            169,
+            24
+          ],
+          "text": "Text segment 300-313",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            1176,
+            611,
+            201,
+            30
+          ],
+          "text": "Text segment 313-328",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            1175,
+            795,
+            165,
+            75
+          ],
+          "text": "Text segment 328-352",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 17,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/017.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/017.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            91,
+            37,
+            239,
+            33
+          ],
+          "text": "Text segment 0-12",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            93,
+            77,
+            215,
+            34
+          ],
+          "text": "Text segment 12-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            413,
+            28,
+            597,
+            62
+          ],
+          "text": "Text segment 22-41",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            338,
+            124,
+            763,
+            42
+          ],
+          "text": "Text segment 41-81",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            60,
+            967,
+            386,
+            31
+          ],
+          "text": "Text segment 81-105",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            889,
+            966,
+            123,
+            18
+          ],
+          "text": "Text segment 105-118",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            1062,
+            450,
+            226,
+            45
+          ],
+          "text": "Text segment 118-128",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            1053,
+            540,
+            301,
+            44
+          ],
+          "text": "Text segment 128-140",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            1055,
+            688,
+            290,
+            45
+          ],
+          "text": "Text segment 140-152",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            1076,
+            859,
+            250,
+            48
+          ],
+          "text": "Text segment 152-162",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 18,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/018.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/018.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            37,
+            238,
+            74
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            479,
+            131,
+            486,
+            61
+          ],
+          "text": "Text segment 22-38",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            89,
+            273,
+            1262,
+            33
+          ],
+          "text": "Text segment 38-113",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            57,
+            369,
+            1324,
+            128
+          ],
+          "text": "Text segment 113-341",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            31,
+            567,
+            525,
+            28
+          ],
+          "text": "Text segment 341-371",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            31,
+            640,
+            753,
+            32
+          ],
+          "text": "Text segment 371-416",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            27,
+            712,
+            32,
+            26
+          ],
+          "text": "Text segment 416-419",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            104,
+            712,
+            713,
+            27
+          ],
+          "text": "Text segment 419-461",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            30,
+            784,
+            28,
+            26
+          ],
+          "text": "Text segment 461-464",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            104,
+            783,
+            623,
+            33
+          ],
+          "text": "Text segment 464-505",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            27,
+            850,
+            948,
+            38
+          ],
+          "text": "Text segment 505-562",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            863,
+            1036,
+            123,
+            17
+          ],
+          "text": "Text segment 562-575",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_13",
+          "type": "paragraph",
+          "bbox": [
+            1118,
+            722,
+            139,
+            23
+          ],
+          "text": "Text segment 575-585",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_14",
+          "type": "paragraph",
+          "bbox": [
+            1119,
+            750,
+            136,
+            10
+          ],
+          "text": "Text segment 585-622",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_15",
+          "type": "paragraph",
+          "bbox": [
+            1094,
+            755,
+            182,
+            72
+          ],
+          "text": "Text segment 622-682",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_16",
+          "type": "paragraph",
+          "bbox": [
+            1117,
+            828,
+            31,
+            13
+          ],
+          "text": "Text segment 682-690",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_17",
+          "type": "paragraph",
+          "bbox": [
+            1121,
+            854,
+            23,
+            9
+          ],
+          "text": "Text segment 690-698",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_18",
+          "type": "paragraph",
+          "bbox": [
+            1225,
+            806,
+            35,
+            16
+          ],
+          "text": "Text segment 698-704",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_19",
+          "type": "paragraph",
+          "bbox": [
+            1236,
+            827,
+            29,
+            15
+          ],
+          "text": "Text segment 704-712",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_20",
+          "type": "paragraph",
+          "bbox": [
+            1111,
+            839,
+            143,
+            56
+          ],
+          "text": "Text segment 712-799",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_21",
+          "type": "paragraph",
+          "bbox": [
+            1097,
+            854,
+            144,
+            39
+          ],
+          "text": "Text segment 799-833",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_22",
+          "type": "paragraph",
+          "bbox": [
+            1126,
+            903,
+            138,
+            32
+          ],
+          "text": "Text segment 833-846",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_23",
+          "type": "paragraph",
+          "bbox": [
+            1172,
+            921,
+            93,
+            38
+          ],
+          "text": "Text segment 846-857",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_24",
+          "type": "paragraph",
+          "bbox": [
+            1164,
+            962,
+            66,
+            33
+          ],
+          "text": "Text segment 857-876",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 19,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/019.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/019.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            37,
+            238,
+            74
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            415,
+            31,
+            592,
+            59
+          ],
+          "text": "Text segment 22-41",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            338,
+            124,
+            763,
+            42
+          ],
+          "text": "Text segment 41-81",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            708,
+            252,
+            224,
+            44
+          ],
+          "text": "Text segment 81-91",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            722,
+            397,
+            303,
+            50
+          ],
+          "text": "Text segment 91-103",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            794,
+            585,
+            292,
+            45
+          ],
+          "text": "Text segment 103-115",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            468,
+            612,
+            167,
+            38
+          ],
+          "text": "Text segment 115-122",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            464,
+            705,
+            141,
+            46
+          ],
+          "text": "Text segment 122-128",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            188,
+            985,
+            498,
+            31
+          ],
+          "text": "Text segment 128-158",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            1099,
+            996,
+            123,
+            19
+          ],
+          "text": "Text segment 158-171",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 20,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/020.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/020.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            91,
+            37,
+            239,
+            73
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            402,
+            72,
+            786,
+            63
+          ],
+          "text": "Text segment 22-47",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            922,
+            248,
+            244,
+            39
+          ],
+          "text": "Text segment 47-59",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            901,
+            352,
+            152,
+            36
+          ],
+          "text": "Text segment 59-67",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            900,
+            408,
+            459,
+            45
+          ],
+          "text": "Text segment 67-93",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            900,
+            469,
+            459,
+            41
+          ],
+          "text": "Text segment 93-115",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            695,
+            1035,
+            122,
+            18
+          ],
+          "text": "Text segment 115-128",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            903,
+            640,
+            133,
+            42
+          ],
+          "text": "Text segment 128-135",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            905,
+            696,
+            434,
+            101
+          ],
+          "text": "Text segment 135-178",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            893,
+            887,
+            220,
+            40
+          ],
+          "text": "Text segment 178-188",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            877,
+            957,
+            530,
+            47
+          ],
+          "text": "Text segment 188-215",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            972,
+            976,
+            20,
+            15
+          ],
+          "text": "Text segment 215-217",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_13",
+          "type": "paragraph",
+          "bbox": [
+            880,
+            1021,
+            407,
+            42
+          ],
+          "text": "Text segment 217-240",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 21,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/021.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/021.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            35,
+            239,
+            78
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            318,
+            117,
+            784,
+            68
+          ],
+          "text": "Text segment 22-47",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            113,
+            279,
+            824,
+            88
+          ],
+          "text": "Text segment 47-126",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            142,
+            828,
+            342,
+            78
+          ],
+          "text": "Text segment 126-159",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            680,
+            581,
+            130,
+            23
+          ],
+          "text": "Text segment 159-167",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            1147,
+            396,
+            130,
+            25
+          ],
+          "text": "Text segment 167-175",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            617,
+            827,
+            258,
+            81
+          ],
+          "text": "Text segment 175-206",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            619,
+            925,
+            255,
+            31
+          ],
+          "text": "Text segment 206-219",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            1068,
+            675,
+            291,
+            30
+          ],
+          "text": "Text segment 219-237",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_10",
+          "type": "paragraph",
+          "bbox": [
+            1057,
+            729,
+            314,
+            33
+          ],
+          "text": "Text segment 237-254",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_11",
+          "type": "paragraph",
+          "bbox": [
+            1142,
+            781,
+            144,
+            30
+          ],
+          "text": "Text segment 254-262",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_12",
+          "type": "paragraph",
+          "bbox": [
+            1089,
+            832,
+            250,
+            34
+          ],
+          "text": "Text segment 262-276",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_13",
+          "type": "paragraph",
+          "bbox": [
+            1060,
+            885,
+            308,
+            38
+          ],
+          "text": "Text segment 276-293",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 22,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/022.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/022.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            93,
+            37,
+            237,
+            74
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            481,
+            92,
+            484,
+            64
+          ],
+          "text": "Text segment 22-39",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            370,
+            177,
+            701,
+            58
+          ],
+          "text": "Text segment 39-63",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            118,
+            330,
+            517,
+            30
+          ],
+          "text": "Text segment 63-96",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            119,
+            395,
+            564,
+            29
+          ],
+          "text": "Text segment 96-133",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            116,
+            460,
+            536,
+            30
+          ],
+          "text": "Text segment 133-168",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            115,
+            524,
+            614,
+            29
+          ],
+          "text": "Text segment 168-208",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_8",
+          "type": "paragraph",
+          "bbox": [
+            115,
+            589,
+            153,
+            28
+          ],
+          "text": "Text segment 208-219",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_9",
+          "type": "paragraph",
+          "bbox": [
+            119,
+            654,
+            188,
+            24
+          ],
+          "text": "Text segment 219-232",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    },
+    {
+      "id": 23,
+      "image": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/slides/023.png",
+      "audio": "/assets/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/audio/023.mp3",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            92,
+            37,
+            237,
+            73
+          ],
+          "text": "Text segment 0-22",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_2",
+          "type": "paragraph",
+          "bbox": [
+            414,
+            136,
+            596,
+            61
+          ],
+          "text": "Text segment 22-41",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_3",
+          "type": "paragraph",
+          "bbox": [
+            338,
+            232,
+            765,
+            42
+          ],
+          "text": "Text segment 41-81",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_4",
+          "type": "paragraph",
+          "bbox": [
+            93,
+            359,
+            554,
+            37
+          ],
+          "text": "Text segment 81-107",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_5",
+          "type": "paragraph",
+          "bbox": [
+            94,
+            459,
+            525,
+            84
+          ],
+          "text": "Text segment 107-164",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_6",
+          "type": "paragraph",
+          "bbox": [
+            94,
+            605,
+            535,
+            123
+          ],
+          "text": "Text segment 164-229",
+          "confidence": 0.9
+        },
+        {
+          "id": "elem_7",
+          "type": "paragraph",
+          "bbox": [
+            885,
+            792,
+            324,
+            33
+          ],
+          "text": "Text segment 229-251",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": null,
+      "duration": null
+    }
+  ],
+  "timeline": {
+    "rules": [
+      {
+        "action_type": "highlight",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 1,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "underline",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 2,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "laser_move",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 3,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      }
+    ],
+    "default_duration": 2.0,
+    "transition_duration": 0.5,
+    "min_highlight_duration": 0.8,
+    "min_gap": 0.2,
+    "max_total_duration": 90.0,
+    "smoothness_enabled": true,
+    "slide_change_events": []
+  },
+  "metadata": {
+    "source_file": ".data/ef309f0f-5ca3-4028-ace8-b7ebeea02f58/Kurs_04.pdf",
+    "parser": "pdf",
+    "total_slides": 23
+  }
+}

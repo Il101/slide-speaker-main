@@ -1,0 +1,155 @@
+{
+  "slides": [
+    {
+      "id": 1,
+      "image": "/assets/66a0dde0-6005-41f3-b7a5-5174eec68676/slides/001.png",
+      "audio": "/assets/66a0dde0-6005-41f3-b7a5-5174eec68676/audio/001.wav",
+      "elements": [
+        {
+          "id": "slide_area",
+          "type": "placeholder",
+          "bbox": [
+            0,
+            0,
+            1920,
+            1080
+          ],
+          "text": "Slide content area",
+          "confidence": 1.0
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "This slide introduces the main topic, highlighting the key objective of the presentation.",
+          "targetId": "heading1"
+        },
+        {
+          "text": "The table shows quarterly sales data; note the significant growth in Q4 as indicated in the bottom-right cell.",
+          "target": {
+            "type": "table_region",
+            "tableId": "sales_table",
+            "cells": [
+              "r4c4"
+            ]
+          }
+        },
+        {
+          "text": "Emphasize the chart's trend line to illustrate the overall upward trajectory in performance metrics.",
+          "targetId": "trend_chart"
+        }
+      ],
+      "duration": 22.9881179138322
+    },
+    {
+      "id": 2,
+      "image": "/assets/66a0dde0-6005-41f3-b7a5-5174eec68676/slides/002.png",
+      "audio": "/assets/66a0dde0-6005-41f3-b7a5-5174eec68676/audio/002.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            959,
+            435,
+            78,
+            7
+          ],
+          "text": "Text segment 0-16",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "This paragraph outlines the key objectives of the project, highlighting the main goals from segments 0 to 8.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Emphasize the challenges discussed in segments 9 to 16, explaining how they impact the overall strategy.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Conclude by summarizing the benefits outlined in the latter part of the text, tying back to the project's success metrics.",
+          "targetId": "elem_1"
+        }
+      ],
+      "duration": 26.798321995464853
+    },
+    {
+      "id": 3,
+      "image": "/assets/66a0dde0-6005-41f3-b7a5-5174eec68676/slides/003.png",
+      "audio": "/assets/66a0dde0-6005-41f3-b7a5-5174eec68676/audio/003.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            960,
+            435,
+            50,
+            7
+          ],
+          "text": "Text segment 0-11",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Begin by introducing the main topic covered in the paragraph to set the context for the audience.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Highlight key points from text segments 0-5, emphasizing their relevance to the overall message.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Conclude with segments 6-11, tying them back to practical implications or next steps.",
+          "targetId": "elem_1"
+        }
+      ],
+      "duration": 22.696689342403626
+    }
+  ],
+  "timeline": {
+    "rules": [
+      {
+        "action_type": "highlight",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 1,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "underline",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 2,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "laser_move",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 3,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      }
+    ],
+    "default_duration": 2.0,
+    "transition_duration": 0.5,
+    "min_highlight_duration": 0.8,
+    "min_gap": 0.2,
+    "max_total_duration": 90.0,
+    "smoothness_enabled": true,
+    "slide_change_events": []
+  },
+  "metadata": {
+    "source_file": ".data/66a0dde0-6005-41f3-b7a5-5174eec68676/test_presentation.pptx",
+    "parser": "pptx",
+    "total_slides": 3
+  }
+}

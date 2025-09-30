@@ -1,0 +1,156 @@
+{
+  "slides": [
+    {
+      "id": 1,
+      "image": "/assets/3a51e1f9-b70c-4442-b154-7789bfdea588/slides/001.png",
+      "audio": "/assets/3a51e1f9-b70c-4442-b154-7789bfdea588/audio/001.wav",
+      "elements": [
+        {
+          "id": "slide_area",
+          "type": "placeholder",
+          "bbox": [
+            0,
+            0,
+            1920,
+            1080
+          ],
+          "text": "Slide content area",
+          "confidence": 1.0
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "This slide introduces the main topic, highlighting the key objective of the presentation.",
+          "targetId": "heading1"
+        },
+        {
+          "text": "The table shows quarterly sales data, with the highest growth in Q4 as indicated in the bottom-right cell.",
+          "target": {
+            "type": "table_region",
+            "tableId": "sales_table",
+            "cells": [
+              "r1c1",
+              "r4c4"
+            ]
+          }
+        },
+        {
+          "text": "The chart visualizes trends over time, emphasizing the upward trajectory from 2020 to 2023.",
+          "targetId": "trend_chart"
+        }
+      ],
+      "duration": 24.79201814058957
+    },
+    {
+      "id": 2,
+      "image": "/assets/3a51e1f9-b70c-4442-b154-7789bfdea588/slides/002.png",
+      "audio": "/assets/3a51e1f9-b70c-4442-b154-7789bfdea588/audio/002.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            959,
+            435,
+            78,
+            7
+          ],
+          "text": "Text segment 0-16",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "Introduce the key topic by highlighting the main idea in the paragraph, which covers the foundational concepts from segments 0-16.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Emphasize the progression of ideas in the text segment, noting how it builds from initial points to conclusions for better audience understanding.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Point out specific examples within the paragraph to illustrate real-world applications, keeping the explanation engaging and relatable.",
+          "targetId": "elem_1"
+        }
+      ],
+      "duration": 31.527619047619048
+    },
+    {
+      "id": 3,
+      "image": "/assets/3a51e1f9-b70c-4442-b154-7789bfdea588/slides/003.png",
+      "audio": "/assets/3a51e1f9-b70c-4442-b154-7789bfdea588/audio/003.wav",
+      "elements": [
+        {
+          "id": "elem_1",
+          "type": "paragraph",
+          "bbox": [
+            960,
+            435,
+            50,
+            7
+          ],
+          "text": "Text segment 0-11",
+          "confidence": 0.9
+        }
+      ],
+      "cues": [],
+      "speaker_notes": [
+        {
+          "text": "This paragraph outlines the key objectives of the project, highlighting the main goals from segments 0 to 11.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Emphasize how the text segments build a logical flow, starting with foundational concepts in the early parts and progressing to detailed applications later.",
+          "targetId": "elem_1"
+        },
+        {
+          "text": "Use this content to engage the audience by relating the described challenges to real-world examples, ensuring the explanation remains concise and relatable.",
+          "targetId": "elem_1"
+        }
+      ],
+      "duration": 32.40077097505669
+    }
+  ],
+  "timeline": {
+    "rules": [
+      {
+        "action_type": "highlight",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 1,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "underline",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 2,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      },
+      {
+        "action_type": "laser_move",
+        "min_duration": 0.8,
+        "max_duration": 5.0,
+        "priority": 3,
+        "gap_before": 0.2,
+        "gap_after": 0.2
+      }
+    ],
+    "default_duration": 2.0,
+    "transition_duration": 0.5,
+    "min_highlight_duration": 0.8,
+    "min_gap": 0.2,
+    "max_total_duration": 90.0,
+    "smoothness_enabled": true,
+    "slide_change_events": []
+  },
+  "metadata": {
+    "source_file": ".data/3a51e1f9-b70c-4442-b154-7789bfdea588/test_presentation.pptx",
+    "parser": "pptx",
+    "total_slides": 3
+  }
+}
