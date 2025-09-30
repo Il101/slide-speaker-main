@@ -38,6 +38,20 @@ export interface Slide {
     };
   }>;
   lecture_text?: string;
+  talk_track?: Array<{
+    kind: string;
+    text: string;
+  }>;
+  visual_cues?: Array<{
+    at: string;
+    targetId: string;
+  }>;
+  concepts?: {
+    title?: string;
+    key_theses?: string[];
+    visual_insight?: string;
+  };
+  terms_to_define?: string[];
   duration?: number;
 }
 
@@ -63,6 +77,17 @@ export interface Timeline {
 export interface Manifest {
   slides: Slide[];
   timeline?: Timeline;
+  lecture_outline?: {
+    outline: Array<{
+      idx: number;
+      goal: string;
+    }>;
+    narrative_rules: string[];
+  };
+  course_title?: string;
+  lecture_title?: string;
+  audience_level?: string;
+  style_preset?: string;
 }
 
 export interface ExportResponse {
@@ -170,6 +195,86 @@ export class ApiClient {
 
     if (!response.ok) {
       throw new Error(`Patch failed: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  // New V2 API methods
+  async generateLectureOutline(lectureTitle: string, courseTitle?: string, audienceLevel?: string): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/api/v2/lecture-outline`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        lecture_title: lectureTitle,
+        course_title: courseTitle,
+        audience_level: audienceLevel || 'undergrad'
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to generate lecture outline: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async generateSpeakerNotesV2(
+    lessonId: string,
+    slideId: number,
+    courseTitle?: string,
+    lectureTitle?: string,
+    audienceLevel?: string,
+    stylePreset?: string
+  ): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/api/v2/speaker-notes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        lesson_id: lessonId,
+        slide_id: slideId,
+        course_title: courseTitle,
+        lecture_title: lectureTitle,
+        audience_level: audienceLevel || 'undergrad',
+        style_preset: stylePreset || 'explanatory'
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to generate speaker notes: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async regenerateSpeakerNotes(lessonId: string, slideId: number): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/api/v2/regenerate-speaker-notes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        lesson_id: lessonId,
+        slide_id: slideId
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to regenerate speaker notes: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async getManifestV2(lessonId: string): Promise<Manifest> {
+    const response = await fetch(`${this.baseUrl}/api/v2/manifest/${lessonId}`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch manifest: ${response.statusText}`);
     }
 
     return response.json();
