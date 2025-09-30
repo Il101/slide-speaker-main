@@ -65,7 +65,7 @@ def vision_plan_for_slide(
         lecture_title: Lecture title for context
         prev_summary: Previous slide summary for context
         provider: LLM provider (openrouter|gemini)
-        model: Model name (e.g., gpt-4o-mini, gemini-1.5-flash)
+        model: Model name (e.g., x-ai/grok-4-fast:free, gpt-4o-mini, gemini-1.5-flash)
     
     Returns:
         Dict with lecture_text, rough_elements, rough_cues
