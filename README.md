@@ -65,7 +65,7 @@ curl -X POST "http://localhost:8000/lessons/{id}/generate-audio" \
 VISION_MODEL=gpt-4o-mini        # OpenAI
 VISION_MODEL=gemini-1.5-flash   # Google
 VISION_MODEL=claude-3-5-sonnet  # Anthropic
-VISION_MODEL=grok-beta          # xAI Grok
+VISION_MODEL=x-ai/grok-4-fast:free  # xAI Grok (через OpenRouter)
 
 # API ключи
 OPENROUTER_API_KEY=your_key     # Для OpenAI/Claude/Grok через OpenRouter
