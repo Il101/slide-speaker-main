@@ -1,4 +1,4 @@
-"""Sprint 1: Document parsing service"""
+"""Sprint 1: Document parsing service with concept extraction"""
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import logging
@@ -13,6 +13,7 @@ import hashlib
 
 from ...core.exceptions import ParsingError, FileProcessingError
 from ...models.schemas import Slide, Manifest, SlideElement, Cue, ActionType, Timeline
+from ..sprint2.concept_extractor import extract_slide_concepts, SlideConcepts
 
 logger = logging.getLogger(__name__)
 
@@ -303,6 +304,27 @@ class PPTXParser(DocumentParser):
         logger.info(f"Detected {len(elements)} elements for slide: {slide_image_path}")
         return elements
     
+    async def extract_slide_concepts(self, elements: List[SlideElement]) -> SlideConcepts:
+        """Extract concepts from slide elements"""
+        logger.info(f"Extracting concepts from {len(elements)} elements")
+        
+        # Convert SlideElement objects to dict format for concept extraction
+        elements_dict = []
+        for element in elements:
+            elements_dict.append({
+                "id": element.id,
+                "type": element.type,
+                "bbox": element.bbox,
+                "text": element.text,
+                "confidence": element.confidence
+            })
+        
+        # Extract concepts using the concept extractor
+        concepts = extract_slide_concepts(elements_dict)
+        
+        logger.info(f"Extracted concepts: title='{concepts.title}', {len(concepts.key_theses)} theses, {len(concepts.terms_to_define)} terms")
+        return concepts
+    
     async def _detect_elements_easyocr(self, slide_image_path: Path) -> List[SlideElement]:
         """Detect text elements using EasyOCR (fallback) with caching"""
         logger.info(f"Detecting elements using EasyOCR: {slide_image_path}")
@@ -494,6 +516,27 @@ class PDFParser(DocumentParser):
         
         logger.info(f"Detected {len(elements)} elements for page: {slide_image_path}")
         return elements
+    
+    async def extract_slide_concepts(self, elements: List[SlideElement]) -> SlideConcepts:
+        """Extract concepts from slide elements"""
+        logger.info(f"Extracting concepts from {len(elements)} elements")
+        
+        # Convert SlideElement objects to dict format for concept extraction
+        elements_dict = []
+        for element in elements:
+            elements_dict.append({
+                "id": element.id,
+                "type": element.type,
+                "bbox": element.bbox,
+                "text": element.text,
+                "confidence": element.confidence
+            })
+        
+        # Extract concepts using the concept extractor
+        concepts = extract_slide_concepts(elements_dict)
+        
+        logger.info(f"Extracted concepts: title='{concepts.title}', {len(concepts.key_theses)} theses, {len(concepts.terms_to_define)} terms")
+        return concepts
     
     async def _detect_elements_easyocr(self, slide_image_path: Path) -> List[SlideElement]:
         """Detect text elements using EasyOCR (fallback) with caching"""

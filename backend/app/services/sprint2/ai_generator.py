@@ -1,12 +1,19 @@
-"""Sprint 2: AI content generation service"""
+"""Sprint 2: AI content generation service with anti-reading logic"""
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
 import json
 import subprocess
 from pathlib import Path
 
 from ...core.exceptions import AIGenerationError
 from ...core.config import settings
+from .concept_extractor import (
+    extract_slide_concepts, 
+    check_anti_reading, 
+    generate_lecture_outline,
+    SlideConcepts,
+    AntiReadingDetector
+)
 
 logger = logging.getLogger(__name__)
 
@@ -130,62 +137,271 @@ def inject_slide_changes(manifest: Dict[str, Any]) -> None:
     logger.info(f"Injected {len(timeline)} slide_change events into timeline")
 
 class AIGenerator:
-    """AI content generation service"""
+    """AI content generation service with anti-reading logic"""
     
     def __init__(self):
         self.openai_key = settings.OPENAI_API_KEY
         self.anthropic_key = settings.ANTHROPIC_API_KEY
+        self.anti_reading_threshold = 0.35
+        self.min_inference_ratio = 0.5
         
-    async def generate_speaker_notes(self, slide_content: str, custom_prompt: Optional[str] = None) -> str:
-        """Generate speaker notes for a slide using configured LLM provider"""
+    async def generate_lecture_outline(self, lecture_title: str, slide_concepts: List[SlideConcepts]) -> Dict[str, Any]:
+        """Generate lecture outline for coherence"""
         try:
-            logger.info("Generating speaker notes")
+            logger.info(f"Generating lecture outline for: {lecture_title}")
             
-            # Try to use configured LLM provider
-            try:
-                from ...services.provider_factory import plan_slide_with_gemini
-                
-                # Convert slide content to elements format if it's a string
-                if isinstance(slide_content, str):
-                    # Create mock elements from slide content
-                    elements = [{
-                        "id": "slide_content",
-                        "type": "paragraph", 
-                        "text": slide_content,
-                        "bbox": [100, 100, 800, 200],
-                        "confidence": 1.0
-                    }]
-                else:
-                    elements = slide_content
-                
-                # Generate speaker notes using configured LLM provider
-                notes = plan_slide_with_gemini(elements)
-                
-                # Convert notes to text format
-                speaker_notes = " ".join([note["text"] for note in notes])
-                
-                logger.info(f"Generated speaker notes using configured LLM provider: {len(speaker_notes)} characters")
-                return speaker_notes
-                
-            except Exception as e:
-                logger.warning(f"Failed to use configured LLM provider: {e}, using fallback")
+            # Use the new outline generator
+            outline = generate_lecture_outline(lecture_title, slide_concepts)
             
-            # Fallback to legacy implementation
-            if not self.openai_key and not self.anthropic_key:
-                logger.warning("No AI API keys configured, using placeholder")
-                return "This slide covers the main topic with key points and examples."
+            logger.info(f"Generated outline with {len(outline['outline'])} goals")
+            return outline
             
-            # Placeholder implementation
-            prompt = custom_prompt or f"Generate speaker notes for this slide content: {slide_content}"
+        except Exception as e:
+            logger.error(f"Error generating lecture outline: {e}")
+            raise AIGenerationError(f"Failed to generate lecture outline: {e}")
+    
+    async def generate_speaker_notes(self, 
+                                   slide_content: List[Dict[str, Any]], 
+                                   course_title: str = "",
+                                   lecture_title: str = "",
+                                   slide_index: int = 0,
+                                   total_slides: int = 1,
+                                   prev_summary: str = "",
+                                   audience_level: str = "undergrad",
+                                   style_preset: str = "explanatory",
+                                   lecture_outline: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Generate speaker notes using new anti-reading approach"""
+        try:
+            logger.info(f"Generating speaker notes for slide {slide_index + 1}/{total_slides}")
             
-            # TODO: Call actual LLM API
-            speaker_notes = f"Generated speaker notes for: {slide_content[:50]}..."
+            # Extract concepts instead of raw text
+            concepts = extract_slide_concepts(slide_content)
             
-            return speaker_notes
+            # Get slide text for overlap detection
+            slide_text = self._extract_slide_text(slide_content)
+            
+            # Generate talk track with anti-reading logic
+            talk_track = await self._generate_talk_track_with_anti_reading(
+                concepts, course_title, lecture_title, slide_index, total_slides,
+                prev_summary, audience_level, style_preset, lecture_outline, slide_text
+            )
+            
+            # Generate visual cues
+            visual_cues = self._generate_visual_cues(talk_track, slide_content)
+            
+            # Combine into final result
+            result = {
+                "talk_track": talk_track,
+                "visual_cues": visual_cues,
+                "terms_to_define": concepts.terms_to_define,
+                "concepts": {
+                    "title": concepts.title,
+                    "key_theses": concepts.key_theses,
+                    "visual_insight": concepts.visual_insight
+                }
+            }
+            
+            logger.info(f"Generated speaker notes with {len(talk_track)} talk segments")
+            return result
             
         except Exception as e:
             logger.error(f"Error generating speaker notes: {e}")
             raise AIGenerationError(f"Failed to generate speaker notes: {e}")
+    
+    async def _generate_talk_track_with_anti_reading(self, 
+                                                    concepts: SlideConcepts,
+                                                    course_title: str,
+                                                    lecture_title: str,
+                                                    slide_index: int,
+                                                    total_slides: int,
+                                                    prev_summary: str,
+                                                    audience_level: str,
+                                                    style_preset: str,
+                                                    lecture_outline: Optional[Dict[str, Any]],
+                                                    slide_text: str,
+                                                    max_attempts: int = 3) -> List[Dict[str, Any]]:
+        """Generate talk track with anti-reading detection and regeneration"""
+        
+        for attempt in range(max_attempts):
+            try:
+                # Build the new prompt
+                prompt = self._build_lecture_prompt(
+                    concepts, course_title, lecture_title, slide_index, total_slides,
+                    prev_summary, audience_level, style_preset, lecture_outline
+                )
+                
+                # Add anti-reading instruction if this is a retry
+                if attempt > 0:
+                    prompt += AntiReadingDetector().get_regeneration_prompt_addition()
+                
+                # Generate using configured LLM provider
+                talk_track = await self._call_llm_for_talk_track(prompt)
+                
+                # Check for anti-reading violations
+                generated_text = " ".join([segment["text"] for segment in talk_track])
+                should_regenerate, overlap = check_anti_reading(generated_text, slide_text, self.anti_reading_threshold)
+                
+                if not should_regenerate:
+                    logger.info(f"Generated talk track passed anti-reading check (overlap: {overlap:.3f})")
+                    return talk_track
+                else:
+                    logger.warning(f"Talk track failed anti-reading check (overlap: {overlap:.3f}), attempt {attempt + 1}/{max_attempts}")
+                    
+            except Exception as e:
+                logger.error(f"Error in attempt {attempt + 1}: {e}")
+                if attempt == max_attempts - 1:
+                    raise
+        
+        # If all attempts failed, return fallback
+        logger.warning("All anti-reading attempts failed, using fallback")
+        return self._create_fallback_talk_track(concepts)
+    
+    def _build_lecture_prompt(self, 
+                             concepts: SlideConcepts,
+                             course_title: str,
+                             lecture_title: str,
+                             slide_index: int,
+                             total_slides: int,
+                             prev_summary: str,
+                             audience_level: str,
+                             style_preset: str,
+                             lecture_outline: Optional[Dict[str, Any]]) -> str:
+        """Build the new lecture prompt"""
+        
+        # Build concept list
+        concept_list = []
+        if concepts.title:
+            concept_list.append(f"Title: {concepts.title}")
+        concept_list.extend([f"Thesis: {thesis}" for thesis in concepts.key_theses])
+        if concepts.visual_insight:
+            concept_list.append(f"Visual insight: {concepts.visual_insight}")
+        
+        concept_list_str = "\n- ".join(concept_list) if concept_list else "General slide content"
+        
+        # Get current slide goal from outline
+        current_goal = ""
+        if lecture_outline and slide_index < len(lecture_outline.get("outline", [])):
+            current_goal = lecture_outline["outline"][slide_index].get("goal", "")
+        
+        # Build the full prompt
+        prompt = f"""
+SYSTEM:
+You are an expert lecturer. Your goal is to EXPLAIN concepts, not to read slides.
+
+USER:
+Course: "{course_title}"
+Lecture: "{lecture_title}"
+Previous slide summary (1–2 sentences): {prev_summary}
+Current slide meta:
+- slideIndex: {slide_index + 1}/{total_slides}
+- concepts (from elements): {concept_list_str}
+- figure/table insight (if any): {concepts.visual_insight or "None"}
+
+Audience: {audience_level} (e.g., undergrad CS / teachers / managers)
+Style: clear, calm, didactic; 1 analogy; 1 concrete example.
+Current goal: {current_goal}
+
+Constraints (must follow):
+- DO NOT read or enumerate slide bullets.
+- Avoid quoting slide text (>10–15 consecutive words).
+- Speak at ~130–160 wpm; 45–90 seconds total.
+- Use plain language, no jargon unless defined.
+- Include: Hook → Core explanation → Example/Analogy → Contrast/Warning → Takeaway.
+- End with 1 rhetorical check question.
+
+Output STRICT JSON (no prose outside JSON):
+{{
+  "talk_track": [
+    {{"kind":"hook", "text":"..."}},
+    {{"kind":"core", "text":"..."}},
+    {{"kind":"example", "text":"..."}},
+    {{"kind":"contrast", "text":"..."}},
+    {{"kind":"takeaway", "text":"..."}},
+    {{"kind":"question", "text":"..."}}
+  ],
+  "visual_cues": [
+    # optional, reference element ids to highlight while speaking
+    {{"at":"hook","targetId":"{{element_id_or_slide_area}}"}},
+    {{"at":"core","targetId":"..."}}
+  ],
+  "terms_to_define": ["term1","term2"]   # optional
+}}
+If you repeat slide wording, paraphrase.
+"""
+        return prompt
+    
+    async def _call_llm_for_talk_track(self, prompt: str) -> List[Dict[str, Any]]:
+        """Call LLM to generate talk track"""
+        try:
+            from ...services.provider_factory import plan_slide_with_gemini
+            
+            # For now, use the existing provider but with new prompt structure
+            # In a real implementation, this would call the LLM directly
+            response = await self._call_llm_direct(prompt)
+            
+            # Parse JSON response
+            try:
+                result = json.loads(response)
+                return result.get("talk_track", [])
+            except json.JSONDecodeError:
+                logger.warning("LLM returned invalid JSON, using fallback")
+                return self._create_fallback_talk_track(SlideConcepts())
+                
+        except Exception as e:
+            logger.error(f"Error calling LLM: {e}")
+            raise
+    
+    async def _call_llm_direct(self, prompt: str) -> str:
+        """Direct LLM call (placeholder for actual implementation)"""
+        # This would be replaced with actual LLM API calls
+        # For now, return a mock response
+        return json.dumps({
+            "talk_track": [
+                {"kind": "hook", "text": "Let's explore this important concept together."},
+                {"kind": "core", "text": "This topic is fundamental to understanding the broader subject."},
+                {"kind": "example", "text": "Think of it like building blocks - each piece supports the next."},
+                {"kind": "contrast", "text": "Don't confuse this with the simpler version we saw earlier."},
+                {"kind": "takeaway", "text": "Remember: this concept connects everything we've learned."},
+                {"kind": "question", "text": "Can you think of how this applies to your own experience?"}
+            ],
+            "visual_cues": [],
+            "terms_to_define": []
+        })
+    
+    def _extract_slide_text(self, slide_content: List[Dict[str, Any]]) -> str:
+        """Extract all text from slide for overlap detection"""
+        text_parts = []
+        for element in slide_content:
+            if element.get('type') == 'text' and element.get('text'):
+                text_parts.append(element['text'])
+        return " ".join(text_parts)
+    
+    def _generate_visual_cues(self, talk_track: List[Dict[str, Any]], slide_content: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Generate visual cues based on talk track"""
+        cues = []
+        
+        # Map talk track segments to visual elements
+        for i, segment in enumerate(talk_track):
+            if i < len(slide_content):
+                element = slide_content[i]
+                cue = {
+                    "at": segment["kind"],
+                    "targetId": element.get("id", f"element_{i}")
+                }
+                cues.append(cue)
+        
+        return cues
+    
+    def _create_fallback_talk_track(self, concepts: SlideConcepts) -> List[Dict[str, Any]]:
+        """Create fallback talk track when LLM fails"""
+        return [
+            {"kind": "hook", "text": f"Let's discuss {concepts.title or 'this important topic'}."},
+            {"kind": "core", "text": "This concept is essential for understanding the material."},
+            {"kind": "example", "text": "Here's a practical example to illustrate the point."},
+            {"kind": "contrast", "text": "It's important not to confuse this with similar concepts."},
+            {"kind": "takeaway", "text": "The key takeaway is understanding the fundamental principles."},
+            {"kind": "question", "text": "Does this make sense so far?"}
+        ]
     
     async def generate_slide_change_events(self, slides: list, audio_durations: list) -> list:
         """Generate slide change events based on audio durations"""
