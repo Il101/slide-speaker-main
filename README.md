@@ -10,6 +10,66 @@
 - **Хранилище**: S3-совместимое (MinIO)
 - **Видео**: FFmpeg для рендера MP4
 - **Данные**: Mock-данные с placeholder слайдами
+- **Пайплайны**: Classic (OCR+LLM), Vision (мультимодальная LLM), Hybrid (Vision+OCR alignment)
+
+## Пайплайны обработки
+
+Slide Speaker поддерживает три режима обработки презентаций:
+
+### 1. Classic Pipeline (по умолчанию)
+- **Технология**: OCR (Document AI) + LLM + TTS
+- **Применение**: Точное извлечение текста и элементов из слайдов
+- **Преимущества**: Высокая точность bbox, поддержка таблиц и сложных макетов
+- **Недостатки**: Зависимость от качества OCR
+
+### 2. Vision Pipeline
+- **Технология**: Мультимодальная LLM (GPT-4o, Gemini, Claude)
+- **Применение**: Анализ изображений слайдов для генерации объяснений
+- **Преимущества**: Понимание контекста, качественные объяснения, независимость от OCR
+- **Недостатки**: Приблизительные координаты элементов
+
+### 3. Hybrid Pipeline
+- **Технология**: Vision LLM + OCR alignment
+- **Применение**: Комбинация лучшего из двух подходов
+- **Преимущества**: Качественные объяснения + точные координаты
+- **Недостатки**: Более сложная обработка, требует настройки alignment
+
+### Переключение пайплайнов
+
+#### Через переменную окружения
+```bash
+# В .env файле
+PIPELINE=classic    # classic | vision | hybrid
+```
+
+#### Через параметр запроса
+```bash
+# При загрузке файла
+curl -F "file=@presentation.pdf" "http://localhost:8000/upload?pipeline=vision"
+
+# При генерации аудио
+curl -X POST "http://localhost:8000/lessons/{id}/generate-audio" \
+  -H "X-Pipeline: hybrid"
+```
+
+#### Через фронтенд
+```javascript
+// В URL параметрах
+/?lesson=demo&pipeline=vision
+```
+
+### Конфигурация Vision моделей
+
+```bash
+# В .env файле
+VISION_MODEL=gpt-4o-mini        # OpenAI
+VISION_MODEL=gemini-1.5-flash   # Google
+VISION_MODEL=claude-3-5-sonnet  # Anthropic
+
+# API ключи
+OPENROUTER_API_KEY=your_key     # Для OpenAI/Claude через OpenRouter
+GEMINI_API_KEY=your_key         # Для Google Gemini
+```
 
 ## Быстрый запуск
 
@@ -347,6 +407,40 @@ VITE_API_BASE=http://localhost:8000
 - [ ] **Тестирование**: Unit и интеграционные тесты
 
 ## Тестирование
+
+### Smoke тесты пайплайнов
+```bash
+# Тест Classic пайплайна
+./scripts/smoke.sh classic
+
+# Тест Vision пайплайна  
+./scripts/smoke.sh vision
+
+# Тест Hybrid пайплайна
+./scripts/smoke.sh hybrid
+
+# С кастомным API
+API=http://localhost:8000 ./scripts/smoke.sh vision
+```
+
+### E2E тесты
+```bash
+cd tests/e2e
+npm install
+npm test
+```
+
+E2E тесты автоматически проверяют все три пайплайна:
+- Воспроизведение аудио
+- Появление подсветок
+- Автоматическая смена слайдов
+- Отображение субтитров
+
+### Unit тесты
+```bash
+cd backend
+python -m pytest app/tests/
+```
 
 ### Smoke Test
 
