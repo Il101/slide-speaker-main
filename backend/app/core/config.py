@@ -1,7 +1,11 @@
-"""Application configuration"""
+"""Application configuration with secrets management"""
 import os
 from pathlib import Path
 from typing import Optional
+from .secrets import (
+    get_database_url, get_redis_url, get_jwt_secret, get_openai_key,
+    get_azure_tts_key, get_minio_credentials, get_cors_origins, get_grafana_password
+)
 
 class Settings:
     """Application settings"""
@@ -13,12 +17,20 @@ class Settings:
     API_PORT: int = 8000
     
     # CORS Configuration
-    CORS_ORIGINS: list = [
+    CORS_ORIGINS: list = get_cors_origins().split(",") if get_cors_origins() else [
         "http://localhost:3000",
         "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:5175",
+        "http://localhost:5176",
+        "http://localhost:5177",
         "http://localhost:8080",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        "http://127.0.0.1:5175",
+        "http://127.0.0.1:5176",
+        "http://127.0.0.1:5177",
         "http://127.0.0.1:8080"
     ]
     
@@ -35,13 +47,13 @@ class Settings:
     # Google Cloud Services
     GOOGLE_APPLICATION_CREDENTIALS: Optional[str] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     GCP_PROJECT_ID: Optional[str] = os.getenv("GCP_PROJECT_ID")
-    GCP_LOCATION: str = os.getenv("GCP_LOCATION", "us-central1")
+    GCP_LOCATION: str = os.getenv("GCP_LOCATION", "us")
     
     # Provider Configuration
-    OCR_PROVIDER: str = os.getenv("OCR_PROVIDER", "easyocr")  # google|easyocr|paddle
-    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "ollama")  # gemini|openai|openrouter|ollama|anthropic
-    TTS_PROVIDER: str = os.getenv("TTS_PROVIDER", "mock")  # google|azure|mock
-    STORAGE: str = os.getenv("STORAGE", "minio")  # gcs|minio
+    OCR_PROVIDER: str = os.getenv("OCR_PROVIDER", "enhanced_vision")  # google|vision|easyocr|paddle
+    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "openrouter")  # gemini|openai|openrouter|ollama|anthropic
+    TTS_PROVIDER: str = os.getenv("TTS_PROVIDER", "google")  # google|azure|mock
+    STORAGE: str = os.getenv("STORAGE", "gcs")  # gcs|minio
     
     # Google Cloud Document AI
     GCP_DOC_AI_PROCESSOR_ID: Optional[str] = os.getenv("GCP_DOC_AI_PROCESSOR_ID")
@@ -49,20 +61,21 @@ class Settings:
     
     # Google Cloud Gemini
     GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
-    GEMINI_LOCATION: str = os.getenv("GEMINI_LOCATION", "us-central1")
+    GEMINI_LOCATION: str = os.getenv("GEMINI_LOCATION", "us")
     LLM_TEMPERATURE: float = float(os.getenv("LLM_TEMPERATURE", "0.2"))
+    LLM_LANGUAGE: str = os.getenv("LLM_LANGUAGE", "ru")
     
     # Google Cloud TTS
-    GOOGLE_TTS_VOICE: str = os.getenv("GOOGLE_TTS_VOICE", "ru-RU-Neural2-B")
+    GOOGLE_TTS_VOICE: str = os.getenv("GOOGLE_TTS_VOICE", "ru-RU-Wavenet-D")
     GOOGLE_TTS_SPEAKING_RATE: float = float(os.getenv("GOOGLE_TTS_SPEAKING_RATE", "1.0"))
     GOOGLE_TTS_PITCH: float = float(os.getenv("GOOGLE_TTS_PITCH", "0.0"))
     
     # Google Cloud Storage
-    GCS_BUCKET: Optional[str] = os.getenv("GCS_BUCKET")
-    GCS_BASE_URL: Optional[str] = os.getenv("GCS_BASE_URL")
+    GCS_BUCKET: str = os.getenv("GCS_BUCKET", "slide-speaker-storage")
+    GCS_BASE_URL: str = os.getenv("GCS_BASE_URL", "https://storage.googleapis.com/slide-speaker-storage")
     
     # Legacy AI Services (Sprint 2)
-    OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY")
+    OPENAI_API_KEY: Optional[str] = get_openai_key()
     ANTHROPIC_API_KEY: Optional[str] = os.getenv("ANTHROPIC_API_KEY")
     TTS_SERVICE: str = os.getenv("TTS_SERVICE", "openai")  # openai, elevenlabs, azure
     
@@ -72,15 +85,20 @@ class Settings:
     OPENROUTER_BASE_URL: str = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
     
     # Azure TTS (Legacy)
-    AZURE_TTS_KEY: Optional[str] = os.getenv("AZURE_TTS_KEY")
+    AZURE_TTS_KEY: Optional[str] = get_azure_tts_key()
     AZURE_TTS_REGION: Optional[str] = os.getenv("AZURE_TTS_REGION")
     TTS_VOICE: str = os.getenv("TTS_VOICE", "ru-RU-SvetlanaNeural")
     TTS_SPEED: float = float(os.getenv("TTS_SPEED", "1.0"))
     
+    # Database Configuration
+    DATABASE_URL: str = get_database_url()
+    DATABASE_POOL_SIZE: int = int(os.getenv("DATABASE_POOL_SIZE", "10"))
+    DATABASE_MAX_OVERFLOW: int = int(os.getenv("DATABASE_MAX_OVERFLOW", "20"))
+    
     # Queue Configuration (Sprint 3)
-    REDIS_URL: Optional[str] = os.getenv("REDIS_URL", "redis://localhost:6379")
-    CELERY_BROKER_URL: str = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
-    CELERY_RESULT_BACKEND: str = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+    REDIS_URL: Optional[str] = get_redis_url()
+    CELERY_BROKER_URL: str = get_redis_url()
+    CELERY_RESULT_BACKEND: str = get_redis_url()
     
     # Video Export (Sprint 3)
     FFMPEG_PATH: str = os.getenv("FFMPEG_PATH", "ffmpeg")
@@ -104,6 +122,11 @@ class Settings:
     
     # Metrics Configuration
     METRICS_PORT: int = int(os.getenv("METRICS_PORT", "8000"))
+    
+    # Security Configuration
+    JWT_SECRET_KEY: str = get_jwt_secret()
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    CSRF_SECRET_KEY: str = os.getenv("CSRF_SECRET_KEY", "your-csrf-secret-key-change-in-production")
     
     def __init__(self):
         """Initialize directories"""

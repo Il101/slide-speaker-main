@@ -1,491 +1,488 @@
-"""Celery tasks for background processing"""
-from celery import Celery
+"""Simplified Celery tasks for background processing"""
+import os
+import sys
+import uuid
+import json
 import logging
+from typing import Dict, Any, Optional
 from pathlib import Path
+from celery import current_task
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
 
+# Add workers directory to Python path for imports in Celery worker
+current_dir = Path(__file__).parent
+workers_dir = current_dir.parent.parent / "workers"
+if str(workers_dir) not in sys.path:
+    sys.path.insert(0, str(workers_dir))
+
+from .celery_app import celery_app
+from .core.logging import get_logger
 from .core.config import settings
-from .services.sprint3.video_exporter import VideoExporter
+from .core.locks import with_distributed_lock, lesson_resource
+from .services.sprint1.document_parser import ParserFactory
 from .services.sprint2.ai_generator import AIGenerator, TTSService
+from .services.sprint3.video_exporter import VideoExporter
+from .models.schemas import ExportRequest
 
-# Configure Celery
-celery_app = Celery(
-    "slide_speaker",
-    broker=settings.CELERY_BROKER_URL,
-    backend=settings.CELERY_RESULT_BACKEND
-)
+logger = get_logger(__name__)
 
-celery_app.conf.update(
-    task_serializer="json",
-    accept_content=["json"],
-    result_serializer="json",
-    timezone="UTC",
-    enable_utc=True,
-    # Concurrency settings
-    worker_concurrency=4,  # Number of concurrent workers
-    worker_prefetch_multiplier=1,  # Prefetch only 1 task per worker
-    task_acks_late=True,  # Acknowledge tasks only after completion
-    worker_max_tasks_per_child=1000,  # Restart worker after 1000 tasks
-    # Rate limiting
-    task_routes={
-        'export_video_task': {'queue': 'video_export'},
-        'generate_ai_content_task': {'queue': 'ai_generation'},
-        'render_lesson_mp4': {'queue': 'video_export'},
-        'cleanup_files_task': {'queue': 'maintenance'},
-    },
-    # Queue configuration
-    task_default_queue='default',
-    task_queues={
-        'default': {
-            'exchange': 'default',
-            'routing_key': 'default',
-        },
-        'video_export': {
-            'exchange': 'video_export',
-            'routing_key': 'video_export',
-        },
-        'ai_generation': {
-            'exchange': 'ai_generation',
-            'routing_key': 'ai_generation',
-        },
-        'maintenance': {
-            'exchange': 'maintenance',
-            'routing_key': 'maintenance',
-        },
-    },
-    # Task time limits
-    task_time_limit=1800,  # 30 minutes
-    task_soft_time_limit=1500,  # 25 minutes
-    # Result backend settings
-    result_expires=3600,  # 1 hour
-    result_persistent=True,
-    # Worker settings
-    worker_disable_rate_limits=False,
-    worker_hijack_root_logger=False,
-    worker_log_color=False,
-    worker_log_format='[%(asctime)s: %(levelname)s/%(processName)s] %(message)s',
-    worker_task_log_format='[%(asctime)s: %(levelname)s/%(processName)s][%(task_name)s(%(task_id)s)] %(message)s',
-)
+# Create synchronous database engine for Celery tasks
+engine = create_engine(settings.DATABASE_URL.replace('+asyncpg', '+psycopg2'))
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Configure logging
-logger = logging.getLogger(__name__)
-
-@celery_app.task(bind=True)
-def export_video_task(self, lesson_id: str, quality: str = "high"):
-    """Background task for video export"""
+@celery_app.task(bind=True, name='app.tasks.process_lesson_full_pipeline')
+@with_distributed_lock(lesson_resource, timeout=600, blocking_timeout=5)
+def process_lesson_full_pipeline(self, lesson_id: str, file_path: str, user_id: str):
+    """Process lesson through full pipeline - simplified version"""
     try:
-        logger.info(f"Starting video export task for lesson {lesson_id}")
-        
-        # Update task status
+        # Update task progress
         self.update_state(
-            state="PROGRESS",
-            meta={"progress": 10, "message": "Starting export"}
+            state='PROGRESS',
+            meta={'progress': 0, 'stage': 'initializing', 'lesson_id': lesson_id}
+        )
+        
+        with SessionLocal() as db:
+            # Update lesson status
+            db.execute(text("""
+                UPDATE lessons 
+                SET status = 'processing', 
+                    processing_progress = :progress
+                WHERE id = :lesson_id
+            """), {
+                'progress': json.dumps({'stage': 'initializing', 'progress': 0}),
+                'lesson_id': lesson_id
+            })
+            db.commit()
+            
+            # Parse document
+            self.update_state(
+                state='PROGRESS',
+                meta={'progress': 20, 'stage': 'parsing', 'lesson_id': lesson_id}
+            )
+            
+            # Update DB with parsing stage
+            db.execute(text("""
+                UPDATE lessons 
+                SET processing_progress = :progress
+                WHERE id = :lesson_id
+            """), {
+                'progress': json.dumps({'stage': 'parsing', 'progress': 20}),
+                'lesson_id': lesson_id
+            })
+            db.commit()
+            
+            parser = ParserFactory.create_parser(file_path)
+            # Run the async parse method
+            import asyncio
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            
+            manifest = loop.run_until_complete(parser.parse())
+            slides_data = [slide.dict() for slide in manifest.slides]
+            
+            logger.info(f"Parsed {len(slides_data)} slides for lesson {lesson_id}")
+            
+            # Generate speaker notes with SSML
+            self.update_state(
+                state='PROGRESS',
+                meta={'progress': 50, 'stage': 'generating_notes', 'lesson_id': lesson_id}
+            )
+            
+            # Update DB with generating_notes stage
+            db.execute(text("""
+                UPDATE lessons 
+                SET processing_progress = :progress
+                WHERE id = :lesson_id
+            """), {
+                'progress': json.dumps({'stage': 'generating_notes', 'progress': 50}),
+                'lesson_id': lesson_id
+            })
+            db.commit()
+            
+            # Import SSML workers
+            from workers.llm_openrouter_ssml import OpenRouterLLMWorkerSSML
+            from workers.tts_google_ssml import GoogleTTSWorkerSSML
+            
+            llm_ssml = OpenRouterLLMWorkerSSML()
+            tts_ssml = GoogleTTSWorkerSSML()
+            
+            ai_generator = AIGenerator()
+            for slide in slides_data:
+                try:
+                    # Generate SSML text with proper Russian pronunciation
+                    ssml_text = llm_ssml.generate_lecture_text_with_ssml(
+                        slide.get('elements', [])
+                    )
+                    
+                    # Store both plain text (for display) and SSML (for audio)
+                    # Extract plain text from SSML for speaker_notes display
+                    import re
+                    plain_text = re.sub(r'<[^>]+>', '', ssml_text)  # Remove SSML tags
+                    slide['speaker_notes'] = plain_text
+                    slide['speaker_notes_ssml'] = ssml_text  # Store SSML separately
+                    
+                    logger.info(f"Generated SSML speaker notes for slide {slide.get('id', 'unknown')}: {len(ssml_text)} chars SSML, {len(plain_text)} chars plain")
+                except Exception as e:
+                    logger.error(f"Failed to generate speaker notes for slide: {e}")
+                    # Fallback to regular generation
+                    try:
+                        speaker_notes = loop.run_until_complete(
+                            ai_generator.generate_speaker_notes(
+                                slide.get('elements', []),
+                                slide.get('title', '')
+                            )
+                        )
+                        slide['speaker_notes'] = speaker_notes
+                        slide['speaker_notes_ssml'] = None
+                    except Exception as e2:
+                        logger.error(f"Fallback also failed: {e2}")
+                        slide['speaker_notes'] = "Speaker notes generation failed"
+                        slide['speaker_notes_ssml'] = None
+            
+            # Generate audio with SSML
+            self.update_state(
+                state='PROGRESS',
+                meta={'progress': 70, 'stage': 'generating_audio', 'lesson_id': lesson_id}
+            )
+            
+            # Update DB with generating_audio stage
+            db.execute(text("""
+                UPDATE lessons 
+                SET processing_progress = :progress
+                WHERE id = :lesson_id
+            """), {
+                'progress': json.dumps({'stage': 'generating_audio', 'progress': 70}),
+                'lesson_id': lesson_id
+            })
+            db.commit()
+            
+            for slide in slides_data:
+                # Prefer SSML if available, otherwise use plain text
+                ssml_text = slide.get('speaker_notes_ssml')
+                plain_text = slide.get('speaker_notes')
+                word_timings = None  # Will store word-level timings if available
+                
+                if ssml_text or plain_text:
+                    try:
+                        if ssml_text:
+                            # Use SSML for better pronunciation
+                            logger.info(f"Generating audio with SSML for slide {slide.get('id', 'unknown')}")
+                            result = tts_ssml.synthesize_speech_with_ssml(ssml_text)
+                            
+                            # Handle tuple return (audio_data, word_timings)
+                            if isinstance(result, tuple):
+                                audio_data, word_timings = result
+                                logger.info(f"Received {len(word_timings) if word_timings else 0} word timings from TTS")
+                            else:
+                                audio_data = result
+                                word_timings = None
+                        else:
+                            # Fallback to regular TTS
+                            logger.info(f"Generating audio with plain text for slide {slide.get('id', 'unknown')}")
+                            tts_service = TTSService()
+                            audio_data = loop.run_until_complete(
+                                tts_service.generate_audio(plain_text)
+                            )
+                            word_timings = None
+                        
+                        # Save audio data to file
+                        audio_path = f"{lesson_id}/audio/{slide['id']:03d}.mp3"
+                        audio_file_path = Path(".data") / audio_path
+                        audio_file_path.parent.mkdir(parents=True, exist_ok=True)
+                        
+                        # Convert WAV to MP3 using pydub
+                        from pydub import AudioSegment
+                        import io
+                        
+                        # Create AudioSegment from WAV data
+                        audio_segment = AudioSegment.from_wav(io.BytesIO(audio_data))
+                        
+                        # Export as MP3
+                        audio_segment.export(str(audio_file_path), format="mp3")
+                        
+                        # Save audio duration in seconds
+                        audio_duration = len(audio_segment) / 1000.0  # Convert ms to seconds
+                        slide['duration'] = audio_duration
+                        
+                        # Store word timings for later cue generation
+                        if word_timings:
+                            slide['word_timings'] = word_timings
+                        
+                        slide['audio_path'] = f"/assets/{audio_path}"
+                        slide['audio'] = f"/assets/{audio_path}"  # Update audio field too
+                        logger.info(f"Generated audio for slide {slide.get('id', 'unknown')}, duration: {audio_duration:.1f}s")
+                    except Exception as e:
+                        logger.error(f"Failed to generate audio for slide: {e}")
+                        slide['audio_path'] = None
+            
+            # Generate visual cues
+            self.update_state(
+                state='PROGRESS',
+                meta={'progress': 90, 'stage': 'generating_cues', 'lesson_id': lesson_id}
+            )
+            
+            # Update DB with generating_cues stage
+            db.execute(text("""
+                UPDATE lessons 
+                SET processing_progress = :progress
+                WHERE id = :lesson_id
+            """), {
+                'progress': json.dumps({'stage': 'generating_cues', 'progress': 90}),
+                'lesson_id': lesson_id
+            })
+            db.commit()
+            
+            for slide in slides_data:
+                try:
+                    # Get audio duration for this slide
+                    audio_duration = slide.get('duration', 10.0)  # Fallback to 10s if not set
+                    
+                    # Get word timings if available
+                    word_timings = slide.get('word_timings', None)
+                    
+                    # Handle async function properly
+                    cues = loop.run_until_complete(
+                        ai_generator.generate_visual_cues(
+                            slide.get('elements', []),
+                            slide.get('speaker_notes', ''),
+                            audio_duration,
+                            word_timings
+                        )
+                    )
+                    slide['cues'] = cues
+                    
+                    # Remove word_timings from slide data (not needed in frontend)
+                    if 'word_timings' in slide:
+                        del slide['word_timings']
+                    
+                    logger.info(f"Generated {len(cues)} cues for slide {slide.get('id', 'unknown')} (duration: {audio_duration:.1f}s, word_timings: {'yes' if word_timings else 'no'})")
+                except Exception as e:
+                    logger.error(f"Failed to generate cues for slide: {e}")
+                    slide['cues'] = []
+            
+            # Save updated manifest with speaker_notes, audio paths, and cues
+            manifest_path = Path(".data") / lesson_id / "manifest.json"
+            
+            # Convert manifest to dict and save
+            # Don't assign to manifest.slides to avoid Pydantic validation issues with speaker_notes type
+            metadata = {}
+            if hasattr(manifest, 'metadata') and manifest.metadata:
+                metadata = manifest.metadata.dict() if hasattr(manifest.metadata, 'dict') else manifest.metadata
+            
+            timeline = {}
+            if hasattr(manifest, 'timeline') and manifest.timeline:
+                timeline = manifest.timeline.dict() if hasattr(manifest.timeline, 'dict') else manifest.timeline
+            
+            manifest_dict = {
+                "slides": slides_data,
+                "metadata": metadata,
+                "timeline": timeline
+            }
+            
+            logger.info(f"Saving updated manifest to {manifest_path}")
+            with open(manifest_path, 'w', encoding='utf-8') as f:
+                json.dump(manifest_dict, f, ensure_ascii=False, indent=2)
+            
+            logger.info(f"Manifest saved successfully with {len(slides_data)} slides")
+            
+            # Calculate total duration from all slides
+            total_duration = sum(
+                slide.get('duration', 0) or 0
+                for slide in slides_data
+            )
+            logger.info(f"Calculated total duration: {total_duration:.2f}s from {len(slides_data)} slides")
+            
+            # Update final status
+            self.update_state(
+                state='PROGRESS',
+                meta={'progress': 100, 'stage': 'completed', 'lesson_id': lesson_id}
+            )
+            
+            db.execute(text("""
+                UPDATE lessons 
+                SET status = 'completed', 
+                    processing_progress = :progress,
+                    slides_count = :slides_count,
+                    total_duration = :total_duration,
+                    manifest_data = :manifest_data
+                WHERE id = :lesson_id
+            """), {
+                'progress': json.dumps({'stage': 'completed', 'progress': 100}),
+                'slides_count': len(slides_data),
+                'total_duration': total_duration if total_duration > 0 else None,
+                'manifest_data': json.dumps(manifest_dict),
+                'lesson_id': lesson_id
+            })
+            db.commit()
+            
+            logger.info(f"Successfully completed processing lesson {lesson_id}")
+            return {'status': 'completed', 'lesson_id': lesson_id}
+            
+    except Exception as e:
+        logger.error(f"Error processing lesson {lesson_id}: {e}")
+        
+        # Update lesson status to failed
+        try:
+            with SessionLocal() as db:
+                db.execute(text("""
+                    UPDATE lessons 
+                    SET status = 'failed', 
+                        processing_progress = :progress
+                    WHERE id = :lesson_id
+                """), {
+                    'progress': json.dumps({'stage': 'failed', 'error': str(e)}),
+                    'lesson_id': lesson_id
+                })
+                db.commit()
+        except Exception as update_error:
+            logger.error(f"Failed to update lesson status: {update_error}")
+        
+        self.update_state(
+            state='FAILURE',
+            meta={'error': str(e), 'lesson_id': lesson_id}
+        )
+        raise
+
+
+@celery_app.task(bind=True, name='app.tasks.export_video_task')
+@with_distributed_lock(lesson_resource, timeout=1800, blocking_timeout=10)
+def export_video_task(self, lesson_id: str, quality: str = "high"):
+    """Export lesson to MP4 video"""
+    try:
+        logger.info(f"Starting video export for lesson {lesson_id} with quality {quality}")
+        
+        # Update task progress
+        self.update_state(
+            state='PROGRESS',
+            meta={'progress': 0, 'stage': 'initializing', 'lesson_id': lesson_id}
+        )
+        
+        # Check if lesson exists and is completed
+        with SessionLocal() as db:
+            result = db.execute(text("""
+                SELECT status, slides_count 
+                FROM lessons 
+                WHERE id = :lesson_id
+            """), {'lesson_id': lesson_id}).fetchone()
+            
+            if not result:
+                raise Exception(f"Lesson {lesson_id} not found")
+            
+            status, slides_count = result
+            if status != 'completed':
+                raise Exception(f"Lesson {lesson_id} is not completed (status: {status})")
+            
+            if not slides_count or slides_count == 0:
+                raise Exception(f"Lesson {lesson_id} has no slides")
+        
+        # Load manifest
+        manifest_path = settings.DATA_DIR / lesson_id / "manifest.json"
+        if not manifest_path.exists():
+            raise Exception(f"Manifest not found for lesson {lesson_id}")
+        
+        logger.info(f"Loading manifest from {manifest_path}")
+        
+        # Load and fix manifest format
+        with open(manifest_path, 'r', encoding='utf-8') as f:
+            manifest_data = json.load(f)
+        
+        # Convert bbox format from {x, y, width, height} to [x, y, width, height]
+        if 'slides' in manifest_data:
+            for slide in manifest_data['slides']:
+                if 'elements' in slide:
+                    for element in slide['elements']:
+                        if 'bbox' in element and isinstance(element['bbox'], dict):
+                            bbox = element['bbox']
+                            if all(k in bbox for k in ['x', 'y', 'width', 'height']):
+                                element['bbox'] = [
+                                    bbox['x'],
+                                    bbox['y'],
+                                    bbox['width'],
+                                    bbox['height']
+                                ]
+                                logger.debug(f"Converted bbox for element {element.get('id', 'unknown')}")
+                
+                # Convert cue bboxes
+                if 'cues' in slide:
+                    for cue in slide['cues']:
+                        if 'bbox' in cue and isinstance(cue['bbox'], dict):
+                            bbox = cue['bbox']
+                            if all(k in bbox for k in ['x', 'y', 'width', 'height']):
+                                cue['bbox'] = [
+                                    bbox['x'],
+                                    bbox['y'],
+                                    bbox['width'],
+                                    bbox['height']
+                                ]
+        
+        # Save fixed manifest back
+        with open(manifest_path, 'w', encoding='utf-8') as f:
+            json.dump(manifest_data, f, ensure_ascii=False, indent=2)
+        
+        logger.info(f"Manifest format fixed and saved")
+        
+        # Create export request
+        export_request = ExportRequest(
+            lesson_id=lesson_id,
+            quality=quality,
+            include_audio=True,
+            include_effects=True
         )
         
         # Initialize video exporter
-        exporter = VideoExporter()
+        video_exporter = VideoExporter()
         
-        # Update progress
-        self.update_state(
-            state="PROGRESS",
-            meta={"progress": 30, "message": "Processing slides"}
-        )
-        
-        # Export video
+        # Use asyncio to run async export function
         import asyncio
-        from .models.schemas import ExportRequest
-        
-        request = ExportRequest(lesson_id=lesson_id, quality=quality)
-        
-        # Run async method in sync context
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
         try:
-            result = loop.run_until_complete(exporter.export_lesson(lesson_id, request))
-        finally:
-            loop.close()
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
         
         # Update progress
         self.update_state(
-            state="PROGRESS",
-            meta={"progress": 90, "message": "Finalizing export"}
+            state='PROGRESS',
+            meta={'progress': 10, 'stage': 'loading_manifest', 'lesson_id': lesson_id}
         )
         
-        # Update final status
-        self.update_state(
-            state="PROGRESS",
-            meta={"progress": 100, "message": "Export completed"}
+        # Run the export (the VideoExporter already handles background processing)
+        export_response = loop.run_until_complete(
+            video_exporter.export_lesson(lesson_id, export_request)
         )
-        
-        logger.info(f"Video export completed for lesson {lesson_id}")
-        
-        return {
-            "status": "completed",
-            "output_path": None,  # ExportResponse doesn't have output_path
-            "download_url": result.download_url if hasattr(result, 'download_url') else None,
-            "duration": 0  # ExportResponse doesn't have duration
-        }
-        
-    except Exception as e:
-        logger.error(f"Error in video export task: {e}")
-        self.update_state(
-            state="FAILURE",
-            meta={
-                "error": str(e),
-                "error_type": type(e).__name__,
-                "progress": 0,
-                "message": f"Video export failed: {str(e)}"
-            }
-        )
-        raise
-
-@celery_app.task(bind=True)
-def generate_ai_content_task(self, lesson_id: str, slide_id: int, content_type: str):
-    """Background task for AI content generation"""
-    try:
-        logger.info(f"Starting AI generation task for lesson {lesson_id}, slide {slide_id}, type {content_type}")
-        
-        # Update task status
-        self.update_state(
-            state="PROGRESS",
-            meta={"progress": 10, "message": "Starting AI generation"}
-        )
-        
-        # Initialize AI generator
-        generator = AIGenerator()
-        
-        if content_type == "speaker_notes":
-            # Update progress
-            self.update_state(
-                state="PROGRESS",
-                meta={"progress": 50, "message": "Generating speaker notes"}
-            )
-            
-            # Generate speaker notes
-            notes = generator.generate_speaker_notes(f"Slide {slide_id} content")
-            
-            return {
-                "status": "completed",
-                "content_type": "speaker_notes",
-                "content": notes,
-                "slide_id": slide_id
-            }
-            
-        elif content_type == "audio":
-            # Update progress
-            self.update_state(
-                state="PROGRESS",
-                meta={"progress": 50, "message": "Generating audio"}
-            )
-            
-            # Initialize TTS service
-            tts_service = TTSService()
-            
-            # Generate audio
-            audio_result = tts_service.generate_audio(f"Slide {slide_id} content")
-            
-            return {
-                "status": "completed",
-                "content_type": "audio",
-                "audio_url": audio_result.get("audio_url"),
-                "duration": audio_result.get("duration"),
-                "slide_id": slide_id
-            }
-        
-        else:
-            raise ValueError(f"Unknown content type: {content_type}")
-        
-    except Exception as e:
-        logger.error(f"Error in AI generation task: {e}")
-        self.update_state(
-            state="FAILURE",
-            meta={
-                "error": str(e),
-                "error_type": type(e).__name__,
-                "progress": 0,
-                "message": f"AI generation failed: {str(e)}"
-            }
-        )
-        raise
-
-@celery_app.task(bind=True)
-def render_lesson_mp4(self, lesson_id: str):
-    """Render lesson to MP4 video - simplified version"""
-    try:
-        logger.info(f"Starting MP4 render task for lesson {lesson_id}")
-        
-        # Update task status
-        self.update_state(
-            state="PROGRESS",
-            meta={"progress": 10, "message": "Loading manifest"}
-        )
-        
-        # For now, return a mock result to test the system
-        logger.info(f"Mock MP4 render completed for lesson {lesson_id}")
-        
-        self.update_state(
-            state="PROGRESS",
-            meta={"progress": 100, "message": "Export completed (mock)"}
-        )
-        
-        return {
-            "status": "completed",
-            "output_path": f"/app/.data/exports/{lesson_id}_export.mp4",
-            "download_url": f"/assets/{lesson_id}/export.mp4",
-            "duration": 30.0
-        }
-        
-    except Exception as e:
-        logger.error(f"Error in MP4 render task: {e}")
-        self.update_state(
-            state="FAILURE",
-            meta={
-                "error": str(e),
-                "error_type": type(e).__name__,
-                "progress": 0,
-                "message": f"Export failed: {str(e)}"
-            }
-        )
-        raise
-
-@celery_app.task(bind=True)
-def process_lesson_full_pipeline(self, lesson_id: str):
-    """Full pipeline task: OCR -> LLM -> TTS -> Video Export"""
-    try:
-        logger.info(f"Starting full pipeline processing for lesson {lesson_id}")
-        
-        # Update task status (only if running as Celery task)
-        if hasattr(self, 'request') and self.request.id:
-            self.update_state(
-                state="PROGRESS",
-                meta={"progress": 5, "message": "Starting full pipeline"}
-            )
-        
-        from .core.config import settings
-        from .services.provider_factory import plan_slide_with_gemini, synthesize_slide_text_google
-        import json
-        import os
-        from pathlib import Path
-        
-        # Import lecture text generation function
-        try:
-            from ...workers.llm_openrouter import generate_lecture_text
-        except ImportError:
-            try:
-                from workers.llm_openrouter import generate_lecture_text
-            except ImportError:
-                logger.warning("Could not import generate_lecture_text, will use speaker notes as lecture text")
-                generate_lecture_text = None
-        
-        # Load manifest
-        lesson_dir = settings.DATA_DIR / lesson_id
-        manifest_path = lesson_dir / "manifest.json"
-        
-        if not manifest_path.exists():
-            raise FileNotFoundError(f"Manifest not found for lesson {lesson_id}")
-        
-        with open(manifest_path, "r", encoding="utf-8") as f:
-            manifest_data = json.load(f)
-        
-        if hasattr(self, 'request') and self.request.id:
-            self.update_state(
-                state="PROGRESS",
-                meta={"progress": 10, "message": "Processing slides with AI"}
-            )
-        
-        # Process each slide with AI - LOGICAL PIPELINE
-        for slide in manifest_data["slides"]:
-            slide_id = slide["id"]
-            elements = slide.get("elements", [])
-            
-            logger.info(f"=== Processing slide {slide_id} ===")
-            
-            # STEP 1: Generate speaker notes using LLM
-            logger.info(f"Step 1: Generating speaker notes for slide {slide_id}")
-            logger.info(f"Elements for slide {slide_id}: {elements}")
-            try:
-                speaker_notes = plan_slide_with_gemini(elements)
-                slide["speaker_notes"] = speaker_notes
-                logger.info(f"✅ Generated {len(speaker_notes)} speaker notes for slide {slide_id}")
-                
-                # Log speaker notes for debugging
-                for i, note in enumerate(speaker_notes):
-                    logger.debug(f"  Note {i+1}: {note.get('text', '')[:50]}...")
-                    
-            except Exception as e:
-                logger.error(f"❌ Failed to generate speaker notes for slide {slide_id}: {e}")
-                logger.error(f"Exception details: {type(e).__name__}: {str(e)}")
-                import traceback
-                logger.error(f"Traceback: {traceback.format_exc()}")
-                slide["speaker_notes"] = []
-                # Don't continue - try to generate audio anyway
-            
-            # STEP 1.5: Generate lecture text for subtitles
-            logger.info(f"Step 1.5: Generating lecture text for slide {slide_id}")
-            try:
-                if generate_lecture_text:
-                    lecture_text = generate_lecture_text(elements)
-                    slide["lecture_text"] = lecture_text
-                    logger.info(f"✅ Generated lecture text for slide {slide_id}: {len(lecture_text)} characters")
-                else:
-                    # Fallback: use speaker notes as lecture text
-                    if slide.get("speaker_notes"):
-                        lecture_text = " ".join([note.get("text", "") for note in slide["speaker_notes"]])
-                        slide["lecture_text"] = lecture_text
-                        logger.info(f"✅ Used speaker notes as lecture text for slide {slide_id}")
-                    else:
-                        slide["lecture_text"] = "Let's discuss the content of this slide."
-                        logger.info(f"✅ Used fallback lecture text for slide {slide_id}")
-                        
-            except Exception as e:
-                logger.error(f"❌ Failed to generate lecture text for slide {slide_id}: {e}")
-                slide["lecture_text"] = "Let's discuss the content of this slide."
-            
-            # STEP 2: Generate audio using TTS (from lecture text)
-            logger.info(f"Step 2: Generating audio for slide {slide_id}")
-            try:
-                # Use lecture_text for TTS instead of speaker_notes
-                lecture_text = slide.get("lecture_text", "")
-                if not lecture_text:
-                    logger.warning(f"⚠️ No lecture text found for slide {slide_id}, using speaker notes as fallback")
-                    # Fallback to speaker notes if lecture_text is not available
-                    slide_texts = []
-                    for note in slide.get("speaker_notes", []):
-                        if note.get("text"):
-                            slide_texts.append(note.get("text"))
-                    lecture_text = " ".join(slide_texts)
-                
-                if not lecture_text:
-                    logger.warning(f"⚠️ No text found for slide {slide_id}")
-                    slide["audio"] = None
-                    slide["duration"] = 0.0
-                    continue
-                
-                logger.info(f"TTS input (lecture text): {lecture_text[:100]}...")
-                
-                # Generate audio using lecture text
-                audio_path, tts_words = synthesize_slide_text_google([lecture_text])
-                
-                # Verify audio file was created
-                import os
-                if not audio_path or not os.path.exists(audio_path):
-                    logger.error(f"❌ TTS failed to create audio file for slide {slide_id}")
-                    slide["audio"] = None
-                    slide["duration"] = 0.0
-                    continue
-                
-                # Copy audio to lesson directory with consistent format
-                audio_dest = lesson_dir / "audio" / f"{slide_id:03d}.wav"  # Use .wav consistently
-                audio_dest.parent.mkdir(exist_ok=True)
-                
-                import shutil
-                shutil.copy2(audio_path, audio_dest)
-                
-                # Verify file was copied successfully
-                if not audio_dest.exists():
-                    logger.error(f"❌ Failed to copy audio file for slide {slide_id}")
-                    slide["audio"] = None
-                    slide["duration"] = 0.0
-                    continue
-                
-                # Update slide with audio info
-                slide["audio"] = f"/assets/{lesson_id}/audio/{slide_id:03d}.wav"
-                duration = tts_words.get("sentences", [{}])[-1].get("t1", 0.0) if tts_words.get("sentences") else 0.0
-                slide["duration"] = duration
-                
-                logger.info(f"✅ Generated audio for slide {slide_id}: {duration:.2f}s, file: {audio_dest.name}")
-                
-            except Exception as e:
-                logger.error(f"❌ Failed to generate audio for slide {slide_id}: {e}")
-                slide["audio"] = None
-                slide["duration"] = 0.0
-        
-        # Save updated manifest
-        with open(manifest_path, "w", encoding="utf-8") as f:
-            json.dump(manifest_data, f, ensure_ascii=False, indent=2)
-        
-        if hasattr(self, 'request') and self.request.id:
-            self.update_state(
-                state="PROGRESS",
-                meta={"progress": 80, "message": "AI processing completed"}
-            )
-        
-        # Start video export
-        export_task = export_video_task.delay(lesson_id, "high")
-        
-        if hasattr(self, 'request') and self.request.id:
-            self.update_state(
-                state="PROGRESS",
-                meta={"progress": 90, "message": "Starting video export"}
-            )
-        
-        logger.info(f"Full pipeline processing completed for lesson {lesson_id}")
-        
-        return {
-            "status": "completed",
-            "lesson_id": lesson_id,
-            "export_task_id": export_task.id,
-            "slides_processed": len(manifest_data["slides"]),
-            "message": "Full pipeline completed successfully"
-        }
-        
-    except Exception as e:
-        logger.error(f"Error in full pipeline task: {e}")
-        if hasattr(self, 'request') and self.request.id:
-            self.update_state(
-                state="FAILURE",
-                meta={
-                    "error": str(e),
-                    "error_type": type(e).__name__,
-                    "progress": 0,
-                    "message": f"Full pipeline failed: {str(e)}"
-                }
-            )
-        raise
-
-@celery_app.task(bind=True)
-def cleanup_files_task(self, max_age_days: int = 7):
-    """Background task for file cleanup"""
-    try:
-        logger.info(f"Starting cleanup task for files older than {max_age_days} days")
-        
-        # Update task status
-        self.update_state(
-            state="PROGRESS",
-            meta={"progress": 10, "message": "Starting cleanup"}
-        )
-        
-        # TODO: Implement actual cleanup logic
-        # - Find old files
-        # - Remove expired exports
-        # - Clean up temporary files
         
         # Update progress
         self.update_state(
-            state="PROGRESS",
-            meta={"progress": 50, "message": "Cleaning up files"}
+            state='PROGRESS',
+            meta={'progress': 50, 'stage': 'rendering_video', 'lesson_id': lesson_id}
         )
         
-        # Update final status
+        logger.info(f"Video export task initiated: {export_response.task_id}")
+        
+        # Note: The actual video generation happens in background
+        # This task just initiates it and returns the task_id
+        
         self.update_state(
-            state="PROGRESS",
-            meta={"progress": 100, "message": "Cleanup completed"}
+            state='PROGRESS',
+            meta={'progress': 100, 'stage': 'completed', 'lesson_id': lesson_id}
         )
         
         return {
-            "status": "completed",
-            "files_removed": 0,  # Placeholder
-            "space_freed": "0 MB"  # Placeholder
+            'status': 'processing',
+            'lesson_id': lesson_id,
+            'task_id': export_response.task_id,
+            'message': 'Video export started successfully'
         }
         
     except Exception as e:
-        logger.error(f"Error in cleanup task: {e}")
+        logger.error(f"Error exporting video for lesson {lesson_id}: {e}")
+        
         self.update_state(
-            state="FAILURE",
-            meta={
-                "error": str(e),
-                "error_type": type(e).__name__,
-                "progress": 0,
-                "message": f"Cleanup failed: {str(e)}"
-            }
+            state='FAILURE',
+            meta={'error': str(e), 'lesson_id': lesson_id}
         )
         raise

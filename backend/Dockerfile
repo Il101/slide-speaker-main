@@ -2,30 +2,48 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies for document processing
+# Install system dependencies for document processing and monitoring
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-rus \
     tesseract-ocr-eng \
     ffmpeg \
     poppler-utils \
+    libmagic1 \
+    libmagic-dev \
+    curl \
+    netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
-# Копируем requirements и устанавливаем зависимости
+# Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем код приложения
+# Copy application code
 COPY app/ ./app/
 COPY workers/ ./workers/
 COPY storage_gcs.py .
 COPY main.py .
+COPY alembic.ini .
+COPY alembic/ ./alembic/
 
-# Создаем директории для данных и ключей
-RUN mkdir -p .data/uploads .data/assets .data/exports /app/keys
+# Create directories for data, keys, and secrets
+RUN mkdir -p .data/uploads .data/assets .data/exports /app/keys /app/secrets
 
-# Открываем порт
+# Set environment variables for multiprocess Prometheus
+ENV PROMETHEUS_MULTIPROC_DIR=/tmp/prometheus_multiproc_dir
+RUN mkdir -p /tmp/prometheus_multiproc_dir && chmod 777 /tmp/prometheus_multiproc_dir
+
+# Create non-root user for security
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Expose port
 EXPOSE 8000
 
-# Запускаем приложение
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Start application
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -3,11 +3,18 @@ Provider Factory for Google Cloud Services Integration
 """
 import logging
 import os
+import sys
 from typing import Dict, List, Optional, Any, Tuple
 from pathlib import Path
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
-from ..core.config import settings
+# Add workers directory to Python path for imports
+current_dir = Path(__file__).parent
+workers_dir = current_dir.parent.parent / "workers"
+if str(workers_dir) not in sys.path:
+    sys.path.insert(0, str(workers_dir))
+
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +37,20 @@ class ProviderFactory:
             except ImportError as e:
                 logger.error(f"Failed to import Google OCR provider: {e}")
                 return ProviderFactory._get_fallback_ocr()
-        elif provider == "easyocr":
-            # Use existing EasyOCR implementation
-            return ProviderFactory._get_easyocr_provider()
+        elif provider == "vision":
+            try:
+                from workers.ocr_vision import VisionOCRWorker
+                return VisionOCRWorker()
+            except ImportError as e:
+                logger.error(f"Failed to import Vision OCR provider: {e}")
+                return ProviderFactory._get_fallback_ocr()
+        elif provider == "enhanced_vision":
+            try:
+                from workers.ocr_vision_enhanced import EnhancedVisionOCRWorker
+                return EnhancedVisionOCRWorker()
+            except ImportError as e:
+                logger.error(f"Failed to import Enhanced Vision OCR provider: {e}")
+                return ProviderFactory._get_fallback_ocr()
         elif provider == "paddle":
             # Use existing PaddleOCR implementation
             return ProviderFactory._get_paddle_provider()
@@ -107,13 +125,23 @@ class ProviderFactory:
             return ProviderFactory._get_fallback_tts()
     
     @staticmethod
+    def get_image_recognition_provider():
+        """Get image recognition provider for hybrid image analysis"""
+        try:
+            from workers.image_recognition_hybrid import HybridImageRecognitionWorker
+            return HybridImageRecognitionWorker()
+        except ImportError as e:
+            logger.error(f"Failed to import Hybrid Image Recognition provider: {e}")
+            return ProviderFactory._get_fallback_image_recognition()
+    
+    @staticmethod
     def get_storage_provider():
         """Get storage provider based on STORAGE setting"""
         provider = settings.STORAGE.lower()
         
         if provider == "gcs":
             try:
-                from ..storage_gcs import GoogleCloudStorageProvider
+                from app.storage_gcs import GoogleCloudStorageProvider
                 return GoogleCloudStorageProvider(
                     bucket_name=settings.GCS_BUCKET,
                     base_url=settings.GCS_BASE_URL
@@ -207,6 +235,15 @@ class ProviderFactory:
                 
                 return audio_path, tts_words
         return FallbackTTS()
+    
+    @staticmethod
+    def _get_fallback_image_recognition():
+        """Fallback image recognition provider"""
+        class FallbackImageRecognition:
+            def analyze_slide_images(self, png_path, slide_number):
+                # Return empty list for fallback
+                return []
+        return FallbackImageRecognition()
     
     @staticmethod
     def _get_fallback_storage():
@@ -357,6 +394,38 @@ def synthesize_slide_text_google(texts: List[str], **kwargs) -> Tuple[str, Dict]
     """Synthesize text using configured TTS provider"""
     provider = ProviderFactory.get_tts_provider()
     return provider.synthesize_slide_text_google(texts, **kwargs)
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=4, max=10),
+    retry=retry_if_exception_type((ConnectionError, TimeoutError, Exception))
+)
+def generate_lecture_text_with_ssml(elements: List[Dict], **kwargs) -> str:
+    """Generate lecture text with SSML markup using configured LLM provider"""
+    from workers.llm_openrouter_ssml import OpenRouterLLMWorkerSSML
+    worker = OpenRouterLLMWorkerSSML()
+    return worker.generate_lecture_text_with_ssml(elements, **kwargs)
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=4, max=10),
+    retry=retry_if_exception_type((ConnectionError, TimeoutError, Exception))
+)
+def synthesize_slide_text_google_ssml(ssml_texts: List[str], **kwargs) -> Tuple[str, Dict]:
+    """Synthesize SSML text using configured TTS provider"""
+    from workers.tts_google_ssml import GoogleTTSWorkerSSML
+    worker = GoogleTTSWorkerSSML()
+    return worker.synthesize_slide_text_google_ssml(ssml_texts, **kwargs)
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=4, max=10),
+    retry=retry_if_exception_type((ConnectionError, TimeoutError, Exception))
+)
+def analyze_slide_images(png_path: str, slide_number: int) -> List[Dict]:
+    """Analyze images on slide using hybrid image recognition"""
+    provider = ProviderFactory.get_image_recognition_provider()
+    return provider.analyze_slide_images(png_path, slide_number)
 
 @retry(
     stop=stop_after_attempt(3),

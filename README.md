@@ -2,6 +2,25 @@
 
 Превращаем презентации в интерактивные лекции с озвучкой и визуальными эффектами.
 
+## 📁 Структура проекта
+
+```
+slide-speaker-main/
+├── backend/              # Backend приложение (FastAPI)
+├── src/                  # Frontend приложение (React + TypeScript)
+├── docs/                 # Документация
+│   ├── reports/          # Отчеты о тестировании и интеграции
+│   └── guides/           # Руководства пользователя
+├── scripts/              # Утилитные скрипты
+│   ├── integration/      # Интеграционные тесты
+│   ├── setup/            # Скрипты настройки
+│   └── maintenance/      # Скрипты обслуживания
+├── tests/                # Тесты
+├── .github/              # GitHub Actions CI/CD
+├── docker-compose.yml    # Оркестрация Docker
+└── README.md             # Эта документация
+```
+
 ## Архитектура
 
 - **Frontend**: React + TypeScript + Vite + Tailwind CSS
