@@ -295,23 +295,16 @@ class VideoExporter:
                 shutil.copy2(audio_files[0], output_path)
                 return
             
-            # Create concat file for FFmpeg
-            concat_file = output_path.parent / "concat.txt"
-            with open(concat_file, "w") as f:
-                for audio_file in audio_files:
-                    f.write(f"file '{audio_file}'\n")
+            # Use FFmpeg filter complex to concatenate audio
+            inputs = [ffmpeg.input(audio_file) for audio_file in audio_files]
             
-            # Combine audio files
             (
                 ffmpeg
-                .input(str(concat_file), format="concat", safe=0)
-                .output(str(output_path), acodec="aac", **{"b:a": "128k"})
+                .concat(*inputs, v=0, a=1)
+                .output(str(output_path), acodec="pcm_s16le", ar=22050)
                 .overwrite_output()
                 .run(quiet=True)
             )
-            
-            # Clean up concat file
-            concat_file.unlink()
             
         except Exception as e:
             logger.error(f"Error combining audio files: {e}")
@@ -337,11 +330,12 @@ class VideoExporter:
     async def _combine_video_audio(self, video_path: Path, audio_path: Path, output_path: Path, quality: dict):
         """Combine video and audio into final MP4"""
         try:
+            video = ffmpeg.input(str(video_path))
+            audio = ffmpeg.input(str(audio_path))
+            
             (
                 ffmpeg
-                .input(str(video_path))
-                .input(str(audio_path))
-                .output(str(output_path), vcodec="libx264", acodec="aac", pix_fmt="yuv420p", **{"b:v": quality["bitrate"], "b:a": "128k"})
+                .output(video, audio, str(output_path), vcodec="libx264", acodec="aac", pix_fmt="yuv420p", **{"b:v": quality["bitrate"], "b:a": "128k"})
                 .overwrite_output()
                 .run(quiet=True)
             )
@@ -352,15 +346,44 @@ class VideoExporter:
     
     def _get_slide_image_path(self, lesson_id: str, slide: Slide) -> Path:
         """Get path to slide image"""
-        if slide.image.startswith("/"):
-            return Path(slide.image[1:])  # Remove leading slash
-        return settings.DATA_DIR / slide.image
+        image_path = slide.image
+        
+        # Convert /assets/ path to .data/ path
+        if image_path.startswith("/assets/"):
+            image_path = image_path.replace("/assets/", "")
+            return settings.DATA_DIR / image_path
+        elif image_path.startswith("assets/"):
+            image_path = image_path.replace("assets/", "")
+            return settings.DATA_DIR / image_path
+        elif image_path.startswith("/"):
+            return Path(image_path[1:])  # Remove leading slash
+        
+        return settings.DATA_DIR / image_path
     
     def _get_audio_path(self, lesson_id: str, slide: Slide) -> Path:
         """Get path to slide audio"""
-        if slide.audio.startswith("/"):
-            return Path(slide.audio[1:])  # Remove leading slash
-        return settings.DATA_DIR / slide.audio
+        audio_path = slide.audio
+        
+        # Convert /assets/ path to .data/ path
+        if audio_path.startswith("/assets/"):
+            audio_path = audio_path.replace("/assets/", "")
+            audio_file = settings.DATA_DIR / audio_path
+        elif audio_path.startswith("assets/"):
+            audio_path = audio_path.replace("assets/", "")
+            audio_file = settings.DATA_DIR / audio_path
+        elif audio_path.startswith("/"):
+            audio_file = Path(audio_path[1:])  # Remove leading slash
+        else:
+            audio_file = settings.DATA_DIR / audio_path
+        
+        # Try to find the actual audio file (might be .wav instead of .mp3)
+        if not audio_file.exists() and audio_file.suffix == '.mp3':
+            # Try .wav instead
+            wav_file = audio_file.with_suffix('.wav')
+            if wav_file.exists():
+                return wav_file
+        
+        return audio_file
     
     async def _get_audio_duration(self, lesson_id: str, slide: Slide) -> Optional[float]:
         """Get audio duration in seconds"""

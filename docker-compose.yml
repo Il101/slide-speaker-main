@@ -6,15 +6,17 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/.data:/app/.data
+      - ./.data:/app/.data
       - ./backend/.env:/app/.env
       - ./keys/gcp-sa.json:/app/keys/gcp-sa.json:ro
     env_file:
-      - ./backend_env_docker.env
+      - ./docker.env
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
       - redis
+      - postgres
       - minio
+      - db-init
 
   frontend:
     build: .
@@ -35,18 +37,87 @@ services:
     volumes:
       - redis_data:/data
 
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-slide_speaker}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+
+  db-init:
+    build: ./backend
+    command: /app/init_db.sh
+    volumes:
+      - ./backend/init_db.sh:/app/init_db.sh:ro
+      - ./backend/create_initial_users.py:/app/create_initial_users.py:ro
+    env_file:
+      - ./docker.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
   celery:
     build: ./backend
-    command: celery -A app.tasks worker --loglevel=info
+    command: celery -A app.celery_app worker --loglevel=info --queues=default,processing,ai_generation,tts,export,maintenance
+    environment:
+      - PYTHONPATH=/app
     volumes:
-      - ./backend/.data:/app/.data
+      - ./.data:/app/.data
       - ./backend/.env:/app/.env
       - ./keys/gcp-sa.json:/app/keys/gcp-sa.json:ro
     env_file:
-      - ./backend_env_docker.env
+      - ./docker.env
     depends_on:
       - redis
+      - postgres
       - minio
+      - db-init
+    healthcheck:
+      test: ["CMD", "celery", "-A", "app.celery_app", "inspect", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   minio:
     image: minio/minio:latest
@@ -54,8 +125,8 @@ services:
       - "9000:9000"
       - "9001:9001"
     environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin}
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
@@ -67,4 +138,7 @@ services:
 
 volumes:
   redis_data:
+  postgres_data:
   minio_data:
+  prometheus_data:
+  grafana_data:

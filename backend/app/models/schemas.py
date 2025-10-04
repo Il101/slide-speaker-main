@@ -159,6 +159,7 @@ class ProcessingStatus(BaseModel):
     lesson_id: str = Field(..., description="Lesson identifier")
     status: str = Field(..., description="Current status")
     progress: int = Field(default=0, description="Progress percentage (0-100)")
+    stage: Optional[str] = Field(None, description="Current processing stage")
     message: Optional[str] = Field(None, description="Status message")
     error: Optional[str] = Field(None, description="Error message if failed")
 
@@ -250,3 +251,21 @@ class PatchResponse(BaseModel):
     message: str = Field(..., description="Response message")
     updated_slides: List[int] = Field(default_factory=list, description="Updated slide IDs")
     validation_issues: List[str] = Field(default_factory=list, description="Validation issues")
+
+# Authentication schemas
+class LoginRequest(BaseModel):
+    """Login request"""
+    email: str = Field(..., description="User email")
+    password: str = Field(..., description="User password")
+
+class TokenResponse(BaseModel):
+    """Token response"""
+    access_token: str = Field(..., description="JWT access token")
+    token_type: str = Field(default="bearer", description="Token type")
+    expires_in: int = Field(..., description="Token expiration time in seconds")
+
+class UserResponse(BaseModel):
+    """User information response"""
+    user_id: str = Field(..., description="User ID")
+    email: str = Field(..., description="User email")
+    role: str = Field(..., description="User role")

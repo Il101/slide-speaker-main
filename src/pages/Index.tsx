@@ -4,11 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { FileUploader } from '@/components/FileUploader';
 import { Player } from '@/components/Player';
+import { MyVideosSidebar } from '@/components/MyVideosSidebar';
+import Navigation from '@/components/Navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api';
 
 type AppState = 'landing' | 'upload' | 'player';
 
 const Index = () => {
+  const { isAuthenticated, user } = useAuth();
   const [appState, setAppState] = useState<AppState>(() => {
     // Восстанавливаем состояние из localStorage при загрузке
     const savedState = localStorage.getItem('slide-speaker-app-state');
@@ -80,32 +85,66 @@ const Index = () => {
     saveAppState('landing', null);
   };
 
+  const handleVideoSelect = (videoLessonId: string) => {
+    setLessonId(videoLessonId);
+    setAppState('player');
+    saveAppState('player', videoLessonId);
+  };
+
+  const handleVideoDownload = (videoUrl: string, title: string) => {
+    // Создаем временную ссылку для загрузки
+    const link = document.createElement('a');
+    link.href = videoUrl;
+    link.download = `${title}.mp4`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Загрузка видео начата');
+  };
+
   if (appState === 'player') {
     return (
-      <div className="min-h-screen hero-gradient p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                {selectedFile?.name || 'Демо лекция'}
-              </h1>
-              <p className="text-muted-foreground">
-                Интерактивная лекция с озвучкой и визуальными эффектами
-              </p>
+      <div className="min-h-screen hero-gradient">
+        <Navigation />
+        <div className="flex">
+          {/* Основной контент - плеер */}
+          <div className="flex-1 p-6">
+            <div className="max-w-6xl mx-auto">
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground">
+                    {selectedFile?.name || 'Демо лекция'}
+                  </h1>
+                  <p className="text-muted-foreground">
+                    Интерактивная лекция с озвучкой и визуальными эффектами
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleCreateNewLesson}
+                >
+                  Создать новую лекцию
+                </Button>
+              </div>
+              
+              {lessonId && (
+                <Player 
+                  lessonId={lessonId}
+                  onExportMP4={handleExportMP4}
+                />
+              )}
             </div>
-            <Button
-              variant="outline"
-              onClick={handleCreateNewLesson}
-            >
-              Создать новую лекцию
-            </Button>
           </div>
-          
-          {lessonId && (
-            <Player 
-              lessonId={lessonId}
-              onExportMP4={handleExportMP4}
-            />
+
+          {/* Сайдбар справа с видео для авторизованных пользователей */}
+          {isAuthenticated && (
+            <div className="w-[560px]">
+              <MyVideosSidebar
+                currentLessonId={lessonId || undefined}
+                onVideoSelect={handleVideoSelect}
+                onVideoDownload={handleVideoDownload}
+              />
+            </div>
           )}
         </div>
       </div>
@@ -115,27 +154,44 @@ const Index = () => {
 
   if (appState === 'upload') {
     return (
-      <div className="min-h-screen hero-gradient p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <Button
-              variant="ghost"
-              onClick={() => setAppState('landing')}
-              className="mb-4"
-            >
-              ← Назад
-            </Button>
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Загрузите презентацию
-            </h1>
-            <p className="text-muted-foreground">
-              Поддерживаются форматы PPTX и PDF
-            </p>
+      <div className="min-h-screen hero-gradient">
+        <Navigation />
+        <div className="flex">
+          {/* Основной контент - форма загрузки */}
+          <div className="flex-1 p-6">
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-8">
+                <Button
+                  variant="ghost"
+                  onClick={() => setAppState('landing')}
+                  className="mb-4"
+                >
+                  ← Назад
+                </Button>
+                <h1 className="text-3xl font-bold text-foreground mb-2">
+                  Загрузите презентацию
+                </h1>
+                <p className="text-muted-foreground">
+                  Поддерживаются форматы PPTX и PDF
+                </p>
+              </div>
+              
+              <FileUploader
+                onUploadSuccess={handleUploadSuccess}
+              />
+            </div>
           </div>
-          
-          <FileUploader
-            onUploadSuccess={handleUploadSuccess}
-          />
+
+          {/* Сайдбар справа с видео для авторизованных пользователей */}
+          {isAuthenticated && (
+            <div className="w-[560px]">
+              <MyVideosSidebar
+                currentLessonId={lessonId || undefined}
+                onVideoSelect={handleVideoSelect}
+                onVideoDownload={handleVideoDownload}
+              />
+            </div>
+          )}
         </div>
       </div>
     );
@@ -143,8 +199,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen hero-gradient">
-      {/* Hero Section */}
-      <div className="container mx-auto px-6 py-20">
+      <Navigation />
+      <div className="flex">
+        {/* Основной контент */}
+        <div className="flex-1">
+          {/* Hero Section */}
+          <div className="container mx-auto px-6 py-20">
         <div className="text-center mb-16 animate-fade-in-up">
           <div className="flex items-center justify-center mb-6">
             <Brain className="h-16 w-16 text-primary mr-4" />
@@ -247,6 +307,19 @@ const Index = () => {
           </Card>
         </div>
       </div>
+    </div>
+
+    {/* Сайдбар справа с видео для авторизованных пользователей */}
+    {isAuthenticated && (
+      <div className="w-[560px]">
+        <MyVideosSidebar
+          currentLessonId={lessonId || undefined}
+          onVideoSelect={handleVideoSelect}
+          onVideoDownload={handleVideoDownload}
+        />
+      </div>
+    )}
+  </div>
     </div>
   );
 };

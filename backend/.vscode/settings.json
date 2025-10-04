@@ -1,0 +1,14 @@
+{
+  "python.defaultInterpreterPath": "/usr/local/bin/python3",
+  "python.analysis.exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    ".data",
+    ".venv",
+    "venv"
+  ],
+  "python.linting.pylintEnabled": false,
+  "python.linting.mypyEnabled": false,
+  "python.analysis.useLibraryCodeForTypes": false,
+  "python.analysis.autoImportCompletions": false
+}
