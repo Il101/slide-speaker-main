@@ -1,16 +1,16 @@
 """Pipeline package for slide-speaker processing pipelines"""
 
 from .base import BasePipeline
-from .classic import ClassicPipeline
-from .vision_only import VisionPipeline
-from .hybrid import HybridPipeline
+from .intelligent_optimized import OptimizedIntelligentPipeline
 
 PIPELINES = {
-    "classic": ClassicPipeline,
-    "vision": VisionPipeline,
-    "hybrid": HybridPipeline,
+    "intelligent": OptimizedIntelligentPipeline,  # Alias for backward compatibility
+    "intelligent_optimized": OptimizedIntelligentPipeline,
+    "optimized": OptimizedIntelligentPipeline,
 }
+
 
 def get_pipeline(name: str) -> type[BasePipeline]:
     """Get pipeline class by name"""
-    return PIPELINES.get(name, ClassicPipeline)
+    # Always returns OptimizedIntelligentPipeline
+    return PIPELINES.get(name, OptimizedIntelligentPipeline)

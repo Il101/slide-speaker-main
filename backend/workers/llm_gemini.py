@@ -12,7 +12,11 @@ import uuid
 
 try:
     from google.cloud import aiplatform
-    from vertexai.generative_models import GenerativeModel, Part
+    try:
+        from vertexai.generative_models import GenerativeModel, Part
+    except ImportError:
+        # Fallback to preview API
+        from vertexai.preview.generative_models import GenerativeModel, Part
     VERTEX_AI_AVAILABLE = True
 except ImportError:
     VERTEX_AI_AVAILABLE = False
@@ -50,6 +54,44 @@ class GeminiLLMWorker:
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         pass
+    
+    def generate(self, prompt: str, system_prompt: str = None, temperature: float = 0.2, 
+                max_tokens: int = 2000, image_base64: str = None) -> str:
+        """
+        Generate text using Gemini model (supports multimodal with images)
+        
+        Args:
+            prompt: User prompt
+            system_prompt: System prompt (prepended to user prompt)
+            temperature: Temperature for generation
+            max_tokens: Maximum tokens to generate
+            image_base64: Optional base64-encoded image for vision analysis
+            
+        Returns:
+            Generated text
+        """
+        try:
+            if self.use_mock:
+                return self._generate_mock(prompt)
+            
+            # Combine system and user prompts
+            full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
+            
+            # Generate with Gemini (with optional image)
+            if image_base64:
+                response = self._generate_with_gemini_vision(full_prompt, image_base64, temperature, max_tokens)
+            else:
+                response = self._generate_with_gemini(full_prompt, temperature, max_tokens)
+            
+            return response
+            
+        except Exception as e:
+            logger.error(f"Error generating with Gemini: {e}")
+            return self._generate_mock(prompt)
+    
+    def _generate_mock(self, prompt: str) -> str:
+        """Mock generation for testing"""
+        return '{"mock": true, "message": "Mock generation mode"}'
     
     def plan_slide_with_gemini(self, elements: List[Dict], model: str = None, 
                               location: str = None, temperature: float = 0.2) -> List[Dict]:
@@ -176,15 +218,15 @@ Rules:
         
         return prompt
     
-    def _generate_with_gemini(self, prompt: str, temperature: float) -> str:
-        """Generate response using Gemini model"""
+    def _generate_with_gemini(self, prompt: str, temperature: float, max_tokens: int = 1000) -> str:
+        """Generate response using Gemini model (text-only)"""
         try:
             # Configure generation parameters
             generation_config = {
                 "temperature": temperature,
                 "top_p": 0.9,
                 "top_k": 40,
-                "max_output_tokens": 1000,
+                "max_output_tokens": max_tokens,
             }
             
             # Generate response
@@ -198,6 +240,40 @@ Rules:
         except Exception as e:
             logger.error(f"Error generating with Gemini: {e}")
             raise
+    
+    def _generate_with_gemini_vision(self, prompt: str, image_base64: str, temperature: float, max_tokens: int = 3000) -> str:
+        """Generate response using Gemini model with vision (multimodal)"""
+        try:
+            import base64
+            
+            # Configure generation parameters
+            generation_config = {
+                "temperature": temperature,
+                "top_p": 0.9,
+                "top_k": 40,
+                "max_output_tokens": max_tokens,
+            }
+            
+            # Decode base64 image
+            image_bytes = base64.b64decode(image_base64)
+            
+            # Create image part
+            image_part = Part.from_data(data=image_bytes, mime_type="image/png")
+            
+            # Generate response with text + image
+            response = self.generative_model.generate_content(
+                [prompt, image_part],
+                generation_config=generation_config
+            )
+            
+            logger.info("✅ Generated with vision (multimodal)")
+            return response.text
+            
+        except Exception as e:
+            logger.error(f"Error generating with Gemini vision: {e}")
+            # Fallback to text-only
+            logger.warning("Falling back to text-only generation")
+            return self._generate_with_gemini(prompt, temperature, max_tokens)
     
     def _parse_gemini_response(self, response: str) -> List[Dict]:
         """Parse and validate Gemini response"""

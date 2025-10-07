@@ -64,7 +64,7 @@ def check_gemini_european_regions():
             print(f"📝 Рекомендуемый регион: {available_regions[0]}")
             
             # Обновляем конфигурацию
-            config_file = "backend_env_final.env"
+            config_file = 'backend/.env'
             if os.path.exists(config_file):
                 with open(config_file, 'r') as f:
                     content = f.read()
@@ -91,7 +91,7 @@ def check_gemini_european_regions():
             # Предлагаем использовать us-central1 как fallback
             print(f"\n💡 Рекомендация: Использовать us-central1 для Gemini")
             
-            config_file = "backend_env_final.env"
+            config_file = 'backend/.env'
             if os.path.exists(config_file):
                 with open(config_file, 'r') as f:
                     content = f.read()

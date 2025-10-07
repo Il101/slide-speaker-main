@@ -13,6 +13,21 @@ import json
 
 logger = logging.getLogger(__name__)
 
+# Lazy import для кэша (чтобы не ломать если Redis недоступен)
+_ocr_cache = None
+
+def get_cache():
+    """Ленивая инициализация кэша"""
+    global _ocr_cache
+    if _ocr_cache is None:
+        try:
+            from app.services.ocr_cache import get_ocr_cache
+            _ocr_cache = get_ocr_cache()
+        except Exception as e:
+            logger.warning(f"OCR Cache не доступен: {e}")
+            _ocr_cache = None
+    return _ocr_cache
+
 class VisionOCRWorker:
     """OCR Worker использующий Google Cloud Vision API"""
     
@@ -35,6 +50,7 @@ class VisionOCRWorker:
     def extract_elements_from_pages(self, image_paths: List[str]) -> List[List[Dict[str, Any]]]:
         """
         Извлекает элементы из изображений слайдов используя Vision API
+        С кэшированием результатов в Redis
         
         Args:
             image_paths: Список путей к PNG изображениям слайдов
@@ -45,10 +61,30 @@ class VisionOCRWorker:
         try:
             logger.info(f"🔍 Vision API: Обрабатываем {len(image_paths)} изображений")
             
+            cache = get_cache()
             all_elements = []
+            cache_hits = 0
+            cache_misses = 0
             
             for i, image_path in enumerate(image_paths):
                 logger.info(f"📄 Обрабатываем слайд {i+1}: {image_path}")
+                
+                # Пытаемся получить из кэша
+                cached_elements = None
+                if cache and cache.enabled:
+                    cached_elements = cache.get(image_path)
+                
+                if cached_elements is not None:
+                    # Cache HIT - используем сохранённый результат
+                    # ✅ FIX: Обновляем slide_number в element IDs
+                    corrected_elements = self._fix_element_ids(cached_elements, i+1)
+                    all_elements.append(corrected_elements)
+                    cache_hits += 1
+                    logger.info(f"✅ Слайд {i+1}: {len(corrected_elements)} элементов (из кэша, IDs обновлены)")
+                    continue
+                
+                # Cache MISS - вызываем Vision API
+                cache_misses += 1
                 
                 # Читаем изображение
                 with open(image_path, 'rb') as image_file:
@@ -62,15 +98,20 @@ class VisionOCRWorker:
                 
                 if response.error.message:
                     logger.error(f"❌ Vision API ошибка: {response.error.message}")
+                    all_elements.append([])
                     continue
                 
                 # Парсим результат
                 elements = self._parse_vision_response(response, i+1)
                 all_elements.append(elements)
                 
+                # Сохраняем в кэш
+                if cache and cache.enabled:
+                    cache.set(image_path, elements)
+                
                 logger.info(f"✅ Слайд {i+1}: извлечено {len(elements)} элементов")
             
-            logger.info(f"🎉 Vision API: Всего обработано {len(all_elements)} слайдов")
+            logger.info(f"🎉 Vision API: Всего обработано {len(all_elements)} слайдов (кэш: {cache_hits} hits, {cache_misses} misses)")
             return all_elements
             
         except Exception as e:
@@ -147,6 +188,49 @@ class VisionOCRWorker:
             logger.error(f"❌ Ошибка парсинга Vision API ответа: {e}")
         
         return elements
+    
+    def _fix_element_ids(self, elements: List[Dict[str, Any]], correct_slide_number: int) -> List[Dict[str, Any]]:
+        """
+        Fix element IDs to have correct slide number
+        
+        This is critical when using cached OCR results - the cached elements
+        may have wrong slide number in their IDs (e.g., slide_1_block_0 for slide 2).
+        
+        Args:
+            elements: List of elements (possibly from cache)
+            correct_slide_number: Correct slide number (1-based)
+            
+        Returns:
+            Elements with corrected IDs
+        """
+        corrected = []
+        
+        for elem in elements:
+            elem_copy = elem.copy()
+            old_id = elem_copy.get('id', '')
+            
+            # Extract block index from old ID
+            # Pattern: slide_X_block_Y or slide_X_text
+            import re
+            match = re.search(r'slide_(\d+)_block_(\d+)', old_id)
+            if match:
+                old_slide_num = match.group(1)
+                block_idx = match.group(2)
+                new_id = f"slide_{correct_slide_number}_block_{block_idx}"
+                elem_copy['id'] = new_id
+                
+                if old_slide_num != str(correct_slide_number):
+                    logger.debug(f"Corrected element ID: {old_id} → {new_id}")
+            else:
+                # Check for slide_X_text pattern
+                match = re.search(r'slide_(\d+)_text', old_id)
+                if match:
+                    new_id = f"slide_{correct_slide_number}_text"
+                    elem_copy['id'] = new_id
+            
+            corrected.append(elem_copy)
+        
+        return corrected
     
     def _determine_element_type(self, text: str, block_idx: int) -> str:
         """
@@ -238,7 +322,7 @@ if __name__ == "__main__":
     from dotenv import load_dotenv
     
     # Загружаем переменные окружения
-    load_dotenv("../backend_env_hybrid_default.env")
+    load_dotenv('backend/.env')
     
     if len(sys.argv) > 1:
         image_path = sys.argv[1]

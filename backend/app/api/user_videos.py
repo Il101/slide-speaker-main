@@ -7,7 +7,7 @@ from datetime import datetime
 import logging
 
 from ..core.auth import get_current_user
-from ..core.database import get_db, Lesson, Export
+from ..core.database import get_db, Lesson
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
@@ -76,16 +76,6 @@ async def get_user_videos(
         videos = []
         for lesson in lessons:
             # Get export info if exists
-            export_query = (
-                select(Export)
-                .where(Export.lesson_id == lesson.id)
-                .where(Export.status == "completed")
-                .order_by(desc(Export.created_at))
-                .limit(1)
-            )
-            export_result = await db.execute(export_query)
-            export = export_result.scalar_one_or_none()
-            
             # Get thumbnail (first slide image)
             thumbnail_url = None
             if lesson.manifest_data and lesson.manifest_data.get("slides"):
@@ -95,13 +85,9 @@ async def get_user_videos(
             # Use total_duration from DB (calculated during processing)
             duration = lesson.total_duration
             
-            # Determine video URL
+            # For now, no video URL (no export functionality yet)
             video_url = None
             video_size = None
-            if export and export.file_path:
-                # Construct URL for exported MP4
-                video_url = f"/exports/{lesson.id}/download"
-                video_size = export.file_size
             
             # Can play if lesson is completed (has manifest)
             can_play = lesson.status == "completed" and lesson.manifest_data is not None

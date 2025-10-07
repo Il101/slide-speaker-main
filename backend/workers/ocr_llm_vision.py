@@ -20,7 +20,7 @@ class LLMVisionOCRWorker:
         """Инициализация LLM Vision клиента"""
         try:
             # Загружаем переменные окружения
-            load_dotenv("../backend_env_vision_api.env")
+            load_dotenv('backend/.env')
             
             # Инициализируем OpenRouter клиент
             self.client = OpenAI(

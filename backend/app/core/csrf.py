@@ -100,8 +100,15 @@ class CSRFProtection:
         return False
 
 # Global CSRF instance
+CSRF_SECRET_KEY = os.getenv("CSRF_SECRET_KEY")
+if not CSRF_SECRET_KEY or CSRF_SECRET_KEY == "your-csrf-secret-key-change-in-production":
+    raise ValueError(
+        "CSRF_SECRET_KEY must be set in .env and cannot be default value. "
+        "Generate with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+    )
+
 csrf_protection = CSRFProtection(
-    secret_key=os.getenv("CSRF_SECRET_KEY", "your-csrf-secret-key-change-in-production"),
+    secret_key=CSRF_SECRET_KEY,
     cookie_name="csrf_token",
     header_name="X-CSRF-Token"
 )

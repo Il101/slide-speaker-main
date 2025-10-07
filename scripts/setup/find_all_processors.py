@@ -52,7 +52,7 @@ def find_all_processors():
                 print(f"🎯 Найден Processor slideSpeaker!")
                 
                 # Обновляем конфигурацию
-                config_file = "backend_env_final.env"
+                config_file = 'backend/.env'
                 if os.path.exists(config_file):
                     with open(config_file, 'r') as f:
                         content = f.read()

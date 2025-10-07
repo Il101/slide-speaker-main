@@ -352,21 +352,62 @@ If you repeat slide wording, paraphrase.
             raise
     
     async def _call_llm_direct(self, prompt: str) -> str:
-        """Direct LLM call (placeholder for actual implementation)"""
-        # This would be replaced with actual LLM API calls
-        # For now, return a mock response
-        return json.dumps({
-            "talk_track": [
-                {"kind": "hook", "text": "Let's explore this important concept together."},
-                {"kind": "core", "text": "This topic is fundamental to understanding the broader subject."},
-                {"kind": "example", "text": "Think of it like building blocks - each piece supports the next."},
-                {"kind": "contrast", "text": "Don't confuse this with the simpler version we saw earlier."},
-                {"kind": "takeaway", "text": "Remember: this concept connects everything we've learned."},
-                {"kind": "question", "text": "Can you think of how this applies to your own experience?"}
-            ],
-            "visual_cues": [],
-            "terms_to_define": []
-        })
+        """Direct LLM call using configured provider"""
+        try:
+            from ...services.provider_factory import ProviderFactory
+
+            # Get LLM provider
+            llm_provider = ProviderFactory.get_llm_provider()
+
+            # Check if we're using OpenRouter
+            if hasattr(llm_provider, 'generate_lecture_text'):
+                # OpenRouter uses synchronous method - just text, no elements needed
+                # For prompt-based generation, we need to adapt
+                logger.info("Using OpenRouter LLM provider")
+
+                # Create a simple element structure for compatibility
+                fake_elements = [{"text": prompt, "type": "text"}]
+                response = llm_provider.generate_lecture_text(fake_elements)
+
+                # Try to extract JSON from response
+                # OpenRouter might return plain text, so wrap it as needed
+                try:
+                    # Try to parse as JSON first
+                    json.loads(response)
+                    return response
+                except json.JSONDecodeError:
+                    # If not JSON, create fallback structure
+                    logger.warning("LLM returned non-JSON response, creating fallback")
+                    return json.dumps({
+                        "talk_track": [
+                            {"kind": "hook", "text": response[:200] if len(response) > 200 else response}
+                        ],
+                        "visual_cues": [],
+                        "terms_to_define": []
+                    })
+            else:
+                # Fallback for other providers
+                logger.warning("LLM provider doesn't support generate_lecture_text, using mock")
+                return json.dumps({
+                    "talk_track": [
+                        {"kind": "hook", "text": "Let's explore this important concept together."},
+                        {"kind": "core", "text": "This topic is fundamental to understanding the broader subject."}
+                    ],
+                    "visual_cues": [],
+                    "terms_to_define": []
+                })
+
+        except Exception as e:
+            logger.error(f"Error calling LLM: {e}")
+            # Return fallback
+            return json.dumps({
+                "talk_track": [
+                    {"kind": "hook", "text": "Let's explore this important concept together."},
+                    {"kind": "core", "text": "This topic is fundamental to understanding the broader subject."}
+                ],
+                "visual_cues": [],
+                "terms_to_define": []
+            })
     
     def _extract_slide_text(self, slide_content: List[Dict[str, Any]]) -> str:
         """Extract all text from slide for overlap detection"""

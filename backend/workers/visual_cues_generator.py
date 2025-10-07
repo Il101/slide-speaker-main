@@ -87,64 +87,99 @@ class VisualCuesGenerator:
                                         word_timings: List[Dict[str, Any]]) -> List[Cue]:
         """Генерирует cues синхронизированные с метками слов из TTS"""
         cues = []
-        
-        # Создаем словарь элементов по тексту для быстрого поиска
-        element_map = {}
-        for elem in elements:
-            if elem.get("type") == "text" and elem.get("text"):
-                # Нормализуем текст элемента для сопоставления
-                text = elem.get("text", "").strip().lower()
-                words = text.split()
-                for word in words:
-                    # Убираем пунктуацию для сопоставления
-                    clean_word = ''.join(c for c in word if c.isalnum())
-                    if clean_word:
-                        element_map[clean_word] = elem
-        
-        self.logger.info(f"Создан словарь из {len(element_map)} слов для {len(elements)} элементов")
-        
-        # Создаем cues на основе меток слов
-        for wt in word_timings:
-            mark_name = wt.get('mark_name', '')
-            time_seconds = wt.get('time_seconds', 0.0)
-            
-            # Извлекаем слово из mark_name (например, "word_растение" -> "растение")
-            if mark_name and '_' in mark_name:
-                word = mark_name.split('_', 1)[1].lower()
-                clean_word = ''.join(c for c in word if c.isalnum())
-                
-                # Находим соответствующий элемент
-                element = element_map.get(clean_word)
-                
-                if element:
-                    normalized_bbox = self._normalize_bbox(element.get("bbox", [0, 0, 100, 50]))
-                    
-                    # Highlight cue: показываем когда диктор произносит это слово
-                    highlight_duration = 0.8  # Длительность подсветки
-                    highlight_cue = Cue(
-                        cue_id=f"cue_{uuid.uuid4().hex[:8]}",
-                        t0=time_seconds,
-                        t1=time_seconds + highlight_duration,
-                        action=ActionType.HIGHLIGHT,
-                        bbox=normalized_bbox,
-                        element_id=element.get("id")
-                    )
-                    cues.append(highlight_cue)
-                    
-                    self.logger.debug(f"Создан cue для слова '{word}' в момент {time_seconds:.2f}s")
-        
+
+        # Фильтруем текстовые элементы
+        text_types = ["text", "heading", "paragraph", "list_item"]
+        text_elements = [elem for elem in elements if elem.get("type") in text_types and elem.get("text")]
+
+        if not text_elements:
+            self.logger.warning("Нет текстовых элементов для синхронизации")
+            return cues
+
+        # Получаем временные метки из word_timings
+        if not word_timings:
+            self.logger.warning("Нет меток слов для синхронизации")
+            return cues
+
+        # Извлекаем уникальные временные отметки (каждая метка соответствует слову)
+        time_marks = sorted([wt.get('time_seconds', 0.0) for wt in word_timings])
+
+        if not time_marks:
+            self.logger.warning("Не удалось извлечь временные метки")
+            return cues
+
+        self.logger.info(f"Используем {len(time_marks)} временных меток для {len(text_elements)} элементов")
+
+        # Распределяем временные метки между элементами слайда
+        # Каждый элемент получает пропорциональную часть меток
+        marks_per_element = max(1, len(time_marks) // len(text_elements))
+
+        current_mark_idx = 0
+        for i, element in enumerate(text_elements):
+            # Определяем диапазон меток для этого элемента
+            start_idx = current_mark_idx
+            end_idx = min(current_mark_idx + marks_per_element, len(time_marks))
+
+            if start_idx >= len(time_marks):
+                break
+
+            # Время начала - первая метка элемента
+            t0 = time_marks[start_idx]
+            # Время конца - последняя метка элемента + небольшая задержка
+            t1 = time_marks[end_idx - 1] + 1.0 if end_idx > start_idx else t0 + 1.0
+
+            normalized_bbox = self._normalize_bbox(element.get("bbox", [0, 0, 100, 50]))
+
+            # Highlight cue для элемента
+            highlight_cue = Cue(
+                cue_id=f"cue_{uuid.uuid4().hex[:8]}",
+                t0=t0,
+                t1=t1,
+                action=ActionType.HIGHLIGHT,
+                bbox=normalized_bbox,
+                element_id=element.get("id")
+            )
+            cues.append(highlight_cue)
+
+            # Underline cue (начинается немного позже)
+            underline_cue = Cue(
+                cue_id=f"cue_{uuid.uuid4().hex[:8]}",
+                t0=t0 + 0.1,
+                t1=t1,
+                action=ActionType.UNDERLINE,
+                bbox=self._get_underline_bbox(normalized_bbox),
+                element_id=element.get("id")
+            )
+            cues.append(underline_cue)
+
+            # Laser move к следующему элементу
+            if i < len(text_elements) - 1:
+                next_element = text_elements[i + 1]
+                next_bbox = self._normalize_bbox(next_element.get("bbox", [0, 0, 100, 50]))
+                laser_cue = Cue(
+                    cue_id=f"cue_{uuid.uuid4().hex[:8]}",
+                    t0=t1 - 0.3,
+                    t1=t1,
+                    action=ActionType.LASER_MOVE,
+                    to=self._get_element_center(next_bbox)
+                )
+                cues.append(laser_cue)
+
+            current_mark_idx = end_idx
+
         self.logger.info(f"Создано {len(cues)} cues на основе меток слов")
         return cues
     
-    def _generate_synchronized_cues(self, 
-                                   elements: List[Dict[str, Any]], 
+    def _generate_synchronized_cues(self,
+                                   elements: List[Dict[str, Any]],
                                    sentences: List[Dict[str, Any]]) -> List[Cue]:
         """Генерирует cues синхронизированные с предложениями аудио"""
         cues = []
-        
-        # Фильтруем только текстовые элементы
-        text_elements = [elem for elem in elements if elem.get("type") == "text" and elem.get("text")]
-        
+
+        # Фильтруем текстовые элементы (любой тип с текстом)
+        text_types = ["text", "heading", "paragraph", "list_item"]
+        text_elements = [elem for elem in elements if elem.get("type") in text_types and elem.get("text")]
+
         if not text_elements:
             self.logger.warning("Нет текстовых элементов для синхронизации")
             return cues
@@ -180,15 +215,16 @@ class VisualCuesGenerator:
         
         return cues
     
-    def _generate_basic_cues(self, 
-                           elements: List[Dict[str, Any]], 
+    def _generate_basic_cues(self,
+                           elements: List[Dict[str, Any]],
                            audio_duration: float) -> List[Cue]:
         """Генерирует базовые cues с равномерным распределением времени"""
         cues = []
-        
-        # Фильтруем только текстовые элементы
-        text_elements = [elem for elem in elements if elem.get("type") == "text" and elem.get("text")]
-        
+
+        # Фильтруем текстовые элементы (любой тип с текстом)
+        text_types = ["text", "heading", "paragraph", "list_item"]
+        text_elements = [elem for elem in elements if elem.get("type") in text_types and elem.get("text")]
+
         if not text_elements:
             self.logger.warning("Нет текстовых элементов для генерации базовых cues")
             return cues

@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   backend:
     build: ./backend
@@ -8,6 +6,8 @@ services:
     volumes:
       - ./.data:/app/.data
       - ./backend/.env:/app/.env
+      - ./backend/app:/app/app
+      - ./backend/workers:/app/workers
       - ./keys/gcp-sa.json:/app/keys/gcp-sa.json:ro
     env_file:
       - ./docker.env
@@ -98,13 +98,14 @@ services:
 
   celery:
     build: ./backend
+    volumes:
+      - ./.data:/app/.data
+      - ./backend/app:/app/app
+      - ./backend/workers:/app/workers
+      - ./keys/gcp-sa.json:/app/keys/gcp-sa.json:ro
     command: celery -A app.celery_app worker --loglevel=info --queues=default,processing,ai_generation,tts,export,maintenance
     environment:
       - PYTHONPATH=/app
-    volumes:
-      - ./.data:/app/.data
-      - ./backend/.env:/app/.env
-      - ./keys/gcp-sa.json:/app/keys/gcp-sa.json:ro
     env_file:
       - ./docker.env
     depends_on:
@@ -124,9 +125,8 @@ services:
     ports:
       - "9000:9000"
       - "9001:9001"
-    environment:
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin}
+    env_file:
+      - ./docker.env
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data

@@ -8,6 +8,7 @@ import { PlayerState, EditingState, Cue, SlideElement } from '@/types/player';
 import { apiClient, Manifest, Slide, CuePatch, ElementPatch, SlidePatch, LessonPatchRequest } from '@/lib/api';
 import { CueEditor } from '@/components/CueEditor';
 import { ElementEditor } from '@/components/ElementEditor';
+import { AdvancedEffectRenderer } from '@/components/AdvancedEffects';
 
 // Simplified lazy loading hook
 const useLazyImage = (src: string) => {
@@ -117,6 +118,7 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
   // Scale-aware state
   const [scale, setScale] = useState({ x: 1, y: 1 });
   const [slideDimensions, setSlideDimensions] = useState({ width: 1920, height: 1080 });
+  const [imageOffset, setImageOffset] = useState({ x: 0, y: 0 });
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const slideRef = useRef<HTMLDivElement>(null);
@@ -126,7 +128,7 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
   const currentSlideImageSrc = manifest?.slides[playerState.currentSlide]?.image || '';
   const imageUrl = currentSlideImageSrc ? `${import.meta.env.VITE_API_BASE || 'http://localhost:8000'}${currentSlideImageSrc}` : '';
 
-  // Calculate scale based on container and slide dimensions
+  // Calculate scale and offset based on container and slide dimensions
   const calculateScale = useCallback(() => {
     if (!slideRef.current) return { x: 1, y: 1 };
     
@@ -141,12 +143,23 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
     const scaleX = containerWidth / slideDimensions.width;
     const scaleY = containerHeight / slideDimensions.height;
     
-    // Use uniform scaling to maintain aspect ratio
+    // Use uniform scaling to maintain aspect ratio (like background-size: contain)
     const uniformScale = Math.min(scaleX, scaleY);
     
     // Ensure minimum scale to prevent elements from becoming too small
     const minScale = 0.1;
     const finalScale = Math.max(uniformScale, minScale);
+    
+    // Calculate image dimensions after scaling
+    const scaledImageWidth = slideDimensions.width * finalScale;
+    const scaledImageHeight = slideDimensions.height * finalScale;
+    
+    // Calculate offset for centering (like background-position: center)
+    const offsetX = (containerWidth - scaledImageWidth) / 2;
+    const offsetY = (containerHeight - scaledImageHeight) / 2;
+    
+    // Update offset state
+    setImageOffset({ x: Math.max(0, offsetX), y: Math.max(0, offsetY) });
     
     return { x: finalScale, y: finalScale };
   }, [slideDimensions]);
@@ -199,6 +212,15 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
         setLoading(true);
         const data = await apiClient.getManifest(lessonId);
         setManifest(data);
+        
+        // Load slide dimensions from manifest
+        const currentSlide = data.slides[playerState.currentSlide];
+        if (currentSlide && currentSlide.width && currentSlide.height) {
+          setSlideDimensions({ width: currentSlide.width, height: currentSlide.height });
+        } else if (data.metadata?.slide_width && data.metadata?.slide_height) {
+          setSlideDimensions({ width: data.metadata.slide_width, height: data.metadata.slide_height });
+        }
+        
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load lesson');
@@ -254,8 +276,8 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
 
         if (cue.action === 'highlight' && cue.bbox) {
           const [x, y, width, height] = cue.bbox;
-          const scaledX = x * scale.x;
-          const scaledY = y * scale.y;
+          const scaledX = x * scale.x + imageOffset.x;
+          const scaledY = y * scale.y + imageOffset.y;
           const scaledWidth = width * scale.x;
           const scaledHeight = height * scale.y;
           
@@ -289,8 +311,8 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
 
         if (cue.action === 'underline' && cue.bbox) {
           const [x, y, width, height] = cue.bbox;
-          const scaledX = x * scale.x;
-          const scaledY = y * scale.y;
+          const scaledX = x * scale.x + imageOffset.x;
+          const scaledY = y * scale.y + imageOffset.y;
           const scaledWidth = width * scale.x;
           const scaledHeight = height * scale.y;
           
@@ -323,8 +345,8 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
 
         if (cue.action === 'laser_move' && cue.to) {
           const [x, y] = cue.to;
-          const scaledX = x * scale.x;
-          const scaledY = y * scale.y;
+          const scaledX = x * scale.x + imageOffset.x;
+          const scaledY = y * scale.y + imageOffset.y;
           
           effects.push(
             <div
@@ -376,8 +398,8 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
         
         if (isActive || editingState.isEditing) {
           const [x, y, width, height] = targetElement.bbox;
-          const scaledX = x * scale.x;
-          const scaledY = y * scale.y;
+          const scaledX = x * scale.x + imageOffset.x;
+          const scaledY = y * scale.y + imageOffset.y;
           const scaledWidth = width * scale.x;
           const scaledHeight = height * scale.y;
           
@@ -402,6 +424,35 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
                 </div>
               )}
             </div>
+          );
+        }
+      });
+    }
+    
+    // ✅ Render advanced effects (ken_burns, typewriter, particle_highlight, etc.)
+    if (currentSlide.cues) {
+      const advancedEffectTypes = [
+        'ken_burns', 'typewriter', 'particle_highlight', 'slide_in',
+        'fade_in', 'pulse', 'circle_draw', 'arrow_point', 'shake', 'morph'
+      ];
+      
+      currentSlide.cues.forEach((cue, index) => {
+        const isActive = playerState.currentTime >= cue.t0 && playerState.currentTime <= cue.t1;
+        const effectType = cue.effect_type || cue.action;
+        
+        if (advancedEffectTypes.includes(effectType) && (isActive || editingState.isEditing)) {
+          // Get slide text for typewriter effect
+          const slideText = currentSlide.elements
+            .map(el => el.text)
+            .join(' ');
+          
+          effects.push(
+            <AdvancedEffectRenderer
+              key={`advanced-effect-${index}`}
+              cue={cue}
+              active={isActive}
+              text={slideText}
+            />
           );
         }
       });
@@ -661,9 +712,9 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
 
     return currentSlide.elements.map((element, index) => {
       const [x, y, width, height] = element.bbox;
-      // Apply scale to coordinates
-      const scaledX = x * scale.x;
-      const scaledY = y * scale.y;
+      // Apply scale and offset to coordinates
+      const scaledX = x * scale.x + imageOffset.x;
+      const scaledY = y * scale.y + imageOffset.y;
       const scaledWidth = width * scale.x;
       const scaledHeight = height * scale.y;
       
@@ -728,9 +779,36 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
         
         {/* Hidden description for screen readers */}
         <div id="slide-description" className="sr-only">
-          {currentSlide.speaker_notes && currentSlide.speaker_notes.length > 0 
-            ? currentSlide.speaker_notes.map(note => note.text).join(' ')
-            : `Slide ${playerState.currentSlide + 1} content`}
+          {(() => {
+            try {
+              console.log('Speaker notes type:', typeof currentSlide.speaker_notes, currentSlide.speaker_notes);
+              console.log('Speaker notes isArray:', Array.isArray(currentSlide.speaker_notes));
+              console.log('Speaker notes constructor:', currentSlide.speaker_notes?.constructor?.name);
+              
+              if (!currentSlide.speaker_notes) {
+                return `Slide ${playerState.currentSlide + 1} content`;
+              }
+              
+              if (Array.isArray(currentSlide.speaker_notes)) {
+                // Безопасный вызов map с дополнительной проверкой
+                if (currentSlide.speaker_notes.length > 0 && currentSlide.speaker_notes[0] && typeof currentSlide.speaker_notes[0] === 'object' && 'text' in currentSlide.speaker_notes[0]) {
+                  return currentSlide.speaker_notes.map(note => note.text).join(' ');
+                } else {
+                  // Если элементы массива не являются объектами с полем text, преобразуем их в строки
+                  return currentSlide.speaker_notes.map(note => String(note)).join(' ');
+                }
+              }
+              
+              if (typeof currentSlide.speaker_notes === 'string') {
+                return currentSlide.speaker_notes;
+              }
+              
+              return `Slide ${playerState.currentSlide + 1} content`;
+            } catch (error) {
+              console.error('Error processing speaker notes:', error);
+              return `Slide ${playerState.currentSlide + 1} content`;
+            }
+          })()}
         </div>
       </Card>
 
@@ -927,17 +1005,33 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
                     </div>
                   ))}
                 </div>
-              ) : currentSlide.speaker_notes && currentSlide.speaker_notes.length > 0 ? (
+              ) : currentSlide.speaker_notes && Array.isArray(currentSlide.speaker_notes) && currentSlide.speaker_notes.length > 0 ? (
                 <div className="space-y-2">
-                  {currentSlide.speaker_notes.map((note, index) => (
-                    <div key={index} className="p-2 bg-gray-50 rounded-lg">
-                      <div className="text-sm text-gray-600 mb-1">
-                        {note.targetId ? `Target: ${note.targetId}` : 
-                         note.target ? `Target: ${note.target.type}` : 'General note'}
-                      </div>
-                      <div className="text-base">{note.text}</div>
-                    </div>
-                  ))}
+                  {currentSlide.speaker_notes.map((note, index) => {
+                    // Проверяем, является ли note объектом с полем text
+                    if (typeof note === 'object' && note !== null && 'text' in note) {
+                      return (
+                        <div key={index} className="p-2 bg-gray-50 rounded-lg">
+                          <div className="text-sm text-gray-600 mb-1">
+                            {note.targetId ? `Target: ${note.targetId}` : 
+                             note.target ? `Target: ${note.target.type}` : 'General note'}
+                          </div>
+                          <div className="text-base">{note.text}</div>
+                        </div>
+                      );
+                    } else {
+                      // Если note - это строка или другой тип
+                      return (
+                        <div key={index} className="p-2 bg-gray-50 rounded-lg">
+                          <div className="text-base">{String(note)}</div>
+                        </div>
+                      );
+                    }
+                  })}
+                </div>
+              ) : currentSlide.speaker_notes && typeof currentSlide.speaker_notes === 'string' ? (
+                <div className="p-2 bg-gray-50 rounded-lg">
+                  <div className="text-base">{currentSlide.speaker_notes}</div>
                 </div>
               ) : (
                 <div>No lecture text available</div>

@@ -230,9 +230,15 @@ export class ApiClient {
     return null;
   }
 
-  // Получение JWT токена из localStorage
-  private getAuthToken(): string | null {
+  // Получение JWT токена из localStorage (public для внешнего использования)
+  getAuthToken(): string | null {
     return localStorage.getItem('slide-speaker-auth-token');
+  }
+
+  // Public method to get auth headers for external use
+  getAuthHeaders(): HeadersInit {
+    const token = this.getAuthToken();
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
   }
 
   // Создание заголовков для запросов
@@ -281,7 +287,7 @@ export class ApiClient {
 
   // Методы авторизации
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await fetch(`${this.baseUrl}/auth/login`, {
+    const response = await fetch(`${this.baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: this.getHeaders(false, false), // Не включаем авторизацию и CSRF
       body: JSON.stringify(credentials),
@@ -291,7 +297,7 @@ export class ApiClient {
   }
 
   async getCurrentUser(): Promise<UserResponse> {
-    const response = await fetch(`${this.baseUrl}/auth/me`, {
+    const response = await fetch(`${this.baseUrl}/api/auth/me`, {
       method: 'GET',
       headers: this.getHeaders(true, false), // Включаем авторизацию
     });

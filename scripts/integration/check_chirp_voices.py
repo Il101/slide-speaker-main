@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from google.cloud import texttospeech
 
 # Загружаем переменные окружения
-load_dotenv("backend_env_enhanced_hybrid.env")
+load_dotenv("backend/.env")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

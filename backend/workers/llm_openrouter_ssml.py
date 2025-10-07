@@ -118,14 +118,16 @@ class OpenRouterLLMWorkerSSML:
         # Language-specific prompts with SSML guidance
         language_prompts = {
             "ru": f"""
-Ты - опытный преподаватель биологии, который ведет лекцию по анатомии растений для студентов университета.
+Ты - опытный преподаватель, который ведет лекцию для студентов университета.
 
-Содержание слайда:
+КРИТИЧЕСКИ ВАЖНО: Весь текст лекции должен быть ТОЛЬКО на русском языке! Если содержимое слайда на другом языке (немецком, английском и т.д.), ПЕРЕВЕДИ и ОБЪЯСНИ его на русском языке!
+
+Содержание слайда (может быть на другом языке - переведи на русский):
 {slide_text}
 
 {("Изображения на слайде:" + chr(10) + slide_images) if slide_images else ""}
 
-Твоя лекция должна:
+Твоя лекция НА РУССКОМ ЯЗЫКЕ должна:
 1. Объясняет содержание слайда простым и понятным языком
 2. Использует научную терминологию с правильными ударениями
 3. Связывает информацию логически и последовательно
@@ -202,14 +204,16 @@ class OpenRouterLLMWorkerSSML:
 Отвечай только SSML-разметкой, без дополнительных комментариев.
 """,
             "en": f"""
-You are an experienced English teacher creating lecture text with SSML markup for proper pronunciation.
+You are an experienced teacher creating lecture text with SSML markup for proper pronunciation.
 
-Slide Content:
+CRITICALLY IMPORTANT: All lecture text must be in English ONLY! If the slide content is in another language (German, Russian, etc.), TRANSLATE and EXPLAIN it in English!
+
+Slide Content (may be in another language - translate to English):
 {slide_text}
 
 {("Images on slide:" + chr(10) + slide_images) if slide_images else ""}
 
-Create lecture text in SSML format that:
+Create lecture text IN ENGLISH in SSML format that:
 1. Contains natural English speech for students
 2. Uses proper accents and intonations
 3. Includes SSML tags for improved pronunciation

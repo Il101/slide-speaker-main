@@ -88,7 +88,7 @@ def check_gemini_models():
             
             # Обновляем конфигурацию с первой рабочей комбинацией
             best_combo = working_combinations[0]
-            config_file = "backend_env_final.env"
+            config_file = 'backend/.env'
             if os.path.exists(config_file):
                 with open(config_file, 'r') as f:
                     content = f.read()

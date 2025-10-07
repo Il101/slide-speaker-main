@@ -9,10 +9,16 @@ RUN apt-get update && apt-get install -y \
     tesseract-ocr-eng \
     ffmpeg \
     poppler-utils \
+    libreoffice \
+    libreoffice-writer \
+    libreoffice-impress \
+    libreoffice-draw \
+    fonts-liberation \
     libmagic1 \
     libmagic-dev \
     curl \
     netcat-openbsd \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install dependencies

@@ -48,7 +48,7 @@ def find_existing_processor():
             print(f"   Полное имя: {processor.name}")
             
             # Обновляем конфигурацию
-            config_file = "backend_env_final.env"
+            config_file = 'backend/.env'
             if os.path.exists(config_file):
                 with open(config_file, 'r') as f:
                     content = f.read()

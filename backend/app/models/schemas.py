@@ -1,6 +1,6 @@
 """Pydantic schemas for API requests and responses"""
 from pydantic import BaseModel, Field, field_validator
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from enum import Enum
 
 class ActionType(str, Enum):
@@ -72,7 +72,7 @@ class Slide(BaseModel):
     audio: str = Field(..., description="Path to audio file")
     elements: List[SlideElement] = Field(default_factory=list, description="Detected elements")
     cues: List[Cue] = Field(default_factory=list, description="Visual effects")
-    speaker_notes: Optional[List[Dict[str, Any]]] = Field(None, description="Generated speaker notes")
+    speaker_notes: Optional[Union[str, List[Dict[str, Any]]]] = Field(None, description="Generated speaker notes")
     lecture_text: Optional[str] = Field(None, description="Generated lecture text from talk_track")
     talk_track: Optional[List[Dict[str, Any]]] = Field(None, description="Structured talk track")
     visual_cues: Optional[List[Dict[str, Any]]] = Field(None, description="Visual cues for talk track")

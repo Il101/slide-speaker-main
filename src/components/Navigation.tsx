@@ -1,9 +1,10 @@
 import React from 'react';
-import { Brain, LogOut, User, Shield } from 'lucide-react';
+import { Brain, LogOut, User, Shield, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth, useRole } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { MobileNav } from '@/components/MobileNav';
 
 interface NavigationProps {
   showLogo?: boolean;
@@ -27,6 +28,9 @@ const Navigation: React.FC<NavigationProps> = ({
 
   return (
     <nav className={`flex items-center justify-between p-4 ${className}`}>
+      {/* Мобильное меню */}
+      <MobileNav />
+
       {/* Логотип */}
       {showLogo && (
         <div className="flex items-center space-x-2">
@@ -37,9 +41,20 @@ const Navigation: React.FC<NavigationProps> = ({
         </div>
       )}
 
-      {/* Информация о пользователе и кнопка выхода */}
+      {/* Информация о пользователе и кнопка выхода - скрыто на мобильных */}
       {showUserInfo && user && (
-        <div className="flex items-center space-x-4">
+        <div className="hidden md:flex items-center space-x-4">
+          {/* Кнопка подписки */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/subscription')}
+            className="flex items-center space-x-2"
+          >
+            <Crown className="h-4 w-4 text-yellow-500" />
+            <span>Подписка</span>
+          </Button>
+
           {/* Информация о пользователе */}
           <Card className="px-4 py-2 card-gradient">
             <div className="flex items-center space-x-2">

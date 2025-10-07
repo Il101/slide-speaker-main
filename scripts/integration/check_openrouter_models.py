@@ -12,7 +12,7 @@ import json
 sys.path.append(str(Path(__file__).parent / "backend"))
 
 from dotenv import load_dotenv
-load_dotenv("backend_env_openrouter.env")
+load_dotenv("backend/.env")
 
 def check_openrouter_models():
     """Проверка доступных моделей OpenRouter"""

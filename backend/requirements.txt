@@ -9,7 +9,7 @@ slowapi==0.1.9
 python-pptx==0.6.21
 PyMuPDF==1.23.8
 pymupdf==1.23.8
-pdf2image==1.16.3
+pdf2image==1.17.0
 Pillow>=10.0.0
 opencv-python==4.8.1.78
 numpy<2.0.0
@@ -56,6 +56,13 @@ alembic==1.13.1
 redis==5.0.1
 cryptography>=41.0.0
 
+# Error tracking and monitoring
+sentry-sdk[fastapi]==1.40.0
+
+# Payment processing
+stripe==7.0.0
+
 # Testing
 pytest==7.4.3
 pytest-asyncio==0.21.1
+google-generativeai>=0.8.0

@@ -10,7 +10,7 @@ import time
 from dotenv import load_dotenv
 
 # Загружаем переменные окружения
-load_dotenv("backend_env_enhanced_hybrid.env")
+load_dotenv("backend/.env")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

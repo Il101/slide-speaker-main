@@ -69,7 +69,7 @@ async def test_current_voice():
     
     print()
     print("💡 Если голос звучит неправильно:")
-    print("1. Проверьте настройки в backend_env_enhanced_hybrid.env")
+    print("1. Проверьте настройки в backend/.env")
     print("2. Убедитесь, что Google Cloud TTS настроен правильно")
     print("3. Попробуйте другие настройки скорости и тона")
 

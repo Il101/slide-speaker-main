@@ -35,8 +35,16 @@ def upgrade() -> None:
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('status', sa.String(), nullable=False),
     sa.Column('user_id', sa.String(), nullable=False),
+    sa.Column('file_path', sa.String(), nullable=True),
+    sa.Column('file_size', sa.Integer(), nullable=True),
+    sa.Column('file_type', sa.String(), nullable=True),
+    sa.Column('slides_count', sa.Integer(), nullable=True),
+    sa.Column('total_duration', sa.Float(), nullable=True),
+    sa.Column('manifest_data', postgresql.JSON(astext_type=sa.Text()), nullable=True),
+    sa.Column('processing_progress', postgresql.JSON(astext_type=sa.Text()), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('completed_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

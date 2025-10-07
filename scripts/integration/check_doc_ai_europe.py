@@ -69,7 +69,7 @@ def check_document_ai_european_regions():
             print(f"📝 Рекомендуемый регион: {available_regions[0]}")
             
             # Обновляем конфигурацию
-            config_file = "backend_env_final.env"
+            config_file = 'backend/.env'
             if os.path.exists(config_file):
                 with open(config_file, 'r') as f:
                     content = f.read()
@@ -96,7 +96,7 @@ def check_document_ai_european_regions():
             # Предлагаем создать новый Processor
             print(f"\n💡 Рекомендация: Создать новый Processor в europe-west1")
             
-            config_file = "backend_env_final.env"
+            config_file = 'backend/.env'
             if os.path.exists(config_file):
                 with open(config_file, 'r') as f:
                     content = f.read()

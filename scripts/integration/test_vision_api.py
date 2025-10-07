@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 sys.path.append('/Users/iliazarikov/Documents/Python_crypto/Barahlo/slide-speaker-main/backend')
 
 # Загружаем переменные окружения
-load_dotenv('/Users/iliazarikov/Documents/Python_crypto/Barahlo/slide-speaker-main/backend_env_vision_api.env')
+load_dotenv('backend/.env')
 
 def test_vision_api():
     """Тестируем Vision API на реальных слайдах"""

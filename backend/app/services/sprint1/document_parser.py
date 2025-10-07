@@ -1,4 +1,18 @@
-"""Sprint 1: Document parsing service with concept extraction"""
+"""
+Sprint 1: Document parsing service with concept extraction
+
+⚠️  DEPRECATED: This module is deprecated!
+    Use the new pipeline (intelligent_optimized.py) instead.
+    Set USE_NEW_PIPELINE=true (it's now the default).
+    
+    This file is kept for backward compatibility only.
+"""
+import warnings
+warnings.warn(
+    "document_parser.py is deprecated. Use new pipeline with USE_NEW_PIPELINE=true",
+    DeprecationWarning,
+    stacklevel=2
+)
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import logging
@@ -35,8 +49,9 @@ def _ocr_enabled() -> bool:
     """Check if OCR is enabled in configuration"""
     try:
         from ...core.config import settings
-        return settings.OCR_PROVIDER.lower() in ["easyocr", "google"]
-    except:
+        provider = settings.OCR_PROVIDER.lower()
+        return provider in ["easyocr", "google", "vision", "enhanced_vision", "paddle"]
+    except Exception:
         return True
 
 def _extract_with_ocr(slide_png: Path) -> List[Dict[str, Any]]:

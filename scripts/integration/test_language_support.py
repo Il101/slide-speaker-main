@@ -17,7 +17,7 @@ def test_language_support():
     print("=" * 50)
     
     # Загружаем переменные окружения
-    load_dotenv("backend_env_hybrid_default.env")
+    load_dotenv("backend/.env")
     
     # 1. Проверяем переменные окружения
     print("\n1. Проверка переменных окружения...")
