@@ -2,10 +2,10 @@
 set -e
 
 # Smoke test script for pipeline testing
-# Usage: ./scripts/smoke.sh [pipeline_mode] [api_url]
+# Usage: ./scripts/smoke.sh [api_url]
 
 API=${API:-http://localhost:8000}
-MODE=${1:-classic}  # classic|vision|hybrid
+MODE=classic
 DEMO_FILE=${DEMO_FILE:-test.pdf}
 
 echo "🧪 Running smoke test for pipeline: $MODE"
@@ -47,7 +47,7 @@ sleep 2
 
 # Generate audio
 echo "🎵 Generating audio..."
-AUDIO_RESPONSE=$(curl -s -X POST "$API/lessons/$LESSON_ID/generate-audio" -H "X-Pipeline: $MODE")
+AUDIO_RESPONSE=$(curl -s -X POST "$API/lessons/$LESSON_ID/generate-audio")
 AUDIO_STATUS=$(echo "$AUDIO_RESPONSE" | jq -r '.status')
 
 if [ "$AUDIO_STATUS" != "success" ]; then
@@ -105,33 +105,18 @@ if [ "$TIMELINE_LENGTH" -eq 0 ]; then
 fi
 
 # Pipeline-specific validations
-case $MODE in
-    "classic")
-        if [ "$FIRST_SLIDE_ELEMENTS" -eq 0 ]; then
-            echo "❌ Classic pipeline should have OCR elements"
-            VALIDATION_PASSED=false
-        fi
-        ;;
-    "vision")
-        if [ "$FIRST_SLIDE_ELEMENTS" -eq 0 ]; then
-            echo "⚠️ Vision pipeline has no elements (may use placeholders)"
-        fi
-        ;;
-    "hybrid")
-        if [ "$FIRST_SLIDE_ELEMENTS" -eq 0 ]; then
-            echo "❌ Hybrid pipeline should have aligned elements"
-            VALIDATION_PASSED=false
-        fi
-        ;;
-esac
+if [ "$FIRST_SLIDE_ELEMENTS" -eq 0 ]; then
+    echo "❌ Classic pipeline should have OCR elements"
+    VALIDATION_PASSED=false
+fi
 
 # Final result
 if [ "$VALIDATION_PASSED" = true ]; then
-    echo "✅ Smoke test PASSED for pipeline '$MODE'"
+    echo "✅ Smoke test PASSED"
     echo "🎉 All validations successful!"
     exit 0
 else
-    echo "❌ Smoke test FAILED for pipeline '$MODE'"
+    echo "❌ Smoke test FAILED"
     echo "🔍 Check the validation errors above"
     exit 1
 fi

@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 sys.path.append('/Users/iliazarikov/Documents/Python_crypto/Barahlo/slide-speaker-main/backend')
 
 # Загружаем переменные окружения
-load_dotenv('/Users/iliazarikov/Documents/Python_crypto/Barahlo/slide-speaker-main/backend_env_enhanced_hybrid.env')
+load_dotenv('backend/.env')
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

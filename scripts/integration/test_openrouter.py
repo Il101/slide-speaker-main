@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent / "backend"))
 
 from dotenv import load_dotenv
-load_dotenv("backend_env_openrouter.env")
+load_dotenv("backend/.env")
 
 def test_openrouter_integration():
     """Тест OpenRouter интеграции"""

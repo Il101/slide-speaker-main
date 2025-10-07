@@ -6,15 +6,15 @@ from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 
-from ...core.config import settings
-from ...models.schemas import (
+from ..core.config import settings
+from ..models.schemas import (
     SpeakerNotesRequest, 
     LectureOutlineRequest, 
     TalkTrackResponse,
     Manifest
 )
-from ..sprint2.ai_generator import AIGenerator
-from ..sprint2.concept_extractor import SlideConcepts
+from ..services.sprint2.ai_generator import AIGenerator
+from ..services.sprint2.concept_extractor import SlideConcepts
 
 logger = logging.getLogger(__name__)
 

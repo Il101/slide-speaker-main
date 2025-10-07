@@ -2,10 +2,28 @@
 import os
 from pathlib import Path
 from typing import Optional
+from dotenv import load_dotenv
 from .secrets import (
     get_database_url, get_redis_url, get_jwt_secret, get_openai_key,
     get_azure_tts_key, get_minio_credentials, get_cors_origins, get_grafana_password
 )
+
+
+def _load_env_files() -> None:
+    """Load environment variables from known dotenv files if present."""
+    project_root = Path(__file__).resolve().parent.parent.parent
+    candidates = [
+        project_root / ".env",
+        project_root / "backend" / ".env",
+        project_root / "docker.env",
+    ]
+
+    for env_file in candidates:
+        if env_file.exists():
+            load_dotenv(env_file, override=False)
+
+
+_load_env_files()
 
 class Settings:
     """Application settings"""
@@ -50,7 +68,7 @@ class Settings:
     GCP_LOCATION: str = os.getenv("GCP_LOCATION", "us")
     
     # Provider Configuration
-    OCR_PROVIDER: str = os.getenv("OCR_PROVIDER", "enhanced_vision")  # google|vision|easyocr|paddle
+    OCR_PROVIDER: str = os.getenv("OCR_PROVIDER", "google")  # google|vision|easyocr|paddle
     LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "openrouter")  # gemini|openai|openrouter|ollama|anthropic
     TTS_PROVIDER: str = os.getenv("TTS_PROVIDER", "google")  # google|azure|mock
     STORAGE: str = os.getenv("STORAGE", "gcs")  # gcs|minio
@@ -79,9 +97,14 @@ class Settings:
     ANTHROPIC_API_KEY: Optional[str] = os.getenv("ANTHROPIC_API_KEY")
     TTS_SERVICE: str = os.getenv("TTS_SERVICE", "openai")  # openai, elevenlabs, azure
     
+    # Pipeline Configuration
+    USE_NEW_PIPELINE: bool = os.getenv("USE_NEW_PIPELINE", "true").lower() in ("true", "1", "yes")  # Default: TRUE (new pipeline)
+    PIPELINE_MAX_PARALLEL_SLIDES: int = int(os.getenv("PIPELINE_MAX_PARALLEL_SLIDES", "5"))
+    PIPELINE_MAX_PARALLEL_TTS: int = int(os.getenv("PIPELINE_MAX_PARALLEL_TTS", "10"))
+    
     # OpenRouter Configuration
     OPENROUTER_API_KEY: Optional[str] = os.getenv("OPENROUTER_API_KEY")
-    OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "x-ai/grok-4-fast:free")
+    OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3.3-8b-instruct:free")
     OPENROUTER_BASE_URL: str = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
     
     # Azure TTS (Legacy)

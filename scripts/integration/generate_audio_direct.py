@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 sys.path.append('backend')
 
 # Загружаем environment переменные
-load_dotenv('backend_env_docker.env')
+load_dotenv('backend/.env')
 
 # Настраиваем логирование
 logging.basicConfig(level=logging.INFO)

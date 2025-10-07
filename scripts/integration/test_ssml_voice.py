@@ -10,7 +10,7 @@ from backend.workers.llm_openrouter_ssml import OpenRouterLLMWorkerSSML
 from backend.workers.tts_google_ssml import GoogleTTSWorkerSSML
 
 # Загружаем переменные окружения
-load_dotenv("backend_env_enhanced_hybrid.env")
+load_dotenv("backend/.env")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

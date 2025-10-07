@@ -13,9 +13,9 @@ def upload_presentation():
     print("📤 Загружаем презентацию через API...")
     
     # Загружаем файл
-    with open('backend/test_presentation.pptx', 'rb') as f:
+    with open('test_presentation.pptx', 'rb') as f:
         files = {'file': ('test_presentation.pptx', f, 'application/vnd.openxmlformats-officedocument.presentationml.presentation')}
-        response = requests.post("http://localhost:8001/upload", files=files, timeout=60)
+        response = requests.post("http://localhost:8000/upload", files=files, timeout=60)
     
     if response.status_code == 200:
         data = response.json()

@@ -33,8 +33,10 @@ class User(Base):
     
     id: Mapped[str] = mapped_column(String(36), primary_key=True)  # UUID
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    username: Mapped[Optional[str]] = mapped_column(String(100), unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(50), default="user")
+    subscription_tier: Mapped[str] = mapped_column(String(50), default="free")  # free, pro, enterprise
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

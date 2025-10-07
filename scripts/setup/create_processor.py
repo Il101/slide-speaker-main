@@ -57,7 +57,7 @@ def create_document_ai_processor():
         print(f"📋 Полное имя: {result.name}")
         
         # Обновляем конфигурацию
-        config_file = "backend_env_final.env"
+        config_file = 'backend/.env'
         if os.path.exists(config_file):
             with open(config_file, 'r') as f:
                 content = f.read()

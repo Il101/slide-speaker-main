@@ -221,8 +221,8 @@ export const MyVideosSidebar: React.FC<MyVideosSidebarProps> = ({
 
   if (loading) {
     return (
-      <Card className="h-screen w-full flex flex-col p-6 rounded-lg border-2 border-border/50 shadow-xl bg-gradient-to-br from-background to-muted/20">
-        <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+      <Card className="h-screen w-full flex flex-col p-4 sm:p-6 rounded-lg border-2 border-border/50 shadow-xl bg-gradient-to-br from-background to-muted/20">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
           Мои видео
         </h2>
         <div className="flex-1 flex items-center justify-center">
@@ -234,8 +234,8 @@ export const MyVideosSidebar: React.FC<MyVideosSidebarProps> = ({
 
   if (error) {
     return (
-      <Card className="h-screen w-full flex flex-col p-6 rounded-lg border-2 border-border/50 shadow-xl bg-gradient-to-br from-background to-muted/20">
-        <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+      <Card className="h-screen w-full flex flex-col p-4 sm:p-6 rounded-lg border-2 border-border/50 shadow-xl bg-gradient-to-br from-background to-muted/20">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
           Мои видео
         </h2>
         <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
@@ -253,12 +253,12 @@ export const MyVideosSidebar: React.FC<MyVideosSidebarProps> = ({
     <>
       <Card className="h-screen w-full flex flex-col rounded-lg border-2 border-border/50 shadow-xl bg-gradient-to-br from-background to-muted/20">
         {/* Заголовок с кнопками управления */}
-        <div className="p-6 border-b-2 border-border/50 flex-shrink-0 bg-gradient-to-r from-primary/5 to-primary/10">
+        <div className="p-4 sm:p-6 border-b-2 border-border/50 flex-shrink-0 bg-gradient-to-r from-primary/5 to-primary/10">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               Мои видео
             </h2>
-            <Badge variant="secondary" className="text-base font-semibold px-3 py-1">
+            <Badge variant="secondary" className="text-sm sm:text-base font-semibold px-2 sm:px-3 py-1">
               {videos.length}
             </Badge>
           </div>

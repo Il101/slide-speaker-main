@@ -126,13 +126,8 @@ class ProviderFactory:
     
     @staticmethod
     def get_image_recognition_provider():
-        """Get image recognition provider for hybrid image analysis"""
-        try:
-            from workers.image_recognition_hybrid import HybridImageRecognitionWorker
-            return HybridImageRecognitionWorker()
-        except ImportError as e:
-            logger.error(f"Failed to import Hybrid Image Recognition provider: {e}")
-            return ProviderFactory._get_fallback_image_recognition()
+        """Get image recognition provider (fallback only)."""
+        return ProviderFactory._get_fallback_image_recognition()
     
     @staticmethod
     def get_storage_provider():

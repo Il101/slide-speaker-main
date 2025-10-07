@@ -106,22 +106,24 @@ const Index = () => {
     return (
       <div className="min-h-screen hero-gradient">
         <Navigation />
-        <div className="flex">
+        <div className="flex flex-col lg:flex-row">
           {/* Основной контент - плеер */}
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 sm:p-6">
             <div className="max-w-6xl mx-auto">
-              <div className="mb-6 flex items-center justify-between">
+              <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">
+                  <h1 className="text-xl sm:text-2xl font-bold text-foreground">
                     {selectedFile?.name || 'Демо лекция'}
                   </h1>
-                  <p className="text-muted-foreground">
+                  <p className="text-sm sm:text-base text-muted-foreground">
                     Интерактивная лекция с озвучкой и визуальными эффектами
                   </p>
                 </div>
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={handleCreateNewLesson}
+                  className="w-full sm:w-auto"
                 >
                   Создать новую лекцию
                 </Button>
@@ -138,7 +140,7 @@ const Index = () => {
 
           {/* Сайдбар справа с видео для авторизованных пользователей */}
           {isAuthenticated && (
-            <div className="w-[560px]">
+            <div className="w-full lg:w-[400px] xl:w-[560px] lg:max-h-screen">
               <MyVideosSidebar
                 currentLessonId={lessonId || undefined}
                 onVideoSelect={handleVideoSelect}
@@ -156,9 +158,9 @@ const Index = () => {
     return (
       <div className="min-h-screen hero-gradient">
         <Navigation />
-        <div className="flex">
+        <div className="flex flex-col lg:flex-row">
           {/* Основной контент - форма загрузки */}
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-4 sm:p-6">
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-8">
                 <Button
@@ -168,10 +170,10 @@ const Index = () => {
                 >
                   ← Назад
                 </Button>
-                <h1 className="text-3xl font-bold text-foreground mb-2">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
                   Загрузите презентацию
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-sm sm:text-base text-muted-foreground">
                   Поддерживаются форматы PPTX и PDF
                 </p>
               </div>
@@ -184,7 +186,7 @@ const Index = () => {
 
           {/* Сайдбар справа с видео для авторизованных пользователей */}
           {isAuthenticated && (
-            <div className="w-[560px]">
+            <div className="w-full lg:w-[400px] xl:w-[560px] lg:max-h-screen">
               <MyVideosSidebar
                 currentLessonId={lessonId || undefined}
                 onVideoSelect={handleVideoSelect}
@@ -311,7 +313,7 @@ const Index = () => {
 
     {/* Сайдбар справа с видео для авторизованных пользователей */}
     {isAuthenticated && (
-      <div className="w-[560px]">
+      <div className="w-full lg:w-[400px] xl:w-[560px] lg:max-h-screen">
         <MyVideosSidebar
           currentLessonId={lessonId || undefined}
           onVideoSelect={handleVideoSelect}

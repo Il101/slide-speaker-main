@@ -66,6 +66,28 @@ class GoogleTTSWorkerSSML:
             if self.use_mock:
                 return self._generate_mock_audio(ssml_text), []
             
+            # ✅ FIX: Validate SSML before sending to Google TTS
+            from app.services.ssml_validator import validate_ssml, fix_common_ssml_issues
+            
+            is_valid, errors = validate_ssml(ssml_text)
+            
+            if not is_valid:
+                logger.warning(f"❌ Invalid SSML detected:")
+                for error in errors:
+                    logger.warning(f"   - {error}")
+                
+                # Try to fix automatically
+                logger.info("🔧 Attempting to auto-fix SSML...")
+                ssml_text = fix_common_ssml_issues(ssml_text)
+                
+                # Validate again
+                is_valid, errors = validate_ssml(ssml_text)
+                if not is_valid:
+                    logger.error(f"❌ Cannot fix SSML errors: {errors}")
+                    raise ValueError(f"Invalid SSML: {errors}")
+                else:
+                    logger.info("✅ SSML auto-fixed successfully")
+            
             # Use Google Cloud TTS v1beta1 with SSML (supports timepoints)
             synthesis_input = texttospeech_v1beta1.SynthesisInput(ssml=ssml_text)
             
@@ -203,20 +225,18 @@ class GoogleTTSWorkerSSML:
             # Export as MP3
             audio_segment.export(str(audio_path), format="mp3")
             
+            # ✅ Create sentences based on group markers for better fallback matching
+            sentences_from_markers = self._create_sentences_from_markers(all_word_timings, sentence_timings)
+            
             # Create TtsWords.json structure
             tts_words = {
                 "audio": str(audio_path),
-                "sentences": [
-                    {
-                        "text": timing["text"],
-                        "t0": timing["t0"],
-                        "t1": timing["t1"]
-                    }
-                    for timing in sentence_timings
-                ],
+                "sentences": sentences_from_markers,  # ✅ Use marker-based sentences
                 "word_timings": all_word_timings,  # All word timings with absolute time
                 "words": []  # Legacy format, kept for compatibility
             }
+            
+            logger.info(f"✅ Created {len(sentences_from_markers)} sentences from markers for better sync")
             
             logger.info(f"Generated TTS audio with {len(all_word_timings)} word timepoints")
             
@@ -326,6 +346,79 @@ class GoogleTTSWorkerSSML:
                 wav_file.writeframes(silence)
             
             return audio_io.getvalue()
+    
+    def _create_sentences_from_markers(
+        self, 
+        word_timings: List[Dict[str, Any]], 
+        original_sentences: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """
+        Create sentences based on group markers from word_timings
+        
+        This splits the audio into logical sentences aligned with group markers,
+        enabling better fallback text matching for visual synchronization.
+        
+        Args:
+            word_timings: List of all word timings with mark_name
+            original_sentences: Original sentence timings (might be just one big sentence)
+            
+        Returns:
+            List of sentence dicts with t0, t1, text
+        """
+        if not word_timings:
+            return original_sentences
+        
+        # Find all group markers
+        group_markers = []
+        for i, wt in enumerate(word_timings):
+            mark_name = wt.get('mark_name', '')
+            if mark_name.startswith('group_'):
+                group_markers.append({
+                    'index': i,
+                    'mark_name': mark_name,
+                    'time': wt.get('time_seconds', 0)
+                })
+        
+        if len(group_markers) < 2:
+            # Not enough markers to split, return original
+            logger.info(f"Only {len(group_markers)} group markers, keeping original sentences")
+            return original_sentences
+        
+        # Create sentences between consecutive group markers
+        sentences = []
+        for i in range(len(group_markers)):
+            current_marker = group_markers[i]
+            t0 = current_marker['time']
+            
+            # Find t1: next group marker or end of audio
+            if i + 1 < len(group_markers):
+                t1 = group_markers[i + 1]['time']
+            else:
+                # Last marker: use original end time
+                if original_sentences:
+                    t1 = original_sentences[-1].get('t1', t0 + 5.0)
+                else:
+                    t1 = t0 + 5.0
+            
+            # Get text for this segment (approximate - use marker name as identifier)
+            text = f"Segment {current_marker['mark_name']}"
+            
+            # Try to extract actual text from original sentence
+            if original_sentences and len(original_sentences) > 0:
+                orig_text = original_sentences[0].get('text', '')
+                # Get a portion of text based on timing
+                # This is approximate, but better than nothing
+                text = f"{current_marker['mark_name']}: {orig_text[:100]}"
+            
+            sentences.append({
+                'text': text,
+                't0': t0,
+                't1': t1,
+                'group_marker': current_marker['mark_name']
+            })
+        
+        logger.info(f"Split audio into {len(sentences)} sentences based on group markers")
+        return sentences
 
 # Convenience function
 def synthesize_slide_text_google_ssml(ssml_texts: List[str], voice: str = None) -> Tuple[str, Dict]:

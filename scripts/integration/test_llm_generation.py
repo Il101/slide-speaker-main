@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent / "backend"))
 
 # Загружаем переменные окружения
 from dotenv import load_dotenv
-load_dotenv("backend_env_enhanced_hybrid.env")
+load_dotenv("backend/.env")
 
 # Настраиваем логирование
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

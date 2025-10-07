@@ -46,6 +46,53 @@ class OpenRouterLLMWorker:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         pass
     
+    def generate(self, prompt: str, system_prompt: str = None, temperature: float = 0.2, 
+                max_tokens: int = 2000, image_base64: str = None) -> str:
+        """
+        Generate text using OpenRouter
+        
+        Args:
+            prompt: User prompt
+            system_prompt: System prompt
+            temperature: Temperature for generation
+            max_tokens: Maximum tokens to generate
+            image_base64: Optional base64 image (ignored - OpenRouter free models don't support vision)
+            
+        Returns:
+            Generated text
+        """
+        try:
+            if self.use_mock:
+                return self._generate_mock(prompt)
+            
+            # Note: Vision support ignored for OpenRouter
+            if image_base64:
+                logger.warning("Vision/image input not supported by OpenRouter free models, using text-only")
+            
+            # Create messages
+            messages = []
+            if system_prompt:
+                messages.append({"role": "system", "content": system_prompt})
+            messages.append({"role": "user", "content": prompt})
+            
+            # Generate with OpenRouter
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+            
+            return response.choices[0].message.content.strip()
+            
+        except Exception as e:
+            logger.error(f"Error generating with OpenRouter: {e}")
+            return self._generate_mock(prompt)
+    
+    def _generate_mock(self, prompt: str) -> str:
+        """Mock generation for testing"""
+        return '{"mock": true, "message": "Mock generation mode"}'
+    
     def plan_slide_with_gemini(self, elements: List[Dict], model: str = None, 
                               location: str = None, temperature: float = 0.2) -> List[Dict]:
         """
@@ -469,12 +516,14 @@ Return ONLY the JSON array, no other text.
             "ru": f"""
 Вы профессиональный лектор, выступающий перед аудиторией. На основе содержания этого слайда создайте естественный, разговорный текст лекции, который звучит как то, что презентатор действительно сказал бы студентам или участникам аудитории.
 
-Содержание слайда:
+ВАЖНО: Весь текст должен быть ТОЛЬКО на русском языке, даже если исходное содержимое слайда на другом языке!
+
+Содержание слайда (может быть на другом языке - переведите и объясните на русском):
 {slide_text}
 
 {"Изображения на слайде:" + chr(10) + slide_images if slide_images else ""}
 
-Создайте текст лекции, который:
+Создайте текст лекции НА РУССКОМ ЯЗЫКЕ, который:
 1. Звучит как естественная разговорная речь (не письменные инструкции)
 2. Использует первое лицо ("я", "мы", "давайте") и прямое обращение ("вы")
 3. Объясняет содержание в разговорной, увлекательной манере
@@ -502,12 +551,14 @@ Return ONLY the JSON array, no other text.
             "en": f"""
 You are a professional lecturer speaking to an audience. Based on this slide content, generate natural, conversational lecture text that sounds like what a presenter would actually say to students or audience members.
 
-Slide Content:
+IMPORTANT: All text must be in English ONLY, even if the slide content is in a different language!
+
+Slide Content (may be in another language - translate and explain in English):
 {slide_text}
 
 {"Images on slide:" + chr(10) + slide_images if slide_images else ""}
 
-Generate lecture text that:
+Generate lecture text IN ENGLISH that:
 1. Sounds like natural spoken language (not written instructions)
 2. Uses first person ("I", "we", "let's") and direct address ("you")
 3. Explains the content in a conversational, engaging way

@@ -78,7 +78,7 @@ def check_gemini_ai_studio():
             
             # Обновляем конфигурацию
             best_model = working_models[0]["model"]
-            config_file = "backend_env_final.env"
+            config_file = 'backend/.env'
             if os.path.exists(config_file):
                 with open(config_file, 'r') as f:
                     content = f.read()

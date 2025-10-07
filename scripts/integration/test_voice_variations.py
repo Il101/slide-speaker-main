@@ -76,7 +76,7 @@ async def test_voice_variations():
     print("1. Прослушайте все файлы и выберите наиболее подходящий")
     print("2. Обратите внимание на естественность и понятность речи")
     print("3. Выберите настройки, которые лучше всего подходят для вашего контента")
-    print("4. Обновите настройки в backend_env_enhanced_hybrid.env")
+    print("4. Обновите настройки в backend/.env")
 
 if __name__ == "__main__":
     asyncio.run(test_voice_variations())
