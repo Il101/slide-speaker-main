@@ -49,7 +49,13 @@ class Settings:
         "http://127.0.0.1:5175",
         "http://127.0.0.1:5176",
         "http://127.0.0.1:5177",
-        "http://127.0.0.1:8080"
+        "http://127.0.0.1:8080",
+        # Railway domains
+        "https://*.up.railway.app",
+        "http://*.up.railway.app",
+        # Netlify domains
+        "https://*.netlify.app",
+        "https://*.netlify.com"
     ]
     
     # Data Storage

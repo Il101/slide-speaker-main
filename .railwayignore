@@ -1,0 +1,111 @@
+# Railway ignore file - exclude unnecessary files from deployment
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+backend/venv/
+backend/env/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Documentation (not needed for deployment)
+docs/
+README.md
+*.md
+
+# Test files
+tests/
+test/
+*_test.py
+test_*.py
+
+# Monitoring and development files
+monitoring/
+scripts/
+keys/
+secrets/
+
+# Large data files
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mkv
+*.pdf
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Frontend files (deployed separately to Netlify)
+src/
+public/
+package.json
+package-lock.json
+vite.config.ts
+tailwind.config.ts
+postcss.config.js
+tsconfig*.json
+eslint.config.js
+playwright.config.ts
+
+# Docker files for local development
+docker-compose.yml
+docker.env
+start.sh
+stop.sh
+Makefile
+
+# Railway specific files
+railway-frontend/
+railway-deploy/
+Dockerfile.prod
+nginx.conf
