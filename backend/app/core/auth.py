@@ -132,7 +132,7 @@ async def get_current_user(
 async def get_current_user_optional(
     request: Request,
     db: AsyncSession = Depends(get_db),
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))
 ) -> Optional[Dict[str, Any]]:
     """Get current user if token is provided, otherwise return None"""
     token = request.cookies.get("access_token")
