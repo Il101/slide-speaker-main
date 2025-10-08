@@ -55,6 +55,7 @@ psycopg2-binary==2.9.9
 alembic==1.13.1
 redis==5.0.1
 cryptography>=41.0.0
+user-agents==2.2.0
 
 # Error tracking and monitoring
 sentry-sdk[fastapi]==1.40.0

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brain, LogOut, User, Shield, Crown } from 'lucide-react';
+import { Brain, LogOut, User, Shield, Crown, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth, useRole } from '@/contexts/AuthContext';
@@ -44,6 +44,19 @@ const Navigation: React.FC<NavigationProps> = ({
       {/* Информация о пользователе и кнопка выхода - скрыто на мобильных */}
       {showUserInfo && user && (
         <div className="hidden md:flex items-center space-x-4">
+          {/* Кнопка Analytics (только для админов) */}
+          {isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/analytics')}
+              className="flex items-center space-x-2"
+            >
+              <BarChart3 className="h-4 w-4 text-blue-500" />
+              <span>Аналитика</span>
+            </Button>
+          )}
+          
           {/* Кнопка подписки */}
           <Button
             variant="outline"

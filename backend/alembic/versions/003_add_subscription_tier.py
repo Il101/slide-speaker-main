@@ -1,7 +1,7 @@
 """add subscription_tier to users
 
 Revision ID: 003
-Revises: 002
+Revises: 002_add_analytics_tables
 Create Date: 2024-01-15 12:00:00.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '003'
-down_revision = '002'
+down_revision = '002_add_analytics_tables'
 branch_labels = None
 depends_on = None
 

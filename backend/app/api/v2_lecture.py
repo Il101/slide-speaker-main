@@ -18,7 +18,7 @@ from ..services.sprint2.concept_extractor import SlideConcepts
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v2", tags=["lecture-generation"])
+router = APIRouter(prefix="/v2", tags=["lecture-generation"])
 
 # Dependency to get AI generator
 def get_ai_generator() -> AIGenerator:

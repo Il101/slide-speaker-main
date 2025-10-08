@@ -3,11 +3,14 @@ import os
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from passlib.context import CryptContext
-from fastapi import HTTPException, status, Depends
+from fastapi import HTTPException, status, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import jwt
+import logging
+
+logger = logging.getLogger(__name__)
 from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 
 from .database import get_db, User
@@ -23,7 +26,7 @@ if not SECRET_KEY or SECRET_KEY == "your-secret-key-change-in-production":
         "Generate with: python -c 'import secrets; print(secrets.token_urlsafe(64))'"
     )
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "43200"))  # 30 days default
 
 # Security scheme
 security = HTTPBearer()
@@ -75,11 +78,33 @@ class AuthManager:
 
 # Dependency to get current user
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: AsyncSession = Depends(get_db)
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))
 ) -> Dict[str, Any]:
-    """Get current authenticated user from JWT token"""
-    token = credentials.credentials
+    """
+    Get current authenticated user from JWT token
+    
+    ✅ Supports both methods:
+    1. HttpOnly cookie (for same-origin requests - local development)
+    2. Authorization header (for cross-origin requests - production)
+    """
+    token = None
+    
+    # Method 1: Try HttpOnly cookie first (for same-origin requests)
+    token = request.cookies.get("access_token")
+    
+    # Method 2: Fallback to Authorization header (for cross-origin requests)
+    if not token and credentials:
+        token = credentials.credentials
+    
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     payload = AuthManager.verify_token(token)
     
     user_id: str = payload.get("sub")
@@ -105,15 +130,20 @@ async def get_current_user(
 
 # Optional dependency for endpoints that can work with or without auth
 async def get_current_user_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    db: AsyncSession = Depends(get_db)
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> Optional[Dict[str, Any]]:
     """Get current user if token is provided, otherwise return None"""
-    if not credentials:
+    token = request.cookies.get("access_token")
+    if not token and credentials:
+        token = credentials.credentials
+    
+    if not token:
         return None
     
     try:
-        return await get_current_user(credentials, db)
+        return await get_current_user(request, db, credentials)
     except HTTPException:
         return None
 
@@ -127,3 +157,12 @@ async def authenticate_user(email: str, password: str, db: AsyncSession) -> Opti
     if not AuthManager.verify_password(password, user.hashed_password):
         return None
     return {"user_id": user.id, "email": user.email, "role": user.role}
+
+async def require_admin(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
+    """Require that the current user has admin role"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    return current_user

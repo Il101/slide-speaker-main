@@ -1,5 +1,7 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { analytics } from "@/lib/analytics";
+import { useAuth } from "@/contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,8 +15,10 @@ import { SkipLink } from "@/components/SkipLink";
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
 const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage").then(module => ({ default: module.SubscriptionPage })));
+const Analytics = lazy(() => import("./pages/Analytics"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -27,6 +31,28 @@ const PageLoader = () => (
 );
 
 const queryClient = new QueryClient();
+
+// Analytics wrapper component
+function AnalyticsWrapper({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+
+  useEffect(() => {
+    // Initialize analytics on mount
+    analytics.init(user?.id);
+
+    // Identify user when logged in
+    if (user?.id) {
+      analytics.identify(user.id);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    // Track page view on location change
+    analytics.trackPageView();
+  }, [window.location.pathname]);
+
+  return <>{children}</>;
+}
 
 const App = () => (
   <ErrorBoundary>
@@ -42,27 +68,33 @@ const App = () => (
               v7_relativeSplatPath: true,
             }}
           >
-            <main id="main-content">
+            <AnalyticsWrapper>
+              <main id="main-content">
               <Suspense fallback={<PageLoader />}>
                 <Routes>
-                  <Route path="/" element={<Index />} />
+                  <Route path="/" element={
+                    <ProtectedRoute>
+                      <Index />
+                    </ProtectedRoute>
+                  } />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
                   <Route path="/subscription" element={
                     <ProtectedRoute>
                       <SubscriptionPage />
                     </ProtectedRoute>
                   } />
-                  {/* Защищенные маршруты можно добавить здесь */}
-                  {/* <Route path="/admin" element={
+                  <Route path="/analytics" element={
                     <ProtectedRoute requireRole="admin">
-                      <AdminPanel />
+                      <Analytics />
                     </ProtectedRoute>
-                  } /> */}
+                  } />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
-            </main>
+              </main>
+            </AnalyticsWrapper>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

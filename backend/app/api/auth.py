@@ -1,7 +1,8 @@
 """Authentication API endpoints"""
 import asyncio
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+import os
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel
@@ -16,7 +17,7 @@ from ..core.validators import validate_password_strength
 
 logger = get_logger(__name__)
 
-router = APIRouter(prefix="/api/auth", tags=["authentication"])
+router = APIRouter(prefix="/auth", tags=["authentication"])
 
 
 # Request/Response models
@@ -44,10 +45,11 @@ class UserResponse(BaseModel):
     is_active: bool
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login")
 async def login(
     request_data: LoginRequest,
     http_request: Request,
+    response: Response,
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -57,6 +59,7 @@ async def login(
     - Rate limited to 5 attempts/minute (via main.py limiter)
     - 500ms delay to prevent timing attacks
     - Failed attempts logged with IP and user-agent
+    - JWT stored in HttpOnly cookie (protected from XSS)
     """
     
     # Add delay to prevent timing attacks
@@ -85,6 +88,24 @@ async def login(
         data={"sub": user["user_id"], "email": user["email"], "role": user["role"]}
     )
 
+    # ✅ Set JWT in HttpOnly cookie (protected from XSS)
+    # Token expires in 30 days (43200 minutes = 30 days)
+    token_max_age = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "43200")) * 60
+    
+    # ✅ Secure cookie settings based on environment
+    # Local: secure=False (HTTP), Production: secure=True (HTTPS)
+    is_production = os.getenv("ENVIRONMENT", "development") == "production"
+    
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,  # ✅ JavaScript cannot access
+        secure=is_production,  # ✅ True in production (HTTPS), False locally (HTTP)
+        samesite="lax",  # ✅ Works with proxy and subdomains
+        max_age=token_max_age,  # 30 days by default
+        path="/"
+    )
+
     # Log successful login
     logger.info(
         f"User logged in: {user['email']}",
@@ -94,7 +115,25 @@ async def login(
         }
     )
 
-    return TokenResponse(access_token=access_token)
+    # Check if this is a cross-origin request
+    origin = http_request.headers.get("origin")
+    referer = http_request.headers.get("referer")
+    is_cross_origin = origin and origin != str(http_request.url).split('/')[0:3]
+    
+    # Return success message and token for cross-origin requests
+    response_data = {
+        "message": "Login successful",
+        "user": {
+            "email": user["email"],
+            "role": user["role"]
+        }
+    }
+    
+    # Add token for cross-origin requests (when cookies won't work)
+    if is_cross_origin:
+        response_data["access_token"] = access_token
+    
+    return response_data
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -156,16 +195,46 @@ async def register(
     )
 
 
-@router.post("/refresh", response_model=TokenResponse)
+@router.post("/logout")
+async def logout(response: Response):
+    """
+    Logout endpoint - clears HttpOnly cookie
+    
+    ✅ Security features:
+    - Removes JWT cookie
+    - Works even without authentication
+    """
+    response.delete_cookie(
+        key="access_token",
+        path="/"
+    )
+    
+    return {"message": "Logout successful"}
+
+
+@router.post("/refresh")
 async def refresh_token(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    response: Response = None
 ):
-    """Refresh access token"""
+    """Refresh access token and update cookie"""
     access_token = AuthManager.create_access_token(
         data={"sub": current_user["user_id"], "email": current_user["email"], "role": current_user["role"]}
     )
-
-    return TokenResponse(access_token=access_token)
+    
+    # ✅ Update cookie with new token
+    if response:
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            secure=True,
+            samesite="strict",
+            max_age=1800,
+            path="/"
+        )
+    
+    return {"message": "Token refreshed"}
 
 
 @router.get("/me", response_model=UserResponse)

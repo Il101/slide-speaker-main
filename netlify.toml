@@ -6,15 +6,31 @@
   NODE_VERSION = "20"
   NPM_VERSION = "10"
 
+# ✅ API Proxy: Routes /api/* requests to Railway backend
+# This makes frontend and backend appear as same-origin, enabling HttpOnly cookies
+[[redirects]]
+  from = "/api/*"
+  to = "https://your-railway-app.up.railway.app/api/:splat"
+  status = 200
+  force = true
+  headers = {X-Forwarded-Host = "netlify"}
+
+# SPA fallback: All other routes go to index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
+# ✅ LOCAL/DEV: Direct connection to localhost backend
+[context.development.environment]
+  VITE_API_BASE = "http://localhost:8000"
+
+# ✅ PRODUCTION: Use proxy (empty string = relative path = same-origin)
 [context.production.environment]
-  VITE_API_BASE = "https://your-railway-app.up.railway.app"
+  VITE_API_BASE = ""
   VITE_WS_URL = "wss://your-railway-app.up.railway.app"
 
+# ✅ DEPLOY PREVIEWS: Also use proxy
 [context.deploy-preview.environment]
-  VITE_API_BASE = "https://your-railway-app.up.railway.app"
+  VITE_API_BASE = ""
   VITE_WS_URL = "wss://your-railway-app.up.railway.app"

@@ -9,6 +9,7 @@ import Navigation from '@/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
+import { trackEvent } from '@/lib/analytics';
 
 type AppState = 'landing' | 'upload' | 'player';
 
@@ -65,10 +66,25 @@ const Index = () => {
     setAppState('player');
     saveAppState('player', id);
     toast.success('Лекция готова! Запустите воспроизведение.');
+    
+    // Track lecture generation completed
+    trackEvent.lectureGenerationCompleted({
+      lectureId: id,
+      processingTime: 0, // Will be updated from FileUploader if available
+    });
   };
 
   const handleExportMP4 = () => {
     toast.success('Экспорт начат! Ссылка на готовое видео будет отправлена на email.');
+    
+    // Track video download/export
+    if (lessonId) {
+      trackEvent.lectureDownloaded({
+        lectureId: lessonId,
+        format: 'mp4',
+        lectureNumber: 1,
+      });
+    }
   };
 
   const handleStartDemo = () => {
@@ -77,6 +93,12 @@ const Index = () => {
     setAppState('player');
     saveAppState('player', 'demo-lesson');
     toast.success('Демо загружено! Попробуйте плеер.');
+    
+    // Track demo started
+    trackEvent.featureUsed({
+      feature: 'demo_player',
+      details: { source: 'landing_page' }
+    });
   };
 
   const handleCreateNewLesson = () => {

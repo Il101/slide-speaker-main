@@ -36,8 +36,10 @@ class User(Base):
     username: Mapped[Optional[str]] = mapped_column(String(100), unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(50), default="user")
-    subscription_tier: Mapped[str] = mapped_column(String(50), default="free")  # free, pro, enterprise
+    subscription_tier: Mapped[str] = mapped_column(String(50), default="free")  # free, starter, pro, business
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    email_verified_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -95,6 +97,115 @@ class Export(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+
+# Analytics Models
+class AnalyticsEvent(Base):
+    """Analytics event tracking"""
+    __tablename__ = "analytics_events"
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # UUID
+    event_name: Mapped[str] = mapped_column(String(255), index=True)
+    user_id: Mapped[Optional[str]] = mapped_column(String(36), index=True)
+    session_id: Mapped[str] = mapped_column(String(100), index=True)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    properties: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON)
+    
+    # Metadata
+    user_agent: Mapped[Optional[str]] = mapped_column(String(500))
+    ip_address: Mapped[Optional[str]] = mapped_column(String(45))
+    country: Mapped[Optional[str]] = mapped_column(String(100))
+    device: Mapped[Optional[str]] = mapped_column(String(50))  # mobile, desktop, tablet
+    browser: Mapped[Optional[str]] = mapped_column(String(100))
+    os: Mapped[Optional[str]] = mapped_column(String(100))
+
+class UserSession(Base):
+    """User session tracking"""
+    __tablename__ = "user_sessions"
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # UUID
+    session_id: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    user_id: Mapped[Optional[str]] = mapped_column(String(36), index=True)
+    start_time: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    last_activity: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    page_views: Mapped[int] = mapped_column(Integer, default=0)
+    
+    # Session data
+    landing_page: Mapped[Optional[str]] = mapped_column(String(500))
+    referrer: Mapped[Optional[str]] = mapped_column(String(500))
+    utm_source: Mapped[Optional[str]] = mapped_column(String(100))
+    utm_medium: Mapped[Optional[str]] = mapped_column(String(100))
+    utm_campaign: Mapped[Optional[str]] = mapped_column(String(100))
+    
+    # Device info
+    user_agent: Mapped[Optional[str]] = mapped_column(String(500))
+    ip_address: Mapped[Optional[str]] = mapped_column(String(45))
+    country: Mapped[Optional[str]] = mapped_column(String(100))
+
+class DailyMetrics(Base):
+    """Daily aggregated metrics"""
+    __tablename__ = "daily_metrics"
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # UUID
+    date: Mapped[datetime] = mapped_column(DateTime, unique=True, index=True)
+    
+    # User metrics
+    total_users: Mapped[int] = mapped_column(Integer, default=0)
+    new_users: Mapped[int] = mapped_column(Integer, default=0)
+    active_users: Mapped[int] = mapped_column(Integer, default=0)
+    
+    # Usage metrics
+    lectures_created: Mapped[int] = mapped_column(Integer, default=0)
+    presentations_uploaded: Mapped[int] = mapped_column(Integer, default=0)
+    downloads_count: Mapped[int] = mapped_column(Integer, default=0)
+    
+    # Revenue metrics
+    new_subscriptions: Mapped[int] = mapped_column(Integer, default=0)
+    cancelled_subscriptions: Mapped[int] = mapped_column(Integer, default=0)
+    mrr: Mapped[float] = mapped_column(Float, default=0.0)
+    
+    # Costs
+    total_costs: Mapped[float] = mapped_column(Float, default=0.0)
+    ocr_costs: Mapped[float] = mapped_column(Float, default=0.0)
+    ai_costs: Mapped[float] = mapped_column(Float, default=0.0)
+    tts_costs: Mapped[float] = mapped_column(Float, default=0.0)
+    
+    # Conversion
+    signup_to_lecture_rate: Mapped[Optional[float]] = mapped_column(Float)
+    free_to_paid_rate: Mapped[Optional[float]] = mapped_column(Float)
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class CostLog(Base):
+    """Individual cost tracking"""
+    __tablename__ = "cost_logs"
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # UUID
+    operation: Mapped[str] = mapped_column(String(50), index=True)  # ocr, ai_generation, tts, storage
+    cost: Mapped[float] = mapped_column(Float)
+    user_id: Mapped[Optional[str]] = mapped_column(String(36), index=True)
+    lesson_id: Mapped[Optional[str]] = mapped_column(String(36))
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    meta_data: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON)
+
+class Subscription(Base):
+    """Subscription model for tracking user subscriptions"""
+    __tablename__ = "subscriptions"
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # UUID
+    user_id: Mapped[str] = mapped_column(String(36), index=True)
+    tier: Mapped[str] = mapped_column(String(50))  # free, starter, pro, business
+    price: Mapped[float] = mapped_column(Float, default=0.0)  # Monthly price in USD
+    status: Mapped[str] = mapped_column(String(50), default="active")  # active, cancelled, expired, trial
+    billing_cycle: Mapped[str] = mapped_column(String(20), default="monthly")  # monthly, yearly
+    start_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    end_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    trial_end_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    cancelled_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    stripe_subscription_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    stripe_customer_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 # Database dependency
 async def get_db() -> AsyncSession:

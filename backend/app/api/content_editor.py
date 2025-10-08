@@ -14,7 +14,7 @@ from ..services.provider_factory import ProviderFactory
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/content", tags=["content-editor"])
+router = APIRouter(prefix="/content", tags=["content-editor"])
 
 
 class RegenerateRequest(BaseModel):

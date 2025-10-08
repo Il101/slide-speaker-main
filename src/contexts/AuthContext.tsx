@@ -13,11 +13,18 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface RegisterCredentials {
+  email: string;
+  password: string;
+  username?: string;
+}
+
 export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
+  register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -44,21 +51,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const initializeAuth = async () => {
     try {
-      const token = localStorage.getItem(TOKEN_KEY);
+      // Токен хранится в HttpOnly cookie, поэтому не проверяем localStorage
+      // Пытаемся получить текущего пользователя - если cookie валидный, запрос пройдёт
       const savedUser = localStorage.getItem(USER_KEY);
-
-      if (token && savedUser) {
-        // Проверяем валидность токена
-        try {
-          const userData = JSON.parse(savedUser);
-          setUser(userData);
-          
-          // Проверяем, что токен еще действителен
-          await apiClient.getCurrentUser();
-        } catch (error) {
-          // Токен недействителен, очищаем данные
-          clearAuthData();
-        }
+      
+      try {
+        const userData = await apiClient.getCurrentUser();
+        
+        // Преобразуем роль в правильный тип
+        const user: User = {
+          user_id: userData.user_id,
+          email: userData.email,
+          role: userData.role as 'admin' | 'user'
+        };
+        
+        // Сохраняем данные пользователя
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
+        setUser(user);
+      } catch (error) {
+        // Cookie отсутствует или недействителен, очищаем данные
+        clearAuthData();
       }
     } catch (error) {
       console.error('Ошибка инициализации авторизации:', error);
@@ -82,9 +94,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       const response = await apiClient.login(credentials);
       
-      // Сохраняем токен
-      localStorage.setItem(TOKEN_KEY, response.access_token);
-      
+      // Токен теперь хранится в HttpOnly cookie, не нужно сохранять в localStorage
       // Получаем информацию о пользователе
       const userData = await apiClient.getCurrentUser();
       
@@ -101,6 +111,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
     } catch (error) {
       console.error('Ошибка входа:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Функция регистрации
+  const register = async (credentials: RegisterCredentials) => {
+    try {
+      setLoading(true);
+      
+      // Регистрируем пользователя
+      const registerResponse = await apiClient.register(credentials);
+      
+      // После успешной регистрации автоматически входим
+      await login({
+        email: credentials.email,
+        password: credentials.password
+      });
+      
+    } catch (error) {
+      console.error('Ошибка регистрации:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -138,6 +170,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isAuthenticated,
     loading,
     login,
+    register,
     logout,
     refreshUser,
   };

@@ -36,6 +36,7 @@ from .api.user_videos import router as user_videos_router
 from .api.websocket import router as websocket_router
 from .api.content_editor import router as content_editor_router
 from .api.subscriptions import router as subscriptions_router
+from .api.analytics import router as analytics_router
 from .core.database import get_db, Lesson
 from .core.auth import get_current_user, get_current_user_optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -92,6 +93,12 @@ async def startup_event():
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# HTTPS redirect in production
+if os.getenv("ENVIRONMENT") == "production":
+    from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+    app.add_middleware(HTTPSRedirectMiddleware)
+    logger.info("✅ HTTPS redirect enabled for production")
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -112,6 +119,52 @@ async def cors_preflight_middleware(request, call_next):
 
 # Sentry middleware for error tracking
 app.middleware("http")(sentry_middleware)
+
+# Security headers middleware
+@app.middleware("http")
+async def security_headers_middleware(request, call_next):
+    """Add security headers to all responses"""
+    response = await call_next(request)
+    
+    # Content Security Policy
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data: https: blob:; "
+        "font-src 'self' data:; "
+        "connect-src 'self' https://storage.googleapis.com wss: ws:; "
+        "media-src 'self' blob:; "
+        "object-src 'none'; "
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self';"
+    )
+    
+    # X-Content-Type-Options
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    
+    # X-Frame-Options
+    response.headers['X-Frame-Options'] = 'DENY'
+    
+    # X-XSS-Protection (legacy but still useful)
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    
+    # Referrer-Policy
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    
+    # Permissions-Policy
+    response.headers['Permissions-Policy'] = (
+        'geolocation=(), microphone=(), camera=(), payment=(), usb=()'
+    )
+    
+    # Strict-Transport-Security (HSTS) - only in production
+    if os.getenv("ENVIRONMENT") == "production":
+        response.headers['Strict-Transport-Security'] = (
+            'max-age=31536000; includeSubDomains; preload'
+        )
+    
+    return response
 
 # Metrics middleware
 @app.middleware("http")
@@ -295,6 +348,21 @@ def pipeline_for_request(request) -> BasePipeline:
     logger.info(f"Using pipeline: {name} ({pipeline_class.__name__})")
     return pipeline_class()
 
+# Security: UUID validation helper
+def validate_lesson_id(lesson_id: str) -> str:
+    """
+    Validate that lesson_id is a valid UUID v4
+    Prevents path traversal attacks
+    """
+    try:
+        uuid_obj = uuid.UUID(lesson_id, version=4)
+        return str(uuid_obj)
+    except (ValueError, AttributeError):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid lesson_id format. Must be a valid UUID."
+        )
+
 # Global exception handler
 @app.exception_handler(SlideSpeakerException)
 async def slide_speaker_exception_handler(request, exc):
@@ -435,6 +503,9 @@ async def get_lesson_status(
     db: AsyncSession = Depends(get_db)
 ):
     """Get lesson processing status - requires authentication"""
+    # ✅ Validate lesson_id format (prevent path traversal)
+    lesson_id = validate_lesson_id(lesson_id)
+    
     # ✅ Check ownership
     result_check = await db.execute(
         text("SELECT user_id FROM lessons WHERE id = :lesson_id"),
@@ -650,6 +721,9 @@ async def get_manifest(
             }
         }
     
+    # ✅ Validate lesson_id format (prevent path traversal)
+    lesson_id = validate_lesson_id(lesson_id)
+    
     # ✅ Check ownership for non-demo lessons
     if current_user:  # If authenticated
         result_check = await db.execute(
@@ -661,7 +735,10 @@ async def get_manifest(
         if lesson_owner and lesson_owner != current_user["user_id"]:
             raise HTTPException(status_code=403, detail="Not authorized to access this lesson")
     
+    # ✅ Additional path safety check
     manifest_path = settings.DATA_DIR / lesson_id / "manifest.json"
+    if not manifest_path.resolve().is_relative_to(settings.DATA_DIR.resolve()):
+        raise HTTPException(status_code=403, detail="Access denied")
     
     if not manifest_path.exists():
         raise HTTPException(status_code=404, detail="Lesson not found")
@@ -692,8 +769,29 @@ async def generate_speaker_notes(lesson_id: str, slide_id: int, request: Speaker
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/lessons/{lesson_id}/generate-audio")
-async def generate_audio(lesson_id: str, request: Request):
+async def generate_audio(
+    lesson_id: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user),  # ✅ Require authentication
+    db: AsyncSession = Depends(get_db)
+):
     """Generate audio for lesson using pipeline"""
+    
+    # ✅ Validate lesson_id format (prevent path traversal)
+    lesson_id = validate_lesson_id(lesson_id)
+    
+    # ✅ Check ownership
+    result_check = await db.execute(
+        text("SELECT user_id FROM lessons WHERE id = :lesson_id"),
+        {"lesson_id": lesson_id}
+    )
+    lesson_owner = result_check.scalar_one_or_none()
+    
+    if not lesson_owner:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+    
+    if lesson_owner != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to modify this lesson")
     
     try:
         # Check if lesson exists
@@ -765,8 +863,29 @@ async def preview_changes(lesson_id: str, slide_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/lessons/{lesson_id}/patch", response_model=PatchResponse)
-async def patch_lesson(lesson_id: str, request: LessonPatchRequest):
+async def patch_lesson(
+    lesson_id: str,
+    request: LessonPatchRequest,
+    current_user: dict = Depends(get_current_user),  # ✅ Require authentication
+    db: AsyncSession = Depends(get_db)
+):
     """Patch lesson content (cues, elements, speaker notes)"""
+    
+    # ✅ Validate lesson_id format (prevent path traversal)
+    lesson_id = validate_lesson_id(lesson_id)
+    
+    # ✅ Check ownership
+    result_check = await db.execute(
+        text("SELECT user_id FROM lessons WHERE id = :lesson_id"),
+        {"lesson_id": lesson_id}
+    )
+    lesson_owner = result_check.scalar_one_or_none()
+    
+    if not lesson_owner:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+    
+    if lesson_owner != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to modify this lesson")
     
     try:
         # Validate lesson exists
@@ -953,6 +1072,9 @@ async def export_lesson(
     db: AsyncSession = Depends(get_db)
 ):
     """Export lesson to MP4 video - requires authentication"""
+    # ✅ Validate lesson_id format (prevent path traversal)
+    lesson_id = validate_lesson_id(lesson_id)
+    
     # ✅ Check ownership
     result_check = await db.execute(
         text("SELECT user_id FROM lessons WHERE id = :lesson_id"),
@@ -993,8 +1115,29 @@ async def export_lesson(
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/lessons/{lesson_id}/export/status")
-async def get_export_status(lesson_id: str, job_id: str):
+async def get_export_status(
+    lesson_id: str,
+    job_id: str,
+    current_user: dict = Depends(get_current_user),  # ✅ Require authentication
+    db: AsyncSession = Depends(get_db)
+):
     """Get export task status"""
+    
+    # ✅ Validate lesson_id format (prevent path traversal)
+    lesson_id = validate_lesson_id(lesson_id)
+    
+    # ✅ Check ownership
+    result_check = await db.execute(
+        text("SELECT user_id FROM lessons WHERE id = :lesson_id"),
+        {"lesson_id": lesson_id}
+    )
+    lesson_owner = result_check.scalar_one_or_none()
+    
+    if not lesson_owner:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+    
+    if lesson_owner != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to view this export status")
     
     try:
         from .tasks import export_video_task
@@ -1042,8 +1185,28 @@ async def get_export_status(lesson_id: str, job_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/exports/{lesson_id}/download")
-async def download_export(lesson_id: str):
+async def download_export(
+    lesson_id: str,
+    current_user: dict = Depends(get_current_user),  # ✅ Require authentication
+    db: AsyncSession = Depends(get_db)
+):
     """Download exported video"""
+    
+    # ✅ Validate lesson_id format (prevent path traversal)
+    lesson_id = validate_lesson_id(lesson_id)
+    
+    # ✅ Check ownership
+    result_check = await db.execute(
+        text("SELECT user_id FROM lessons WHERE id = :lesson_id"),
+        {"lesson_id": lesson_id}
+    )
+    lesson_owner = result_check.scalar_one_or_none()
+    
+    if not lesson_owner:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+    
+    if lesson_owner != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to download this video")
     
     try:
         download_url = await video_exporter.get_export_download_url(lesson_id)
@@ -1092,12 +1255,13 @@ async def cleanup_old_files(max_age_days: int = 7):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Include new API routes
-app.include_router(auth_router)
-app.include_router(v2_lecture_router)
-app.include_router(user_videos_router)
+app.include_router(auth_router, prefix="/api")
+app.include_router(v2_lecture_router, prefix="/api")
+app.include_router(user_videos_router, prefix="/api")
 app.include_router(websocket_router)
-app.include_router(content_editor_router)
-app.include_router(subscriptions_router)
+app.include_router(content_editor_router, prefix="/api")
+app.include_router(subscriptions_router, prefix="/api")
+app.include_router(analytics_router, prefix="/api")
 
 # Mount static files
 app.mount("/assets", StaticFiles(directory=".data", html=False), name="assets")

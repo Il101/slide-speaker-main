@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { trackEvent } from '@/lib/analytics';
 
 // Схема валидации
 const loginSchema = z.object({
@@ -24,6 +25,7 @@ const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { login, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const {
     register,
@@ -41,8 +43,21 @@ const Login: React.FC = () => {
         email: data.email,
         password: data.password
       });
-      navigate('/');
+      
+      // Track successful login
+      trackEvent.login('email');
+      
+      // Перенаправляем на страницу, с которой пришел пользователь, или на главную
+      const from = (location.state as any)?.from?.pathname || '/';
+      navigate(from, { replace: true });
     } catch (err) {
+      // Track login error
+      trackEvent.error({
+        errorType: 'LoginError',
+        errorMessage: err instanceof Error ? err.message : 'Unknown login error',
+        location: 'login_page'
+      });
+      
       setError(
         err instanceof Error 
           ? err.message 
@@ -168,8 +183,18 @@ const Login: React.FC = () => {
             </div>
           </form>
 
+          {/* Ссылка на регистрацию */}
+          <div className="mt-6 text-center text-sm">
+            <p className="text-muted-foreground">
+              Нет аккаунта?{' '}
+              <Link to="/register" className="text-primary hover:underline font-medium">
+                Зарегистрироваться
+              </Link>
+            </p>
+          </div>
+
           {/* Дополнительная информация */}
-          <div className="mt-6 text-center text-sm text-muted-foreground">
+          <div className="mt-4 text-center text-sm text-muted-foreground">
             <p>Демо-аккаунты для тестирования:</p>
             <div className="mt-2 space-y-1">
               <p><strong>Администратор:</strong> admin@example.com / admin123</p>

@@ -25,7 +25,7 @@ from ..models.schemas import UserResponse
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/subscription", tags=["subscriptions"])
+router = APIRouter(prefix="/subscription", tags=["subscriptions"])
 
 # Initialize subscription manager
 subscription_manager = SubscriptionManager()

@@ -64,3 +64,33 @@ backend/.data/
 
 # Lock files (uncomment if not using specific package manager)
 # bun.lockb
+
+# ===== SECURITY: Secrets и credentials =====
+# Добавлено для защиты секретов
+docker.env
+railway.env
+.env
+.env.local
+.env.*.local
+.secrets-backup/
+
+# GCP credentials
+keys/*.json
+!keys/README.md
+inspiring-keel-473421-j2-*.json
+gcp-sa.json
+
+# Backup files
+*.backup
+*.bak
+*.bak2
+*before_passwords
+
+# Cookie files
+*cookies.txt
+debug_cookies.txt
+final_cookies.txt
+final_test_cookies.txt
+new_cookies.txt
+test_cookies.txt
+working_cookies.txt

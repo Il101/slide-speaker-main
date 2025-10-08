@@ -36,9 +36,27 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  username?: string;
+}
+
 export interface LoginResponse {
-  access_token: string;
-  token_type: string;
+  message: string;
+  user: {
+    email: string;
+    role: string;
+  };
+  access_token?: string; // For cross-origin requests
+}
+
+export interface RegisterResponse {
+  id: string;
+  email: string;
+  username: string | null;
+  role: string;
+  is_active: boolean;
 }
 
 export interface UserResponse {
@@ -213,9 +231,12 @@ export interface ProcessingStatus {
 
 export class ApiClient {
   private baseUrl: string;
+  private authToken: string | null = null;
 
   constructor(baseUrl: string = API_BASE) {
     this.baseUrl = baseUrl;
+    // Load token from localStorage for cross-origin requests
+    this.authToken = localStorage.getItem('slide-speaker-token');
   }
 
   // Получение CSRF токена из cookie
@@ -230,15 +251,42 @@ export class ApiClient {
     return null;
   }
 
-  // Получение JWT токена из localStorage (public для внешнего использования)
+  // Check if we're in cross-origin environment (production)
+  private isCrossOrigin(): boolean {
+    try {
+      const frontendUrl = new URL(window.location.origin);
+      const backendUrl = new URL(this.baseUrl);
+      return frontendUrl.hostname !== backendUrl.hostname;
+    } catch {
+      return true; // Assume cross-origin if URLs are invalid
+    }
+  }
+
+  // Get auth token for cross-origin requests
   getAuthToken(): string | null {
-    return localStorage.getItem('slide-speaker-auth-token');
+    if (this.isCrossOrigin()) {
+      return this.authToken;
+    }
+    return null; // Use cookies for same-origin requests
+  }
+
+  // Set auth token for cross-origin requests
+  setAuthToken(token: string | null): void {
+    this.authToken = token;
+    if (token) {
+      localStorage.setItem('slide-speaker-token', token);
+    } else {
+      localStorage.removeItem('slide-speaker-token');
+    }
   }
 
   // Public method to get auth headers for external use
   getAuthHeaders(): HeadersInit {
     const token = this.getAuthToken();
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+    if (token) {
+      return { 'Authorization': `Bearer ${token}` };
+    }
+    return {}; // Use cookies for same-origin requests
   }
 
   // Создание заголовков для запросов
@@ -247,14 +295,10 @@ export class ApiClient {
       'Content-Type': 'application/json',
     };
 
-    if (includeAuth) {
-      const token = this.getAuthToken();
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-        console.log('[API] Auth token found and added to headers');
-      } else {
-        console.warn('[API] No auth token found in localStorage!');
-      }
+    // Add Authorization header for cross-origin requests
+    if (includeAuth && this.isCrossOrigin()) {
+      const authHeaders = this.getAuthHeaders();
+      Object.assign(headers, authHeaders);
     }
 
     if (includeCsrf) {
@@ -270,8 +314,7 @@ export class ApiClient {
   // Обработка ответов с проверкой авторизации
   private async handleResponse<T>(response: Response): Promise<T> {
     if (response.status === 401) {
-      // Токен недействителен, очищаем данные
-      localStorage.removeItem('slide-speaker-auth-token');
+      // ✅ Cookie expired/invalid, clear user data
       localStorage.removeItem('slide-speaker-user');
       // Можно добавить редирект на страницу входа
       throw new Error('Unauthorized');
@@ -290,16 +333,50 @@ export class ApiClient {
     const response = await fetch(`${this.baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: this.getHeaders(false, false), // Не включаем авторизацию и CSRF
+      credentials: 'include',  // ✅ Include cookies in request
       body: JSON.stringify(credentials),
     });
 
-    return this.handleResponse<LoginResponse>(response);
+    const result = await this.handleResponse<LoginResponse>(response);
+    
+    // Save token for cross-origin requests
+    if (result.access_token && this.isCrossOrigin()) {
+      this.setAuthToken(result.access_token);
+    }
+    
+    return result;
+  }
+
+  async logout(): Promise<{ message: string }> {
+    const response = await fetch(`${this.baseUrl}/api/auth/logout`, {
+      method: 'POST',
+      headers: this.getHeaders(false, false),
+      credentials: 'include',  // ✅ Include cookies
+    });
+
+    // Clear user data and token from localStorage
+    localStorage.removeItem('slide-speaker-user');
+    this.setAuthToken(null);
+    
+    return this.handleResponse<{ message: string }>(response);
+  }
+
+  async register(credentials: RegisterRequest): Promise<RegisterResponse> {
+    const response = await fetch(`${this.baseUrl}/api/auth/register`, {
+      method: 'POST',
+      headers: this.getHeaders(false, false), // Не включаем авторизацию и CSRF
+      credentials: 'include',  // ✅ Include cookies
+      body: JSON.stringify(credentials),
+    });
+
+    return this.handleResponse<RegisterResponse>(response);
   }
 
   async getCurrentUser(): Promise<UserResponse> {
     const response = await fetch(`${this.baseUrl}/api/auth/me`, {
       method: 'GET',
       headers: this.getHeaders(true, false), // Включаем авторизацию
+      credentials: 'include',  // ✅ Include cookies for authentication
     });
 
     return this.handleResponse<UserResponse>(response);
@@ -320,8 +397,8 @@ export class ApiClient {
 
     const response = await fetch(`${this.baseUrl}/upload`, {
       method: 'POST',
+      credentials: 'include',  // ✅ Include cookies
       headers: {
-        'Authorization': `Bearer ${this.getAuthToken()}`,
         'X-CSRF-Token': this.getCsrfToken() || '',
       },
       body: formData,
@@ -333,6 +410,7 @@ export class ApiClient {
   async getManifest(lessonId: string): Promise<Manifest> {
     const response = await fetch(`${this.baseUrl}/lessons/${lessonId}/manifest`, {
       method: 'GET',
+      credentials: 'include',  // ✅ Include cookies
       headers: this.getHeaders(true, false),
     });
 
@@ -350,6 +428,7 @@ export class ApiClient {
     
     const response = await fetch(`${this.baseUrl}/lessons/${lessonId}/status`, {
       method: 'GET',
+      credentials: 'include',  // ✅ Include cookies
       headers: headers,
     });
 
@@ -361,6 +440,7 @@ export class ApiClient {
   async exportLesson(lessonId: string): Promise<ExportResponse> {
     const response = await fetch(`${this.baseUrl}/lessons/${lessonId}/export`, {
       method: 'POST',
+      credentials: 'include',  // ✅ Include cookies
       headers: this.getHeaders(true, true),
     });
 
@@ -379,6 +459,7 @@ export class ApiClient {
   async patchLesson(lessonId: string, patchRequest: LessonPatchRequest): Promise<PatchResponse> {
     const response = await fetch(`${this.baseUrl}/lessons/${lessonId}/patch`, {
       method: 'POST',
+      credentials: 'include',  // ✅ Include cookies
       headers: this.getHeaders(true, true),
       body: JSON.stringify(patchRequest),
     });
@@ -392,6 +473,7 @@ export class ApiClient {
       `${this.baseUrl}/api/lessons/my-videos?limit=${limit}&offset=${offset}`,
       {
         method: 'GET',
+        credentials: 'include',  // ✅ Include cookies
         headers: this.getHeaders(true, false),
       }
     );
@@ -402,6 +484,7 @@ export class ApiClient {
   async getVideoDetails(lessonId: string): Promise<VideoPreview> {
     const response = await fetch(`${this.baseUrl}/api/lessons/${lessonId}`, {
       method: 'GET',
+      credentials: 'include',  // ✅ Include cookies
       headers: this.getHeaders(true, false),
     });
 
@@ -411,6 +494,7 @@ export class ApiClient {
   async deleteVideo(lessonId: string): Promise<{ success: boolean; message: string }> {
     const response = await fetch(`${this.baseUrl}/api/lessons/${lessonId}`, {
       method: 'DELETE',
+      credentials: 'include',  // ✅ Include cookies
       headers: this.getHeaders(true, true),
     });
 
@@ -421,6 +505,7 @@ export class ApiClient {
   async generateLectureOutline(lectureTitle: string, courseTitle?: string, audienceLevel?: string): Promise<any> {
     const response = await fetch(`${this.baseUrl}/api/v2/lecture-outline`, {
       method: 'POST',
+      credentials: 'include',  // ✅ Include cookies
       headers: {
         'Content-Type': 'application/json',
       },
@@ -448,6 +533,7 @@ export class ApiClient {
   ): Promise<any> {
     const response = await fetch(`${this.baseUrl}/api/v2/speaker-notes`, {
       method: 'POST',
+      credentials: 'include',  // ✅ Include cookies
       headers: {
         'Content-Type': 'application/json',
       },
@@ -471,6 +557,7 @@ export class ApiClient {
   async regenerateSpeakerNotes(lessonId: string, slideId: number): Promise<any> {
     const response = await fetch(`${this.baseUrl}/api/v2/regenerate-speaker-notes`, {
       method: 'POST',
+      credentials: 'include',  // ✅ Include cookies
       headers: {
         'Content-Type': 'application/json',
       },
@@ -488,7 +575,9 @@ export class ApiClient {
   }
 
   async getManifestV2(lessonId: string): Promise<Manifest> {
-    const response = await fetch(`${this.baseUrl}/api/v2/manifest/${lessonId}`);
+    const response = await fetch(`${this.baseUrl}/api/v2/manifest/${lessonId}`, {
+      credentials: 'include'  // ✅ Include cookies
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch manifest: ${response.statusText}`);

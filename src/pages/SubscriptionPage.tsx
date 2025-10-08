@@ -1,14 +1,20 @@
 /**
  * Subscription Management Page
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Crown, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SubscriptionManager } from '@/components/SubscriptionManager';
 import { useNavigate } from 'react-router-dom';
+import { trackEvent } from '@/lib/analytics';
 
 export const SubscriptionPage: React.FC = () => {
   const navigate = useNavigate();
+
+  // Track pricing page view
+  useEffect(() => {
+    trackEvent.pricingPageViewed();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
