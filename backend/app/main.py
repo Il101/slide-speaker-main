@@ -725,14 +725,17 @@ async def get_manifest(
     lesson_id = validate_lesson_id(lesson_id)
     
     # ✅ Check ownership for non-demo lessons
-    if current_user:  # If authenticated
-        result_check = await db.execute(
-            text("SELECT user_id FROM lessons WHERE id = :lesson_id"),
-            {"lesson_id": lesson_id}
-        )
-        lesson_owner = result_check.scalar_one_or_none()
-        
-        if lesson_owner and lesson_owner != current_user["user_id"]:
+    result_check = await db.execute(
+        text("SELECT user_id FROM lessons WHERE id = :lesson_id"),
+        {"lesson_id": lesson_id}
+    )
+    lesson_owner = result_check.scalar_one_or_none()
+    
+    # If lesson has an owner, require authentication and ownership check
+    if lesson_owner:
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Authentication required")
+        if lesson_owner != current_user["user_id"]:
             raise HTTPException(status_code=403, detail="Not authorized to access this lesson")
     
     # ✅ Additional path safety check

@@ -395,12 +395,25 @@ export class ApiClient {
     const formData = new FormData();
     formData.append('file', file);
 
+    // Build headers (не включаем Content-Type - браузер сам установит с boundary)
+    const headers: HeadersInit = {};
+    
+    // Add CSRF token if available
+    const csrfToken = this.getCsrfToken();
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+    }
+    
+    // Add Authorization header for cross-origin requests
+    if (this.isCrossOrigin()) {
+      const authHeaders = this.getAuthHeaders();
+      Object.assign(headers, authHeaders);
+    }
+
     const response = await fetch(`${this.baseUrl}/upload`, {
       method: 'POST',
       credentials: 'include',  // ✅ Include cookies
-      headers: {
-        'X-CSRF-Token': this.getCsrfToken() || '',
-      },
+      headers,
       body: formData,
     });
 
