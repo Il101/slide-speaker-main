@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Crown, LogOut, User, Shield, Brain } from 'lucide-react';
+import { Menu, X, Crown, LogOut, User, Shield, Brain, ListVideo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useAuth, useRole } from '@/contexts/AuthContext';
@@ -72,6 +72,15 @@ export const MobileNav: React.FC = () => {
               >
                 <Brain className="mr-2 h-4 w-4" />
                 Главная
+              </Button>
+
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => handleNavigation('/playlists')}
+              >
+                <ListVideo className="mr-2 h-4 w-4" />
+                Плейлисты
               </Button>
 
               <Button

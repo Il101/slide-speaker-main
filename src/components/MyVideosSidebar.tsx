@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Clock, FileVideo, Loader2, AlertCircle, Download, Trash2, CheckSquare, Square } from 'lucide-react';
+import { Play, Clock, FileVideo, Loader2, AlertCircle, Download, Trash2, CheckSquare, Square, ListPlus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { AddToPlaylistDialog } from './playlists/AddToPlaylistDialog';
 
 export interface VideoItem {
   lesson_id: string;
@@ -94,6 +95,10 @@ export const MyVideosSidebar: React.FC<MyVideosSidebarProps> = ({
   // Состояние для режима выбора
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedVideos, setSelectedVideos] = useState<Set<string>>(new Set());
+  
+  // Состояние для плейлистов
+  const [addToPlaylistOpen, setAddToPlaylistOpen] = useState(false);
+  const [videoToAdd, setVideoToAdd] = useState<VideoItem | null>(null);
 
   const loadVideos = async () => {
     try {
@@ -296,6 +301,19 @@ export const MyVideosSidebar: React.FC<MyVideosSidebarProps> = ({
                     {selectedVideos.size === videos.length ? 'Снять все' : 'Все'}
                   </Button>
                   <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setVideoToAdd(null);
+                      setAddToPlaylistOpen(true);
+                    }}
+                    disabled={selectedVideos.size === 0}
+                    className="h-10 px-4"
+                  >
+                    <ListPlus className="h-4 w-4 mr-2" />
+                    Плейлист
+                  </Button>
+                  <Button
                     variant="destructive"
                     size="sm"
                     onClick={handleDeleteSelected}
@@ -429,6 +447,19 @@ export const MyVideosSidebar: React.FC<MyVideosSidebarProps> = ({
                             </Button>
                           )}
                           <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 h-8"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setVideoToAdd(video);
+                              setAddToPlaylistOpen(true);
+                            }}
+                          >
+                            <ListPlus className="h-3.5 w-3.5 mr-1.5" />
+                            Плейлист
+                          </Button>
+                          <Button
                             variant="ghost"
                             size="sm"
                             className="h-8"
@@ -488,6 +519,22 @@ export const MyVideosSidebar: React.FC<MyVideosSidebarProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Диалог добавления в плейлист */}
+      <AddToPlaylistDialog
+        open={addToPlaylistOpen}
+        onOpenChange={setAddToPlaylistOpen}
+        lessonIds={
+          videoToAdd 
+            ? [videoToAdd.lesson_id] 
+            : Array.from(selectedVideos)
+        }
+        onSuccess={() => {
+          setAddToPlaylistOpen(false);
+          setSelectedVideos(new Set());
+          setVideoToAdd(null);
+        }}
+      />
     </>
   );
 };

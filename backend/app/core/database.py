@@ -207,6 +207,94 @@ class Subscription(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+# Quiz Models
+class Quiz(Base):
+    """Quiz model for storing quiz metadata"""
+    __tablename__ = "quizzes"
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # UUID
+    lesson_id: Mapped[str] = mapped_column(String(36), index=True)
+    user_id: Mapped[str] = mapped_column(String(36), index=True)
+    title: Mapped[str] = mapped_column(String(255))
+    description: Mapped[Optional[str]] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class QuizQuestion(Base):
+    """Quiz question model"""
+    __tablename__ = "quiz_questions"
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # UUID
+    quiz_id: Mapped[str] = mapped_column(String(36), index=True)
+    question_text: Mapped[str] = mapped_column(Text)
+    question_type: Mapped[str] = mapped_column(String(50))  # multiple_choice, multiple_select, true_false, short_answer
+    difficulty: Mapped[Optional[str]] = mapped_column(String(20))  # easy, medium, hard
+    explanation: Mapped[Optional[str]] = mapped_column(Text)
+    points: Mapped[int] = mapped_column(Integer, default=1)
+    order_index: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+class QuizAnswer(Base):
+    """Quiz answer model"""
+    __tablename__ = "quiz_answers"
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # UUID
+    question_id: Mapped[str] = mapped_column(String(36), index=True)
+    answer_text: Mapped[str] = mapped_column(Text)
+    is_correct: Mapped[bool] = mapped_column(Boolean, default=False)
+    order_index: Mapped[int] = mapped_column(Integer)
+
+class QuizAttempt(Base):
+    """Quiz attempt model for analytics"""
+    __tablename__ = "quiz_attempts"
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # UUID
+    quiz_id: Mapped[str] = mapped_column(String(36), index=True)
+    user_id: Mapped[Optional[str]] = mapped_column(String(36), index=True)
+    score: Mapped[Optional[float]] = mapped_column(Float)
+    max_score: Mapped[Optional[float]] = mapped_column(Float)
+    started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+
+# Playlist Models
+class Playlist(Base):
+    """Playlist model for grouping lessons"""
+    __tablename__ = "playlists"
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # UUID
+    user_id: Mapped[str] = mapped_column(String(36), index=True)
+    title: Mapped[str] = mapped_column(String(255))
+    description: Mapped[Optional[str]] = mapped_column(Text)
+    thumbnail_url: Mapped[Optional[str]] = mapped_column(Text)
+    is_public: Mapped[bool] = mapped_column(Boolean, default=False)
+    share_token: Mapped[Optional[str]] = mapped_column(String(100), unique=True, index=True)
+    password_hash: Mapped[Optional[str]] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class PlaylistItem(Base):
+    """Playlist item model - junction table between playlists and lessons"""
+    __tablename__ = "playlist_items"
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # UUID
+    playlist_id: Mapped[str] = mapped_column(String(36), index=True)
+    lesson_id: Mapped[str] = mapped_column(String(36), index=True)
+    order_index: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+class PlaylistView(Base):
+    """Playlist view model for analytics"""
+    __tablename__ = "playlist_views"
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)  # UUID
+    playlist_id: Mapped[str] = mapped_column(String(36), index=True)
+    viewer_id: Mapped[Optional[str]] = mapped_column(String(36), index=True)
+    ip_address: Mapped[Optional[str]] = mapped_column(String(45))
+    completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    videos_watched: Mapped[int] = mapped_column(Integer, default=0)
+    total_watch_time: Mapped[Optional[int]] = mapped_column(Integer)
+    viewed_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+
 # Database dependency
 async def get_db() -> AsyncSession:
     """Get database session"""

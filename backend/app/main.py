@@ -37,6 +37,8 @@ from .api.websocket import router as websocket_router
 from .api.content_editor import router as content_editor_router
 from .api.subscriptions import router as subscriptions_router
 from .api.analytics import router as analytics_router
+from .api.quizzes import router as quizzes_router
+from .api.playlists import router as playlists_router
 from .core.database import get_db, Lesson
 from .core.auth import get_current_user, get_current_user_optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -558,10 +560,10 @@ async def get_lesson_status(
             progress_data = processing_progress if isinstance(processing_progress, dict) else (json.loads(processing_progress) if processing_progress else {})
             return {
                 "lesson_id": lesson_id,
-                "status": db_status,
+                "status": "processing",
                 "stage": progress_data.get("stage", "initializing"),
                 "progress": progress_data.get("progress", 0),
-                "message": "Processing..."
+                "message": progress_data.get("message", "Processing...")
             }
         
         with open(manifest_path, "r", encoding="utf-8") as f:
@@ -579,50 +581,53 @@ async def get_lesson_status(
         
         total_slides = len(manifest_data.get("slides", []))
         
-        # Calculate progress based on completed slides
-        progress = 0
-        stage = "parsing"
-        
+        # If processing is complete, return completed status
         if slides_with_notes == total_slides and slides_with_audio == total_slides:
-            progress = 100
-            stage = "completed"
             return {
                 "lesson_id": lesson_id,
                 "status": "completed",
-                "progress": progress,
-                "stage": stage,
-                "message": "Full pipeline completed",
+                "progress": 100,
+                "stage": "completed",
+                "message": "Processing completed",
                 "slides_processed": total_slides,
                 "slides_with_notes": slides_with_notes,
                 "slides_with_audio": slides_with_audio
             }
-        elif slides_with_notes > 0 or slides_with_audio > 0:
-            # Calculate progress based on completed audio generation
-            progress = int((slides_with_audio / total_slides) * 100)
-            stage = "ai_processing"
+        
+        # Otherwise, use progress data from DB (updated by pipeline callback)
+        progress_data = processing_progress if isinstance(processing_progress, dict) else (json.loads(processing_progress) if processing_progress else {})
+        
+        # If we have progress data from pipeline, use it
+        if progress_data and progress_data.get("stage") and progress_data.get("progress"):
             return {
                 "lesson_id": lesson_id,
                 "status": "processing",
-                "progress": progress,
-                "stage": stage,
-                "message": "AI processing in progress",
+                "progress": progress_data.get("progress", 20),
+                "stage": progress_data.get("stage", "processing"),
+                "message": progress_data.get("message", "Processing..."),
                 "slides_processed": total_slides,
                 "slides_with_notes": slides_with_notes,
                 "slides_with_audio": slides_with_audio
             }
+        
+        # Fallback: Calculate progress based on completed slides
+        if slides_with_notes > 0 or slides_with_audio > 0:
+            progress = int((slides_with_audio / total_slides) * 80) + 20  # 20-100%
+            stage = "generating_audio" if slides_with_audio < total_slides else "generating_cues"
         else:
-            progress = 20  # Basic parsing completed
+            progress = 20
             stage = "parsing"
-            return {
-                "lesson_id": lesson_id,
-                "status": "parsed",
-                "progress": progress,
-                "stage": stage,
-                "message": "Document parsed, waiting for AI processing",
-                "slides_processed": total_slides,
-                "slides_with_notes": slides_with_notes,
-                "slides_with_audio": slides_with_audio
-            }
+        
+        return {
+            "lesson_id": lesson_id,
+            "status": "processing",
+            "progress": progress,
+            "stage": stage,
+            "message": "Processing...",
+            "slides_processed": total_slides,
+            "slides_with_notes": slides_with_notes,
+            "slides_with_audio": slides_with_audio
+        }
         
     except Exception as e:
         logger.error(f"Error getting lesson status: {e}")
@@ -1265,6 +1270,8 @@ app.include_router(websocket_router)
 app.include_router(content_editor_router, prefix="/api")
 app.include_router(subscriptions_router, prefix="/api")
 app.include_router(analytics_router, prefix="/api")
+app.include_router(quizzes_router)  # Already has /api/quizzes prefix
+app.include_router(playlists_router)  # Already has /api/playlists prefix
 
 # Mount static files
 app.mount("/assets", StaticFiles(directory=".data", html=False), name="assets")

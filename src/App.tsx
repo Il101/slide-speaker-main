@@ -19,6 +19,10 @@ const Register = lazy(() => import("./pages/Register"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage").then(module => ({ default: module.SubscriptionPage })));
 const Analytics = lazy(() => import("./pages/Analytics"));
+const QuizGenerator = lazy(() => import("./components/QuizGenerator").then(module => ({ default: module.QuizGenerator })));
+const QuizEditor = lazy(() => import("./components/QuizEditor"));
+const PlaylistsPage = lazy(() => import("./pages/PlaylistsPage"));
+const PlaylistPlayerPage = lazy(() => import("./pages/PlaylistPlayerPage"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -87,6 +91,26 @@ const App = () => (
                   <Route path="/analytics" element={
                     <ProtectedRoute requireRole="admin">
                       <Analytics />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/lessons/:lessonId/quiz" element={
+                    <ProtectedRoute>
+                      <QuizGenerator standalone={true} />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/quiz/:quizId/edit" element={
+                    <ProtectedRoute>
+                      <QuizEditor />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/playlists" element={
+                    <ProtectedRoute>
+                      <PlaylistsPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/playlists/:id/play" element={
+                    <ProtectedRoute>
+                      <PlaylistPlayerPage />
                     </ProtectedRoute>
                   } />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

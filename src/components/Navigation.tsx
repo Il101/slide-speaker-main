@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brain, LogOut, User, Shield, Crown, BarChart3 } from 'lucide-react';
+import { Brain, LogOut, User, Shield, Crown, BarChart3, ListVideo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth, useRole } from '@/contexts/AuthContext';
@@ -56,6 +56,17 @@ const Navigation: React.FC<NavigationProps> = ({
               <span>Аналитика</span>
             </Button>
           )}
+          
+          {/* Кнопка плейлистов */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/playlists')}
+            className="flex items-center space-x-2"
+          >
+            <ListVideo className="h-4 w-4 text-primary" />
+            <span>Плейлисты</span>
+          </Button>
           
           {/* Кнопка подписки */}
           <Button
