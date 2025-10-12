@@ -5,13 +5,14 @@ Phase 1: Quick Wins (без изменения AI моделей)
 import json
 import logging
 import asyncio
+import os
 from pathlib import Path
 from typing import Dict, Any, List, Tuple
 from concurrent.futures import ThreadPoolExecutor
 import time
 
 from .base import BasePipeline
-from ..services.provider_factory import synthesize_slide_text_google
+from ..services.provider_factory import synthesize_slide_text_google_ssml
 from ..services.ocr_cache import get_ocr_cache
 from ..services.presentation_intelligence import PresentationIntelligence
 from ..services.semantic_analyzer import SemanticAnalyzer
@@ -19,6 +20,7 @@ from ..services.smart_script_generator import SmartScriptGenerator
 from ..services.visual_effects_engine import VisualEffectsEngine
 from ..services.validation_engine import ValidationEngine
 from ..services.ssml_generator import generate_ssml_from_talk_track
+from ..services.bullet_point_sync import BulletPointSyncService
 
 logger = logging.getLogger(__name__)
 
@@ -35,11 +37,11 @@ class OptimizedIntelligentPipeline(BasePipeline):
     Ожидаемое улучшение: -77% времени обработки
     """
     
-    def __init__(self, max_parallel_slides: int = 5, max_parallel_tts: int = 10):
+    def __init__(self, max_parallel_slides: int = 5, max_parallel_tts: int = 1):
         """
         Args:
             max_parallel_slides: Максимум параллельных слайдов для Stage 2-3
-            max_parallel_tts: Максимум параллельных TTS запросов
+            max_parallel_tts: Максимум параллельных TTS запросов (CRITICAL: set to 1 due to Docker 3.8GB memory limit)
         """
         super().__init__()
         
@@ -49,6 +51,9 @@ class OptimizedIntelligentPipeline(BasePipeline):
         self.script_generator = SmartScriptGenerator()
         self.effects_engine = VisualEffectsEngine()
         self.validation_engine = ValidationEngine()
+        
+        # ✅ NEW: Bullet point sync service with Whisper
+        self.bullet_sync = BulletPointSyncService(whisper_model="base")
         
         import os
         self.max_parallel_slides = int(os.getenv('PIPELINE_MAX_PARALLEL_SLIDES', max_parallel_slides))
@@ -118,36 +123,106 @@ class OptimizedIntelligentPipeline(BasePipeline):
         """
         Calculate start/end timing for each talk_track segment based on TTS sentences
         
+        Uses actual TTS sentence timings when available, with fallback to character-based interpolation.
         Modifies talk_track in-place to add 'start' and 'end' times.
         """
-        if not talk_track or not sentences:
+        # ✅ FIX: Explicit None check instead of falsy check
+        if talk_track is None or not talk_track or sentences is None or not sentences:
             return
         
-        # Build full text from talk_track
-        full_text = " ".join(seg.get("text", "") for seg in talk_track)
+        import re
         
-        # Calculate character positions for each talk_track segment
-        char_pos = 0
-        for segment in talk_track:
+        def normalize_text(text: str) -> str:
+            """Normalize text for comparison by removing markers and extra whitespace"""
+            # Remove SSML markers: [visual:XX]...[/visual], [lang:XX]...[/lang], [phoneme:...]...[/phoneme]
+            text = re.sub(r'\[visual:[a-z]{2}\](.*?)\[/visual\]', r'\1', text)
+            text = re.sub(r'\[phoneme:ipa:.*?\](.*?)\[/phoneme\]', r'\1', text)
+            text = re.sub(r'\[lang:[a-z]{2}\](.*?)\[/lang\]', r'\1', text)
+            # Remove extra whitespace and punctuation
+            text = re.sub(r'[^\w\s]', '', text.lower())
+            text = re.sub(r'\s+', ' ', text).strip()
+            return text
+        
+        # Try to match talk_track segments with sentences by group_marker or text similarity
+        strategies_used = {'group_marker': 0, 'text_similarity': 0, 'interpolation': 0}
+        
+        for i, segment in enumerate(talk_track):
+            group_id = segment.get('group_id')
             seg_text = segment.get("text", "")
-            seg_start_char = char_pos
-            seg_end_char = char_pos + len(seg_text)
-            char_pos = seg_end_char + 1  # +1 for space
+            seg_text_norm = normalize_text(seg_text)
             
-            # Use relative position in full text to estimate timing
-            relative_start = seg_start_char / max(len(full_text), 1)
-            relative_end = seg_end_char / max(len(full_text), 1)
+            matched = False
             
-            # Get total audio duration
-            total_duration = sentences[-1].get("t1", 0.0) if sentences else 0.0
+            # Strategy 1: Match by group_marker (most accurate)
+            if group_id:
+                for sentence in sentences:
+                    if sentence.get('group_marker') == group_id:
+                        segment["start"] = round(sentence['t0'], 2)
+                        segment["end"] = round(sentence['t1'], 2)
+                        matched = True
+                        strategies_used['group_marker'] += 1
+                        break
             
-            # Calculate timing
-            start_time = relative_start * total_duration
-            end_time = relative_end * total_duration
+            # Strategy 2: Match by text similarity (fallback)
+            if not matched and seg_text_norm:
+                best_match = None
+                best_similarity = 0.0
+                
+                for sentence in sentences:
+                    sent_text_norm = normalize_text(sentence.get('text', ''))
+                    if not sent_text_norm:
+                        continue
+                    
+                    # Simple word overlap similarity
+                    seg_words = set(seg_text_norm.split())
+                    sent_words = set(sent_text_norm.split())
+                    if not seg_words or not sent_words:
+                        continue
+                    
+                    intersection = seg_words & sent_words
+                    union = seg_words | sent_words
+                    similarity = len(intersection) / len(union) if union else 0.0
+                    
+                    if similarity > best_similarity:
+                        best_similarity = similarity
+                        best_match = sentence
+                
+                # Use match if similarity is reasonable (>30%)
+                if best_match and best_similarity > 0.3:
+                    segment["start"] = round(best_match['t0'], 2)
+                    segment["end"] = round(best_match['t1'], 2)
+                    matched = True
+                    strategies_used['text_similarity'] += 1
             
-            # Update segment
-            segment["start"] = round(start_time, 2)
-            segment["end"] = round(end_time, 2)
+            # Strategy 3: Character-based interpolation (last resort)
+            if not matched:
+                # Build full text from talk_track
+                full_text = " ".join(seg.get("text", "") for seg in talk_track)
+                
+                # Calculate character positions
+                char_pos = sum(len(talk_track[j].get("text", "")) + 1 for j in range(i))
+                seg_start_char = char_pos
+                seg_end_char = char_pos + len(seg_text)
+                
+                # Use relative position in full text to estimate timing
+                relative_start = seg_start_char / max(len(full_text), 1)
+                relative_end = seg_end_char / max(len(full_text), 1)
+                
+                # Get total audio duration
+                total_duration = sentences[-1].get("t1", 0.0) if sentences else 0.0
+                
+                # Calculate timing
+                start_time = relative_start * total_duration
+                end_time = relative_end * total_duration
+                
+                segment["start"] = round(start_time, 2)
+                segment["end"] = round(end_time, 2)
+                strategies_used['interpolation'] += 1
+        
+        # Log which strategies were used
+        self.logger.info(f"✅ Talk track timing calculated: {strategies_used['group_marker']} by marker, "
+                        f"{strategies_used['text_similarity']} by similarity, "
+                        f"{strategies_used['interpolation']} by interpolation")
     
     # REMOVED: ingest_old() method - deprecated, use ingest() instead
     
@@ -306,8 +381,11 @@ class OptimizedIntelligentPipeline(BasePipeline):
             self.logger.info(f"✅ Converted {len(png_files)} PDF pages to PNG")
             return png_files
             
-        except Exception as e:
+        except (ImportError, RuntimeError, FileNotFoundError) as e:
             self.logger.error(f"Failed to convert PDF: {e}")
+            raise
+        except Exception as e:
+            self.logger.exception(f"Unexpected error converting PDF: {e}")
             raise
     
     def ingest(self, lesson_dir: str) -> None:
@@ -434,8 +512,77 @@ class OptimizedIntelligentPipeline(BasePipeline):
                 slide['elements'] = []
                 self.logger.warning(f"⚠️ Slide {slide['id']}: no OCR data")
         
+        # 4.5. Language Detection & Translation
+        self.logger.info(f"🌍 Stage 2.5: Language detection and translation...")
+        
+        from ..services.language_detector import LanguageDetector
+        from ..services.translation_service import TranslationService
+        
+        language_detector = LanguageDetector()
+        translation_service = TranslationService()
+        
+        # Определяем язык презентации
+        presentation_lang = language_detector.detect_presentation_language(slides)
+        manifest['presentation_language'] = presentation_lang
+        
+        self.logger.info(f"📝 Detected presentation language: {presentation_lang}")
+        
+        # Получаем целевой язык для TTS из конфигурации
+        target_tts_lang = os.getenv('SILERO_TTS_LANGUAGE', 'ru')
+        
+        self.logger.info(f"🎙️ Target TTS language: {target_tts_lang}")
+        
+        # Проверяем, нужен ли перевод
+        translation_needed = translation_service.is_translation_needed(
+            presentation_lang, 
+            target_tts_lang
+        )
+        
+        if translation_needed:
+            self.logger.info(f"🔄 Translation enabled: {presentation_lang} → {target_tts_lang}")
+            
+            # Переводим элементы на каждом слайде
+            for i, slide in enumerate(slides):
+                elements = slide.get('elements', [])
+                
+                if not elements:
+                    continue
+                
+                self.logger.info(f"   Translating slide {i+1}/{len(slides)}...")
+                
+                # Применяем перевод
+                translated_elements = translation_service.translate_elements(
+                    elements,
+                    source_lang=presentation_lang,
+                    target_lang=target_tts_lang
+                )
+                
+                slide['elements'] = translated_elements
+                slide['translation_applied'] = True
+                slide['source_language'] = presentation_lang
+                slide['target_language'] = target_tts_lang
+            
+            self.logger.info(f"✅ Translation completed for {len(slides)} slides")
+        else:
+            self.logger.info(f"⏭️  Translation skipped (languages match or disabled)")
+            
+            # Всё равно добавляем поля для совместимости
+            for slide in slides:
+                elements = slide.get('elements', [])
+                for elem in elements:
+                    text = elem.get('text', '')
+                    elem['text_original'] = text
+                    elem['text_translated'] = text
+                    elem['language_original'] = presentation_lang
+                    elem['language_target'] = target_tts_lang
+                
+                slide['translation_applied'] = False
+                slide['source_language'] = presentation_lang
+                slide['target_language'] = target_tts_lang
+        
         # 5. Update metadata
-        manifest['metadata']['stage'] = 'ocr_complete'
+        manifest['metadata']['stage'] = 'translation_complete'
+        manifest['metadata']['translation_applied'] = translation_needed
         
         # 6. Save updated manifest
         self.save_manifest(lesson_dir, manifest)
@@ -481,12 +628,13 @@ class OptimizedIntelligentPipeline(BasePipeline):
         manifest_data['presentation_context'] = presentation_context
         
         # ✅ FIX: Pre-compute slide summaries to avoid race condition
+        # ✅ CRITICAL: Use translated text for summaries to avoid language mixing
         self.logger.info("📝 Pre-computing slide summaries for context...")
         slides_summary_cache = {}
         for i, slide in enumerate(slides):
             elements = slide.get('elements', [])
-            # Extract key text from elements
-            texts = [e.get('text', '')[:50] for e in elements[:3]]
+            # Extract key text from elements (prefer translated)
+            texts = [(e.get('text_translated') or e.get('text', ''))[:50] for e in elements[:3]]
             summary = " ".join(texts) if texts else "No text"
             slides_summary_cache[i] = summary
         
@@ -494,7 +642,11 @@ class OptimizedIntelligentPipeline(BasePipeline):
         self.logger.info(f"⚡ Processing {len(slides)} slides in parallel (max {self.max_parallel_slides} concurrent)")
         
         async def process_single_slide(slide_data: Tuple[int, Dict[str, Any]]) -> Tuple[int, Dict[str, Any], Dict[str, Any]]:
-            """Обработка одного слайда (Stage 2 + Stage 3)"""
+            """
+            Обработка одного слайда (Stage 2 + Stage 3) с дедупликацией
+            
+            ✅ IMPROVED: Проверяет кэш обработанных слайдов перед AI вызовами
+            """
             i, slide = slide_data
             slide_id = slide["id"]
             elements = slide.get("elements", [])
@@ -502,6 +654,16 @@ class OptimizedIntelligentPipeline(BasePipeline):
             self.logger.info(f"📄 Processing slide {slide_id} ({i+1}/{len(slides)})")
             
             slide_image_path = lesson_path / "slides" / f"{slide_id:03d}.png"
+            
+            # ✅ NEW: Try to get processed slide from deduplication cache
+            cached_processed = self.ocr_cache.get_processed_slide(str(slide_image_path))
+            
+            if cached_processed:
+                semantic_map = cached_processed.get('semantic_map', {"groups": [], "mock": True})
+                script = cached_processed.get('script', {"talk_track": [], "speaker_notes": "", "estimated_duration": 0})
+                
+                self.logger.info(f"✨ Slide {slide_id}: loaded from dedup cache (saved AI calls!)")
+                return (i, semantic_map, script)
             
             # Stage 2: Semantic Analysis
             semantic_map = {"groups": [], "mock": True}
@@ -526,8 +688,10 @@ class OptimizedIntelligentPipeline(BasePipeline):
                 if validation_errors:
                     self.logger.warning(f"⚠️ Slide {slide_id}: {len(validation_errors)} validation issues")
                 
-            except Exception as e:
+            except (ValueError, KeyError, json.JSONDecodeError) as e:
                 self.logger.error(f"❌ Semantic analysis failed for slide {slide_id}: {e}")
+            except Exception as e:
+                self.logger.exception(f"❌ Unexpected error in semantic analysis for slide {slide_id}: {e}")
             
             # Stage 3: Script Generation
             script = {"talk_track": [], "speaker_notes": "", "estimated_duration": 0}
@@ -547,8 +711,16 @@ class OptimizedIntelligentPipeline(BasePipeline):
                 
                 self.logger.info(f"✅ Slide {slide_id}: script generated (overlap: {script.get('overlap_score', 0):.3f})")
                 
-            except Exception as e:
+            except (ValueError, KeyError, json.JSONDecodeError, TimeoutError) as e:
                 self.logger.error(f"❌ Script generation failed for slide {slide_id}: {e}")
+            except Exception as e:
+                self.logger.exception(f"❌ Unexpected error in script generation for slide {slide_id}: {e}")
+            
+            # ✅ NEW: Save processed slide to deduplication cache
+            self.ocr_cache.save_processed_slide(str(slide_image_path), {
+                'semantic_map': semantic_map,
+                'script': script
+            })
             
             return (i, semantic_map, script)
         
@@ -651,15 +823,17 @@ class OptimizedIntelligentPipeline(BasePipeline):
                 # ✅ Generate SSML from talk_track_raw (with markers) for word-level timing
                 ssml_texts = generate_ssml_from_talk_track(talk_track_raw)
             
-            # ✅ Log SSML for verification
+            # ✅ Log SSML for verification with detailed group marker context
             if ssml_texts:
                 ssml_text = ssml_texts[0]
                 ssml_preview = ssml_text[:500] if ssml_text else ""
                 has_marks = '<mark' in ssml_text
                 
-                # Count group markers
+                # Count group markers and extract context
                 import re
-                group_marks = re.findall(r'<mark name="(group_[^"]+)"', ssml_text)
+                group_mark_matches = list(re.finditer(r'<mark name="(group_[^"]+)"/>(.*?)(?=<mark|</prosody>|</speak>)', ssml_text, re.DOTALL))
+                group_marks = [m.group(1) for m in group_mark_matches]
+                
                 word_marks = re.findall(r'<mark name="(w\d+)"', ssml_text)
                 
                 self.logger.info(f"🎙️ Slide {slide_id}: SSML generated")
@@ -667,6 +841,13 @@ class OptimizedIntelligentPipeline(BasePipeline):
                 self.logger.info(f"   Has <mark> tags: {has_marks}")
                 self.logger.info(f"   Group markers: {len(group_marks)} found - {group_marks[:5]}")
                 self.logger.info(f"   Word markers: {len(word_marks)} found")
+                
+                # Log context for each group marker (first 50 chars after marker)
+                for match in group_mark_matches[:3]:  # Show first 3
+                    marker = match.group(1)
+                    context = match.group(2)[:50].strip()
+                    self.logger.info(f"   Group '{marker}' context: '{context}...'")
+                
                 self.logger.info(f"   SSML preview: {ssml_preview}...")
             else:
                 self.logger.warning(f"⚠️ Slide {slide_id}: no SSML generated!")
@@ -677,10 +858,11 @@ class OptimizedIntelligentPipeline(BasePipeline):
             
             # ✅ FIX: Add timeout to prevent hanging forever
             try:
+                # ✅ Use SSML TTS function for proper SSML support
                 audio_path, tts_words = await asyncio.wait_for(
                     loop.run_in_executor(
                         self.executor,
-                        lambda: GoogleTTSWorkerSSML().synthesize_slide_text_google_ssml(ssml_texts)
+                        lambda: synthesize_slide_text_google_ssml(ssml_texts)
                     ),
                     timeout=60.0  # 60 seconds timeout per slide
                 )
@@ -692,15 +874,18 @@ class OptimizedIntelligentPipeline(BasePipeline):
                     audio_path, tts_words = await asyncio.wait_for(
                         loop.run_in_executor(
                             self.executor,
-                            lambda: GoogleTTSWorkerSSML().synthesize_slide_text_google_ssml(ssml_texts)
+                            lambda: synthesize_slide_text_google_ssml(ssml_texts)
                         ),
                         timeout=90.0  # Longer timeout for retry
                     )
-                except Exception as retry_error:
+                except (asyncio.TimeoutError, ConnectionError, OSError) as retry_error:
                     self.logger.error(f"❌ Slide {slide_id}: Retry failed: {retry_error}")
                     return (index, None, {}, 0.0, None)
+            except (ValueError, RuntimeError, OSError, IOError) as e:
+                self.logger.error(f"❌ Slide {slide_id}: TTS error: {e}")
+                return (index, None, {}, 0.0, None)
             except Exception as e:
-                self.logger.error(f"❌ Slide {slide_id}: TTS error: {e}", exc_info=True)
+                self.logger.exception(f"❌ Slide {slide_id}: Unexpected TTS error: {e}")
                 return (index, None, {}, 0.0, None)
             
             # Get duration
@@ -708,7 +893,7 @@ class OptimizedIntelligentPipeline(BasePipeline):
             if tts_words and tts_words.get("sentences"):
                 duration = tts_words["sentences"][-1].get("t1", 0.0)
             
-            # Log word timings statistics
+            # Log word timings statistics with detailed info
             word_timings = tts_words.get("word_timings", []) if tts_words else []
             sentences = tts_words.get("sentences", []) if tts_words else []
             
@@ -718,25 +903,52 @@ class OptimizedIntelligentPipeline(BasePipeline):
             
             self.logger.info(f"✅ Slide {slide_id}: audio generated ({duration:.1f}s)")
             self.logger.info(f"   TTS returned: {len(word_timings)} marks total, {len(sentences)} sentences")
-            self.logger.info(f"   Group markers in TTS: {len(group_timing_marks)} - {[g.get('mark_name') for g in group_timing_marks[:5]]}")
+            self.logger.info(f"   Group markers in TTS: {len(group_timing_marks)}")
             
-            if word_timings:
-                self.logger.info(f"   First 5 marks: {[{'name': wt.get('mark_name'), 't': wt.get('time_seconds', 0)} for wt in word_timings[:5]]}")
+            # ✅ FIX: Use debug for detailed timing logs to reduce noise in production
+            if self.logger.isEnabledFor(logging.DEBUG):
+                for gm in group_timing_marks[:5]:  # First 5
+                    mark_name = gm.get('mark_name')
+                    time_sec = gm.get('time_seconds', 0)
+                    self.logger.debug(f"      • '{mark_name}' at {time_sec:.2f}s")
             
+            # ✅ FIX: Detailed mark logging only in debug mode
+            if self.logger.isEnabledFor(logging.DEBUG) and word_timings:
+                if len(word_timings) <= 10:  # If few marks, show all
+                    marks_info = [{'name': wt.get('mark_name'), 't': f"{wt.get('time_seconds', 0):.2f}s"} for wt in word_timings]
+                    self.logger.debug(f"   All marks: {marks_info}")
+                else:
+                    marks_info = [{'name': wt.get('mark_name'), 't': f"{wt.get('time_seconds', 0):.2f}s"} for wt in word_timings[:5]]
+                    self.logger.debug(f"   First 5 marks: {marks_info}")
+            
+            # ✅ CRITICAL: Force aggressive garbage collection after each slide to prevent OOM
+            import gc
+            gc.collect()
+
             return (index, audio_path, tts_words, duration, ssml_texts[0] if ssml_texts else None)
-        
-        # Параллельная генерация аудио
-        async def generate_all_audio():
-            semaphore = asyncio.Semaphore(self.max_parallel_tts)
-            
-            async def bounded_generate(slide_data):
-                async with semaphore:
-                    return await generate_audio_for_slide(slide_data)
-            
-            tasks = [bounded_generate((i, slide)) for i, slide in enumerate(slides)]
-            return await asyncio.gather(*tasks, return_exceptions=True)
-        
-        results = loop.run_until_complete(generate_all_audio())
+
+        # ✅ SEQUENTIAL generation to prevent OOM (Docker has only 3.8GB memory)
+        # Even with semaphore=1, asyncio.gather creates all tasks upfront which loads memory
+        async def generate_all_audio_sequential():
+            """Generate audio one slide at a time with aggressive memory cleanup"""
+            results = []
+            for i, slide in enumerate(slides):
+                self.logger.info(f"🎙️ Processing TTS for slide {i+1}/{len(slides)}")
+                try:
+                    result = await generate_audio_for_slide((i, slide))
+                    results.append(result)
+
+                    # ✅ CRITICAL: Aggressive memory cleanup after each slide
+                    import gc
+                    gc.collect()
+
+                except Exception as e:
+                    self.logger.error(f"❌ TTS failed for slide {i+1}: {e}")
+                    results.append(e)
+
+            return results
+
+        results = loop.run_until_complete(generate_all_audio_sequential())
         
         # Применяем результаты
         success_count = 0
@@ -835,13 +1047,17 @@ class OptimizedIntelligentPipeline(BasePipeline):
         if success_count < len(slides):
             self.logger.warning(f"⚠️ Only {success_count}/{len(slides)} slides have audio - check logs above for details")
     
-    def process_full_pipeline(self, lesson_dir: str) -> Dict[str, Any]:
+    def process_full_pipeline(self, lesson_dir: str, progress_callback=None) -> Dict[str, Any]:
         """
         Полный pipeline с замером времени и graceful degradation
         
         ✅ FIX: Теперь возвращает PipelineResult с поддержкой частичного успеха.
         Если некоторые слайды не удалось обработать, возвращаем частичный результат
         вместо полного провала.
+        
+        Args:
+            lesson_dir: Path to lesson directory
+            progress_callback: Optional callback(stage: str, progress: int, message: str)
         """
         start_time = time.time()
         
@@ -863,9 +1079,15 @@ class OptimizedIntelligentPipeline(BasePipeline):
             
             # Run pipeline steps with error recovery
             try:
+                if progress_callback:
+                    progress_callback('parsing', 10, 'Parsing presentation...')
+                
                 ingest_start = time.time()
                 self.ingest(lesson_dir)  # PPTX/PDF → PNG
                 ingest_time = time.time() - ingest_start
+                
+                if progress_callback:
+                    progress_callback('parsing', 20, 'Extracting elements...')
                 
                 ocr_start = time.time()
                 self.extract_elements(lesson_dir)  # OCR extraction
@@ -886,6 +1108,9 @@ class OptimizedIntelligentPipeline(BasePipeline):
             result.total_slides = len(slides)
             
             # Plan stage - process with slide-level error recovery
+            if progress_callback:
+                progress_callback('generating_notes', 40, 'Generating lecture notes...')
+            
             plan_start = time.time()
             try:
                 self.plan(lesson_dir)
@@ -897,6 +1122,9 @@ class OptimizedIntelligentPipeline(BasePipeline):
                 plan_time = time.time() - plan_start
             
             # TTS stage - process with slide-level error recovery
+            if progress_callback:
+                progress_callback('generating_audio', 65, 'Synthesizing audio...')
+            
             tts_start = time.time()
             try:
                 self.tts(lesson_dir)
@@ -908,6 +1136,9 @@ class OptimizedIntelligentPipeline(BasePipeline):
                 tts_time = time.time() - tts_start
             
             # Build manifest stage - process with slide-level error recovery
+            if progress_callback:
+                progress_callback('generating_cues', 85, 'Creating visual effects...')
+            
             manifest_start = time.time()
             try:
                 self.build_manifest(lesson_dir)
@@ -1023,24 +1254,202 @@ class OptimizedIntelligentPipeline(BasePipeline):
             try:
                 semantic_map = slide.get('semantic_map', {})
                 elements = slide.get('elements', [])
-                duration = slide.get('duration', 0.0)
+                duration = slide.get('duration')
+                # ✅ FIX: Try audio_path first, then audio (different naming in old vs new pipeline)
+                audio_path = slide.get('audio_path') or slide.get('audio')
                 tts_words = slide.get('tts_words')
                 # ✅ Use talk_track_raw (with markers) for visual effects sync
                 talk_track_raw = slide.get('talk_track_raw', [])
                 
-                if duration == 0:
-                    self.logger.warning(f"⚠️ Slide {slide_id} has no audio, skipping cues")
+                # ✅ FIX: Create simple semantic_map if missing (for old lessons)
+                if not semantic_map or not semantic_map.get('groups'):
+                    self.logger.warning(f"⚠️ No semantic_map for slide {slide_id}, creating simple one")
+                    # Create simple groups from elements (one element = one group)
+                    simple_groups = []
+                    for i, elem in enumerate(elements):
+                        elem_type = elem.get('type', 'text')
+                        # Skip tiny elements (bullets, dots)
+                        bbox = elem.get('bbox', [0, 0, 0, 0])
+                        if len(bbox) >= 4 and (bbox[2] < 20 or bbox[3] < 10):
+                            continue
+                        
+                        group = {
+                            'id': f'simple_group_{i}',
+                            'type': 'bullet_list' if elem_type == 'list_item' else elem_type,
+                            'element_ids': [elem.get('id')],
+                            'priority': 'normal',
+                            'highlight_strategy': {
+                                'when': 'during_explanation',
+                                'effect_type': 'highlight',
+                                'duration': 2.0,
+                                'intensity': 'normal'
+                            }
+                        }
+                        simple_groups.append(group)
+                    
+                    semantic_map = {'groups': simple_groups, 'fallback': True}
+                    slide['semantic_map'] = semantic_map
+                    self.logger.info(f"✅ Created {len(simple_groups)} simple groups from elements")
+                
+                # ✅ FIX: Calculate duration from audio file if missing
+                if (not duration or duration == 0) and audio_path:
+                    audio_filename = Path(audio_path).name
+                    audio_full_path = lesson_path / "audio" / audio_filename
+                    
+                    if audio_full_path.exists():
+                        try:
+                            import wave
+                            with wave.open(str(audio_full_path), 'rb') as audio_file:
+                                frames = audio_file.getnframes()
+                                rate = audio_file.getframerate()
+                                duration = frames / float(rate)
+                                slide['duration'] = duration
+                                self.logger.info(f"✅ Calculated duration from audio file: {duration:.2f}s")
+                        except Exception as e:
+                            self.logger.warning(f"⚠️ Could not read audio file: {e}")
+                            # Try fallback with pydub
+                            try:
+                                from pydub import AudioSegment
+                                audio = AudioSegment.from_file(str(audio_full_path))
+                                duration = len(audio) / 1000.0  # Convert ms to seconds
+                                slide['duration'] = duration
+                                self.logger.info(f"✅ Calculated duration with pydub: {duration:.2f}s")
+                            except Exception as e2:
+                                self.logger.error(f"❌ Failed to calculate duration: {e2}")
+                
+                if not duration or duration == 0 or not audio_path:
+                    self.logger.warning(f"⚠️ Slide {slide_id} has no audio or duration, skipping cues")
                     slide['cues'] = []
                     slide['visual_cues'] = []  # Frontend expects this field
                     continue
                 
-                # Generate cues using semantic map with talk_track_raw for fallback
-                cues = self.effects_engine.generate_cues_from_semantic_map(
-                    semantic_map,
-                    elements,
-                    duration,
-                    tts_words,
-                    talk_track_raw  # Use raw version with markers
+                # ✅ Generate visual cues with smart timing strategy:
+                # - Google TTS: Uses native word_timings from SSML <mark> tags (no Whisper needed)
+                # - Silero TTS: Uses Whisper to extract word-level timing from generated audio
+                # BulletPointSyncService automatically detects TTS provider and uses appropriate method
+
+                # Convert relative audio path to absolute path
+                audio_filename = Path(audio_path).name  # Extract "001.wav"
+                audio_full_path = lesson_path / "audio" / audio_filename
+
+                # ✅ NEW: Create synthetic talk_track_raw with group_id from semantic_map
+                # This allows BulletPointSync to match visual effects even when LLM didn't provide group_id
+                # ✅ FIX: Use talk_track WITH timing (if available)
+                talk_track = slide.get('talk_track', [])
+
+                # Check if talk_track has timing (start/end)
+                has_timing = talk_track and len(talk_track) > 0 and 'start' in talk_track[0]
+                if not has_timing:
+                    self.logger.warning(f"⚠️ Slide {slide_id}: talk_track has NO timing, will use fallback distribution")
+                else:
+                    self.logger.info(f"✅ Slide {slide_id}: talk_track has timing from TTS")
+
+                semantic_groups = semantic_map.get('groups', [])
+
+                # Create element lookup for text matching
+                elements_by_id = {elem.get('id'): elem for elem in elements}
+
+                # Build group text index for better matching
+                group_texts = {}
+                for group in semantic_groups:
+                    # Skip watermarks and decorative elements
+                    if group.get('type') in ['watermark', 'decoration', 'noise']:
+                        continue
+
+                    # Collect text from all elements in this group
+                    # ✅ FIX: Use text_translated for matching with Russian TTS
+                    element_ids = group.get('element_ids', [])
+                    texts = []
+                    for elem_id in element_ids:
+                        elem = elements_by_id.get(elem_id)
+                        if elem:
+                            # Prefer translated text (for matching with TTS)
+                            text = elem.get('text_translated') or elem.get('text', '')
+                            if text:
+                                texts.append(text.lower())
+
+                    if texts:
+                        group_texts[group.get('id')] = ' '.join(texts)
+
+                # Build talk_track_raw by matching talk_track text with semantic groups
+                talk_track_raw = []
+                used_groups = set()  # Track which groups were already used
+
+                for i, segment in enumerate(talk_track):
+                    segment_text = segment.get('text', '').lower()
+                    segment_type = segment.get('segment', '')
+                    group_id = None
+
+                    # Strategy 1: Text similarity matching
+                    best_match_score = 0
+                    best_match_group = None
+
+                    for gid, gtext in group_texts.items():
+                        # Skip if group already used (prefer one-to-one mapping)
+                        if gid in used_groups and best_match_score < 0.7:
+                            continue
+
+                        # Count matching words
+                        segment_words = set(w for w in segment_text.split() if len(w) > 3)
+                        group_words = set(w for w in gtext.split() if len(w) > 3)
+
+                        if not segment_words:
+                            continue
+
+                        matches = segment_words & group_words
+                        score = len(matches) / len(segment_words)
+
+                        if score > best_match_score:
+                            best_match_score = score
+                            best_match_group = gid
+
+                    # Use text match if score is good enough
+                    if best_match_score > 0.2:  # At least 20% word overlap
+                        group_id = best_match_group
+                        used_groups.add(group_id)
+                    else:
+                        # Strategy 2: Fallback heuristics
+                        # First segment -> title group
+                        if i == 0 and semantic_groups:
+                            title_groups = [g for g in semantic_groups if g.get('type') == 'title']
+                            if title_groups:
+                                group_id = title_groups[0].get('id')
+                                used_groups.add(group_id)
+                        # Other segments -> distribute among remaining groups
+                        elif semantic_groups:
+                            unused_groups = [g for g in semantic_groups
+                                           if g.get('id') not in used_groups
+                                           and g.get('type') not in ['watermark', 'decoration', 'noise']]
+                            if unused_groups:
+                                # Prefer content/key_point/bullet_list groups
+                                priority_groups = [g for g in unused_groups
+                                                 if g.get('type') in ['content', 'key_point', 'bullet_list']]
+                                if priority_groups:
+                                    group_id = priority_groups[0].get('id')
+                                else:
+                                    group_id = unused_groups[0].get('id')
+                                if group_id:
+                                    used_groups.add(group_id)
+
+                    talk_track_raw.append({
+                        **segment,
+                        'group_id': group_id  # Add group_id for timing matching
+                    })
+
+                logger.info(f"🎯 Using BulletPointSync for visual effects on slide {slide_id}...")
+                logger.info(f"   Synthetic talk_track_raw: {len(talk_track_raw)} segments, {sum(1 for s in talk_track_raw if s.get('group_id'))} with group_id")
+                logger.info(f"   Semantic groups: {[g.get('id') for g in semantic_groups]}")
+                logger.info(f"   Mapped groups: {[s.get('group_id') for s in talk_track_raw if s.get('group_id')]}")
+                logger.info(f"   Elements: {len(elements)} total")
+
+                cues = self.bullet_sync.sync_bullet_points(
+                    audio_path=str(audio_full_path),
+                    talk_track_raw=talk_track_raw,
+                    semantic_map=semantic_map,
+                    elements=elements,  # ✅ FIX: Pass elements from slide
+                    slide_language="auto",  # Auto-detect through Whisper
+                    audio_duration=duration,  # ✅ FIX: Pass real audio duration for fallback sync
+                    tts_words=tts_words  # ✅ NEW: Pass word-level timing from Google TTS
                 )
                 
                 # Validate cues
@@ -1056,8 +1465,9 @@ class OptimizedIntelligentPipeline(BasePipeline):
                 # ✅ Save to BOTH 'cues' and 'visual_cues' for compatibility
                 slide['cues'] = cues
                 slide['visual_cues'] = cues  # Frontend expects this field
-                
+
                 self.logger.info(f"✅ Generated {len(cues)} visual cues")
+                self.logger.info(f"   Slide {slide_id} now has {len(slide.get('cues', []))} cues in memory")
                 
                 # Keep tts_words for debugging and potential runtime fallback
                 # Don't delete them - they contain sentences needed for text matching
@@ -1072,9 +1482,9 @@ class OptimizedIntelligentPipeline(BasePipeline):
         
         for slide in manifest_data["slides"]:
             slide_id = slide["id"]
-            duration = slide.get("duration", 0.0)
+            duration = slide.get("duration") or 0.0
             
-            if duration > 0:
+            if duration and duration > 0:
                 timeline.append({
                     "t0": current_time,
                     "t1": current_time + duration,
@@ -1086,9 +1496,14 @@ class OptimizedIntelligentPipeline(BasePipeline):
         
         manifest_data["timeline"] = timeline
         
+        # ✅ DEBUG: Log cues before saving
+        for slide in manifest_data["slides"]:
+            cues_count = len(slide.get('cues', []))
+            self.logger.info(f"   Slide {slide['id']}: {cues_count} cues before save")
+
         # Save final manifest
         self.save_manifest(lesson_dir, manifest_data)
-        
+
         self.logger.info(f"✅ OptimizedPipeline: Final manifest built for {lesson_dir}")
         self.logger.info(f"📊 Total slides: {len(manifest_data['slides'])}")
         self.logger.info(f"⏱️ Total duration: {current_time:.1f}s")
