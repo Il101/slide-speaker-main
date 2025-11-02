@@ -17,7 +17,6 @@ from ..services.ocr_cache import get_ocr_cache
 from ..services.presentation_intelligence import PresentationIntelligence
 from ..services.semantic_analyzer import SemanticAnalyzer
 from ..services.smart_script_generator import SmartScriptGenerator
-from ..services.visual_effects_engine import VisualEffectsEngine
 from ..services.validation_engine import ValidationEngine
 from ..services.ssml_generator import generate_ssml_from_talk_track
 from ..services.bullet_point_sync import BulletPointSyncService
@@ -49,7 +48,6 @@ class OptimizedIntelligentPipeline(BasePipeline):
         self.presentation_intelligence = PresentationIntelligence()
         self.semantic_analyzer = SemanticAnalyzer()
         self.script_generator = SmartScriptGenerator()
-        self.effects_engine = VisualEffectsEngine()
         self.validation_engine = ValidationEngine()
         
         # ✅ NEW: Bullet point sync service with Whisper
@@ -224,8 +222,6 @@ class OptimizedIntelligentPipeline(BasePipeline):
                         f"{strategies_used['text_similarity']} by similarity, "
                         f"{strategies_used['interpolation']} by interpolation")
     
-    # REMOVED: ingest_old() method - deprecated, use ingest() instead
-    
     def _find_presentation_file(self, lesson_dir: str) -> tuple[Path, str]:
         """Find PPTX or PDF file in lesson directory
         
@@ -249,11 +245,6 @@ class OptimizedIntelligentPipeline(BasePipeline):
             return pdf_files[0], 'pdf'
         
         raise FileNotFoundError(f"No PPTX or PDF file found in {lesson_dir}")
-    
-    def _find_pptx_file(self, lesson_dir: str) -> Path:
-        """Find PPTX file in lesson directory (legacy method for compatibility)"""
-        file_path, file_type = self._find_presentation_file(lesson_dir)
-        return file_path
     
     def _convert_pptx_to_png(self, pptx_file: Path, output_dir: Path) -> List[Path]:
         """
@@ -511,6 +502,46 @@ class OptimizedIntelligentPipeline(BasePipeline):
             else:
                 slide['elements'] = []
                 self.logger.warning(f"⚠️ Slide {slide['id']}: no OCR data")
+        
+        # 4.1. NEW: Diagram Detection & Classification
+        self.logger.info(f"🖼️ Stage 2.1: Diagram detection for {len(slides)} slides...")
+        
+        from ..services.diagram_detector import DiagramDetector
+        diagram_detector = DiagramDetector()
+        
+        total_diagrams = 0
+        for i, slide in enumerate(slides):
+            slide_id = slide['id']
+            slide_number = i + 1
+            png_path = lesson_path / "slides" / f"{slide_id:03d}.png"
+            
+            if not png_path.exists():
+                continue
+            
+            # Detect diagrams on this slide
+            text_elements = slide.get('elements', [])
+            diagrams = diagram_detector.detect_diagrams(
+                str(png_path),
+                text_elements=text_elements,
+                slide_number=slide_number
+            )
+            
+            # Add diagrams to elements
+            if diagrams:
+                slide['elements'].extend(diagrams)
+                slide['has_diagrams'] = True
+                slide['diagram_count'] = len(diagrams)
+                total_diagrams += len(diagrams)
+                
+                self.logger.info(
+                    f"   Slide {slide_number}: found {len(diagrams)} diagrams "
+                    f"({', '.join(d['diagram_type'] for d in diagrams)})"
+                )
+            else:
+                slide['has_diagrams'] = False
+                slide['diagram_count'] = 0
+        
+        self.logger.info(f"✅ Stage 2.1: Detected {total_diagrams} diagrams across all slides")
         
         # 4.5. Language Detection & Translation
         self.logger.info(f"🌍 Stage 2.5: Language detection and translation...")

@@ -44,8 +44,6 @@ from .core.auth import get_current_user, get_current_user_optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from fastapi import Depends
-# Legacy import (kept for backward compatibility if USE_NEW_PIPELINE=false)
-# from .services.sprint1.document_parser import ParserFactory
 from .services.sprint2.ai_generator import AIGenerator, TTSService, ContentEditor
 from .services.sprint3.video_exporter import VideoExporter, QueueManager, StorageManager
 from .pipeline import get_pipeline, BasePipeline
@@ -408,56 +406,21 @@ async def upload_file(
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
-    # Process document
+    # Process document with NEW pipeline
     try:
-        if not settings.USE_NEW_PIPELINE:
-            # ❌ OLD PIPELINE (legacy - deprecated!)
-            logger.warning(f"Using DEPRECATED old pipeline for {lesson_id}")
-            logger.warning("OLD pipeline is deprecated! Set USE_NEW_PIPELINE=true (it's now default)")
-            
-            # Import only if needed (lazy import)
-            from .services.sprint1.document_parser import ParserFactory
-            
-            parser = ParserFactory.create_parser(file_path)
-            manifest = await parser.parse()
-            
-            # Save manifest
-            manifest_path = lesson_dir / "manifest.json"
-            with open(manifest_path, "w", encoding="utf-8") as f:
-                json.dump(manifest.dict(), f, ensure_ascii=False, indent=2)
-            
-            logger.info(f"Processed document with OLD pipeline: {lesson_id}")
-            
-            # Run old pipeline ingest (validation only)
-            pipeline = pipeline_for_request(request)
-            try:
-                logger.info(f"Running OLD pipeline ingest for {lesson_id}")
-                pipeline.ingest_old(str(lesson_dir))
-            except Exception as e:
-                logger.error(f"Error in OLD pipeline ingest: {e}")
-        else:
-            # ✅ NEW PIPELINE (default): Everything happens in pipeline
-            logger.info(f"Using NEW pipeline for {lesson_id} (PPTX→PNG→OCR in pipeline)")
-            # Manifest will be created by pipeline.ingest() during Celery task
-            # No pre-processing needed here!
+        # ✅ NEW PIPELINE: Everything happens in pipeline
+        logger.info(f"Using NEW pipeline for {lesson_id} (PPTX→PNG→OCR in pipeline)")
+        # Manifest will be created by pipeline.ingest() during Celery task
+        # No pre-processing needed here!
         
         # Create lesson record in database and start pipeline processing
-        # ✅ Use authenticated user ID (current_user from Depends)
         lesson_user_id = current_user["user_id"]
         logger.info(f"Creating lesson {lesson_id} for user {lesson_user_id}")
         
         if lesson_user_id:
             try:
-                # Get slides count from manifest (if it exists)
-                slides_count = 0
-                if not settings.USE_NEW_PIPELINE:
-                    # Old pipeline: manifest exists
-                    slides_count = len(manifest.slides)
-                else:
-                    # New pipeline: manifest will be created later
-                    # Set slides_count = 0 for now, will be updated by pipeline
-                    slides_count = 0
-                
+                # New pipeline: manifest will be created later
+                # slides_count will be updated by pipeline
                 lesson = Lesson(
                     id=lesson_id,
                     user_id=lesson_user_id,
@@ -465,9 +428,9 @@ async def upload_file(
                     file_path=str(file_path),
                     file_size=file.size,
                     file_type=file_ext,
-                    slides_count=slides_count,
+                    slides_count=0,  # Will be updated by pipeline
                     status="processing",
-                    manifest_data=manifest.dict() if not settings.USE_NEW_PIPELINE else {}
+                    manifest_data={}  # Will be populated by pipeline
                 )
                 
                 db.add(lesson)
@@ -484,6 +447,18 @@ async def upload_file(
             from .tasks import process_lesson_full_pipeline
             task = process_lesson_full_pipeline.delay(lesson_id, str(file_path), lesson_user_id or "anonymous")
             logger.info(f"Started Celery task {task.id} for lesson {lesson_id}")
+            
+            # Save task_id for cancellation support
+            if db is not None and lesson_user_id:
+                try:
+                    await db.execute(
+                        text("UPDATE lessons SET task_id = :task_id WHERE id = :lesson_id"),
+                        {"task_id": task.id, "lesson_id": lesson_id}
+                    )
+                    await db.commit()
+                    logger.info(f"Saved task_id {task.id} for lesson {lesson_id}")
+                except Exception as e:
+                    logger.error(f"Error saving task_id: {e}")
         except Exception as e:
             logger.error(f"Error starting Celery task for lesson {lesson_id}: {e}")
             # Continue without task - lesson will remain in processing state
@@ -750,11 +725,20 @@ async def get_manifest(
     
     if not manifest_path.exists():
         raise HTTPException(status_code=404, detail="Lesson not found")
-    
+
     with open(manifest_path, "r", encoding="utf-8") as f:
         manifest = json.load(f)
-    
-    return manifest
+
+    # ✅ Add cache busting header to prevent browser caching stale manifests
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        content=manifest,
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
 
 # Sprint 2: AI Generation Endpoints
 @app.post("/lessons/{lesson_id}/generate-speaker-notes")
