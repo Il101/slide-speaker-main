@@ -9,7 +9,10 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
-    allowedHosts: ['slide-speaker-main.onrender.com'],
+    allowedHosts: [
+      'slide-speaker-main.onrender.com',
+      'slide-speaker-main-1.onrender.com'
+    ],
     proxy: {
       '/api': {
         target: process.env.VITE_API_URL || 'http://backend:8000',
@@ -19,7 +22,10 @@ export default defineConfig({
     }
   },
   preview: {
-    allowedHosts: ['slide-speaker-main.onrender.com'],
+    allowedHosts: [
+      'slide-speaker-main.onrender.com',
+      'slide-speaker-main-1.onrender.com'
+    ],
   },
   build: {
     rollupOptions: {
