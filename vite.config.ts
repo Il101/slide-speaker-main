@@ -13,13 +13,16 @@ export default defineConfig({
       'slide-speaker-main.onrender.com',
       'slide-speaker-main-1.onrender.com'
     ],
-    proxy: {
-      '/api': {
-        target: process.env.VITE_API_URL || 'http://backend:8000',
-        changeOrigin: true,
-        secure: false,
+    // Proxy only for local Docker development
+    ...(process.env.NODE_ENV !== 'production' && !process.env.RENDER && {
+      proxy: {
+        '/api': {
+          target: process.env.VITE_API_URL || 'http://backend:8000',
+          changeOrigin: true,
+          secure: false,
+        }
       }
-    }
+    })
   },
   preview: {
     allowedHosts: [
