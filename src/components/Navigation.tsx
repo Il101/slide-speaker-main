@@ -21,9 +21,15 @@ const Navigation: React.FC<NavigationProps> = ({
   const { isAdmin } = useRole();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await logout.mutateAsync();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Navigate anyway on error
+      navigate('/');
+    }
   };
 
   return (

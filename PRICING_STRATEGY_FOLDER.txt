@@ -1,0 +1,10 @@
+📊 PRICING STRATEGY - SEE FOLDER
+
+👉 Все документы по прайсингу находятся в папке: **pricing-strategy/**
+
+🚀 Начните отсюда:
+- `pricing-strategy/README.md` - Главный файл
+- `pricing-strategy/ANSWER.md` - Краткие ответы (5 мин)
+- `pricing-strategy/FINAL_SUMMARY.md` - Итоговое резюме (10 мин)
+
+✅ Готово к использованию!

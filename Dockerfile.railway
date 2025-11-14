@@ -30,7 +30,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/app/ ./app/
 COPY backend/workers/ ./workers/
 COPY backend/storage_gcs.py .
-COPY backend/main.py .
 COPY backend/alembic.ini .
 COPY backend/alembic/ ./alembic/
 

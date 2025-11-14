@@ -33,11 +33,18 @@ class GeminiLLMWorker:
         self.model = model or os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
         self.temperature = float(os.getenv("LLM_TEMPERATURE", "0.2"))
         
+        # ✅ FIX: Check environment to prevent mock mode in production
+        environment = os.getenv("ENVIRONMENT", "development")
+        
         if not VERTEX_AI_AVAILABLE:
-            logger.warning("Vertex AI not available, will use mock mode")
+            if environment == "production":
+                raise RuntimeError("Vertex AI library not available in production! Install google-cloud-aiplatform")
+            logger.warning("Vertex AI not available, will use mock mode (development only)")
             self.use_mock = True
         elif not self.project_id:
-            logger.warning("GCP Project ID not provided, will use mock mode")
+            if environment == "production":
+                raise ValueError("GCP Project ID required in production! Set GCP_PROJECT_ID")
+            logger.warning("GCP Project ID not provided, will use mock mode (development only)")
             self.use_mock = True
         else:
             self.use_mock = False
@@ -56,7 +63,7 @@ class GeminiLLMWorker:
         pass
     
     def generate(self, prompt: str, system_prompt: str = None, temperature: float = 0.2, 
-                max_tokens: int = 2000, image_base64: str = None) -> str:
+                max_tokens: int = 2000, image_base64: str = None, timeout: float = 30.0) -> str:
         """
         Generate text using Gemini model (supports multimodal with images)
         
@@ -66,10 +73,13 @@ class GeminiLLMWorker:
             temperature: Temperature for generation
             max_tokens: Maximum tokens to generate
             image_base64: Optional base64-encoded image for vision analysis
+            timeout: Timeout in seconds (default: 30.0)
             
         Returns:
             Generated text
         """
+        import concurrent.futures
+        
         try:
             if self.use_mock:
                 return self._generate_mock(prompt)
@@ -77,14 +87,34 @@ class GeminiLLMWorker:
             # Combine system and user prompts
             full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
             
-            # Generate with Gemini (with optional image)
-            if image_base64:
-                response = self._generate_with_gemini_vision(full_prompt, image_base64, temperature, max_tokens)
-            else:
-                response = self._generate_with_gemini(full_prompt, temperature, max_tokens)
+            # ✅ FIX: Add timeout to prevent hanging requests
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                # Call appropriate method based on whether we have an image
+                if image_base64:
+                    future = executor.submit(
+                        self._generate_with_gemini_vision,
+                        full_prompt,
+                        image_base64,
+                        temperature,
+                        max_tokens
+                    )
+                else:
+                    future = executor.submit(
+                        self._generate_with_gemini,
+                        full_prompt,
+                        temperature,
+                        max_tokens
+                    )
+                
+                try:
+                    response = future.result(timeout=timeout)
+                    return response
+                except concurrent.futures.TimeoutError:
+                    logger.error(f"LLM request timed out after {timeout}s")
+                    raise TimeoutError(f"Gemini API request exceeded {timeout}s timeout")
             
-            return response
-            
+        except TimeoutError:
+            raise  # Re-raise timeout to be caught by caller
         except Exception as e:
             logger.error(f"Error generating with Gemini: {e}")
             return self._generate_mock(prompt)

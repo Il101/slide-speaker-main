@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { apiClient } from '@/lib/api';
+import { createContext, useContext, ReactNode, useEffect } from 'react';
+import { useCurrentUser, useLogin, useLogout, useRegister } from '@/hooks/useAuth';
 
 // Типы для авторизации
 export interface User {
@@ -23,155 +23,55 @@ export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (credentials: RegisterCredentials) => Promise<void>;
-  logout: () => void;
+  login: ReturnType<typeof useLogin>;
+  register: ReturnType<typeof useRegister>;
+  logout: ReturnType<typeof useLogout>;
   refreshUser: () => Promise<void>;
 }
 
 // Создаем контекст
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Константы для localStorage
-const TOKEN_KEY = 'slide-speaker-auth-token';
-const USER_KEY = 'slide-speaker-user';
-
-// Провайдер контекста
+// Провайдер контекста - теперь использует TanStack Query hooks
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: userData, isLoading, error } = useCurrentUser();
+  const loginMutation = useLogin();
+  const logoutMutation = useLogout();
+  const registerMutation = useRegister();
 
-  // Проверяем, авторизован ли пользователь
+  // Transform API response to User type
+  const user: User | null = userData ? {
+    user_id: userData.user_id,
+    email: userData.email,
+    role: userData.role as 'admin' | 'user'
+  } : null;
+
   const isAuthenticated = !!user;
-
-  // Инициализация при загрузке
+  
+  // Debug logging - only log on state changes
   useEffect(() => {
-    initializeAuth();
-  }, []);
+    console.log('[AuthProvider] State changed:', {
+      isLoading,
+      isAuthenticated,
+      user: user?.email,
+      hasError: !!error
+    });
+  }, [isLoading, isAuthenticated, user, error]);
 
-  const initializeAuth = async () => {
-    try {
-      // Токен хранится в HttpOnly cookie, поэтому не проверяем localStorage
-      // Пытаемся получить текущего пользователя - если cookie валидный, запрос пройдёт
-      const savedUser = localStorage.getItem(USER_KEY);
-      
-      try {
-        const userData = await apiClient.getCurrentUser();
-        
-        // Преобразуем роль в правильный тип
-        const user: User = {
-          user_id: userData.user_id,
-          email: userData.email,
-          role: userData.role as 'admin' | 'user'
-        };
-        
-        // Сохраняем данные пользователя
-        localStorage.setItem(USER_KEY, JSON.stringify(user));
-        setUser(user);
-      } catch (error) {
-        // Cookie отсутствует или недействителен, очищаем данные
-        clearAuthData();
-      }
-    } catch (error) {
-      console.error('Ошибка инициализации авторизации:', error);
-      clearAuthData();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Очистка данных авторизации
-  const clearAuthData = () => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    setUser(null);
-  };
-
-  // Функция входа
-  const login = async (credentials: LoginCredentials) => {
-    try {
-      setLoading(true);
-      
-      const response = await apiClient.login(credentials);
-      
-      // Токен теперь хранится в HttpOnly cookie, не нужно сохранять в localStorage
-      // Получаем информацию о пользователе
-      const userData = await apiClient.getCurrentUser();
-      
-      // Преобразуем роль в правильный тип
-      const user: User = {
-        user_id: userData.user_id,
-        email: userData.email,
-        role: userData.role as 'admin' | 'user'
-      };
-      
-      // Сохраняем данные пользователя
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-      setUser(user);
-      
-    } catch (error) {
-      console.error('Ошибка входа:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Функция регистрации
-  const register = async (credentials: RegisterCredentials) => {
-    try {
-      setLoading(true);
-      
-      // Регистрируем пользователя
-      const registerResponse = await apiClient.register(credentials);
-      
-      // После успешной регистрации автоматически входим
-      await login({
-        email: credentials.email,
-        password: credentials.password
-      });
-      
-    } catch (error) {
-      console.error('Ошибка регистрации:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Функция выхода
-  const logout = () => {
-    clearAuthData();
-    // Можно добавить вызов API для инвалидации токена на сервере
-  };
-
-  // Обновление данных пользователя
+  // Refresh user function for backward compatibility
   const refreshUser = async () => {
-    try {
-      const userData = await apiClient.getCurrentUser();
-      
-      // Преобразуем роль в правильный тип
-      const user: User = {
-        user_id: userData.user_id,
-        email: userData.email,
-        role: userData.role as 'admin' | 'user'
-      };
-      
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-      setUser(user);
-    } catch (error) {
-      console.error('Ошибка обновления данных пользователя:', error);
-      logout();
-    }
+    // With TanStack Query, we can just invalidate the query
+    // This is handled automatically by the mutations
+    console.log('RefreshUser called - handled by TanStack Query');
   };
 
   const value: AuthContextType = {
     user,
     isAuthenticated,
-    loading,
-    login,
-    register,
-    logout,
+    loading: isLoading,
+    login: loginMutation,
+    register: registerMutation,
+    logout: logoutMutation,
     refreshUser,
   };
 

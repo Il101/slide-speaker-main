@@ -23,7 +23,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { login, loading } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -39,18 +39,25 @@ const Login: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setError(null);
-      await login({
+      console.log('[Login] Attempting login with:', data.email);
+      
+      await login.mutateAsync({
         email: data.email,
         password: data.password
       });
+      
+      console.log('[Login] Login successful, user data should be refetched');
       
       // Track successful login
       trackEvent.login('email');
       
       // Перенаправляем на страницу, с которой пришел пользователь, или на главную
       const from = (location.state as any)?.from?.pathname || '/';
+      console.log('[Login] Navigating to:', from);
       navigate(from, { replace: true });
     } catch (err) {
+      console.error('[Login] Login failed:', err);
+      
       // Track login error
       trackEvent.error({
         errorType: 'LoginError',
@@ -142,9 +149,9 @@ const Login: React.FC = () => {
             <Button
               type="submit"
               className="w-full"
-              disabled={isSubmitting || loading}
+              disabled={isSubmitting || login.isPending}
             >
-              {isSubmitting || loading ? (
+              {isSubmitting || login.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Вход...

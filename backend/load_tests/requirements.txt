@@ -1,0 +1,26 @@
+# Load Testing Requirements
+# Python dependencies for running load tests
+
+# Core load testing
+locust>=2.17.0
+geventhttpclient>=2.0.11
+
+# HTTP client
+httpx>=0.25.0
+requests>=2.31.0
+
+# Data generation
+python-pptx>=0.6.21
+Pillow>=10.0.0
+
+# Monitoring and analysis
+psutil>=5.9.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+
+# Docker SDK (for distributed testing)
+docker>=6.1.0
+
+# CLI utilities
+click>=8.1.0
+rich>=13.0.0

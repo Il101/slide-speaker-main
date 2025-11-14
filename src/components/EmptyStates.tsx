@@ -19,18 +19,20 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   icon, 
   action 
 }) => (
-  <Card className="flex flex-col items-center justify-center py-12 px-4 text-center">
+  <Card className="flex flex-col items-center justify-center py-12 px-4 text-center card-gradient">
     {icon && (
-      <div className="mb-4 text-muted-foreground">
-        {icon}
+      <div className="mb-6 w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+        <div className="text-primary">
+          {icon}
+        </div>
       </div>
     )}
-    <h3 className="text-lg font-semibold mb-2">{title}</h3>
-    <p className="text-muted-foreground text-sm mb-6 max-w-md">
+    <h3 className="text-xl font-semibold mb-3">{title}</h3>
+    <p className="text-muted-foreground text-sm mb-6 max-w-md leading-relaxed">
       {description}
     </p>
     {action && (
-      <Button onClick={action.onClick}>
+      <Button onClick={action.onClick} className="button-press">
         {action.label}
       </Button>
     )}
@@ -38,15 +40,21 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 );
 
 export const EmptyVideos: React.FC<{ onAction?: () => void }> = ({ onAction }) => (
-  <EmptyState
-    icon={<FileVideo className="h-16 w-16" />}
-    title="Нет загруженных лекций"
-    description="Начните с загрузки вашей первой презентации. ИИ превратит её в интерактивную лекцию с озвучкой."
-    action={onAction ? {
-      label: 'Загрузить презентацию',
-      onClick: onAction
-    } : undefined}
-  />
+  <div className="flex flex-col items-center justify-center py-12 px-4">
+    <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-6 animate-pulse-subtle">
+      <FileVideo className="h-12 w-12 text-primary" />
+    </div>
+    <h3 className="text-xl font-semibold mb-3">Создайте первую лекцию</h3>
+    <p className="text-sm text-muted-foreground text-center mb-6 max-w-sm leading-relaxed">
+      Загрузите презентацию PPTX или PDF и получите профессиональную видео-лекцию с озвучкой и интерактивными эффектами
+    </p>
+    {onAction && (
+      <Button onClick={onAction} size="lg" className="button-press">
+        <Upload className="mr-2 h-5 w-5" />
+        Загрузить презентацию
+      </Button>
+    )}
+  </div>
 );
 
 export const EmptySearch: React.FC<{ query: string; onClear?: () => void }> = ({ 

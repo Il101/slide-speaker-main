@@ -51,7 +51,8 @@ class Lesson(Base):
     user_id: Mapped[str] = mapped_column(String(36), index=True)
     title: Mapped[Optional[str]] = mapped_column(String(255))
     description: Mapped[Optional[str]] = mapped_column(Text)
-    status: Mapped[str] = mapped_column(String(50), default="processing")  # processing, completed, failed
+    status: Mapped[str] = mapped_column(String(50), default="processing")  # processing, completed, failed, cancelled
+    task_id: Mapped[Optional[str]] = mapped_column(String(255), index=True)  # Celery task ID for cancellation
     file_path: Mapped[Optional[str]] = mapped_column(String(500))
     file_size: Mapped[Optional[int]] = mapped_column(Integer)
     file_type: Mapped[Optional[str]] = mapped_column(String(50))

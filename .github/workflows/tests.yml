@@ -1,0 +1,167 @@
+name: Tests and Coverage
+
+on:
+  push:
+    branches: [ main, production-deploy, develop ]
+  pull_request:
+    branches: [ main, production-deploy ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libreoffice poppler-utils
+      
+      - name: Install Python dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+      
+      - name: Run linters
+        run: |
+          cd backend
+          pip install black flake8 mypy
+          black --check app/ tests/
+          flake8 app/ tests/ --max-line-length=120 --extend-ignore=E203,W503
+          # mypy app/ --ignore-missing-imports (optional)
+      
+      - name: Run unit tests with coverage
+        env:
+          USE_MOCK_LLM: "true"
+          USE_MOCK_TTS: "true"
+          USE_MOCK_OCR: "true"
+        run: |
+          cd backend
+          pytest tests/unit/ -v \
+            --cov=app \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-report=html \
+            --tb=short \
+            --maxfail=5
+      
+      - name: Run integration tests
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production-deploy')
+        env:
+          USE_MOCK_LLM: "true"
+          USE_MOCK_TTS: "true"
+        run: |
+          cd backend
+          pytest tests/integration/ -v \
+            -m integration \
+            --tb=short
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+      
+      - name: Coverage comment
+        uses: py-cov-action/python-coverage-comment-action@v3
+        if: github.event_name == 'pull_request'
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MINIMUM_GREEN: 70
+          MINIMUM_ORANGE: 50
+      
+      - name: Check coverage threshold
+        run: |
+          cd backend
+          coverage report --fail-under=70
+        continue-on-error: true
+      
+      - name: Archive test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-${{ matrix.python-version }}
+          path: |
+            backend/htmlcov/
+            backend/coverage.xml
+            backend/.coverage
+          retention-days: 30
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Bandit security scan
+        run: |
+          pip install bandit
+          bandit -r backend/app/ -f json -o bandit-report.json
+        continue-on-error: true
+      
+      - name: Run Safety check
+        run: |
+          pip install safety
+          safety check --json --file backend/requirements.txt
+        continue-on-error: true
+      
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: bandit-report.json
+          retention-days: 30
+
+  docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production-deploy')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Docker image
+        run: |
+          docker build -t slide-speaker:${{ github.sha }} .
+      
+      - name: Test Docker image
+        run: |
+          docker run --rm slide-speaker:${{ github.sha }} python --version
+      
+      - name: Save Docker image
+        if: github.ref == 'refs/heads/production-deploy'
+        run: |
+          docker save slide-speaker:${{ github.sha }} | gzip > slide-speaker-image.tar.gz
+      
+      - name: Upload Docker image artifact
+        if: github.ref == 'refs/heads/production-deploy'
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-image
+          path: slide-speaker-image.tar.gz
+          retention-days: 7

@@ -135,7 +135,7 @@ export const PlaylistsPage: React.FC = () => {
             <p className="text-muted-foreground mb-6">
               Создайте первый плейлист из раздела "Мои видео"
             </p>
-            <Button onClick={() => navigate('/my-videos')}>
+            <Button onClick={() => navigate('/')}>
               Перейти к видео
             </Button>
           </div>

@@ -1,44 +1,13 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, Settings, Download, Edit3, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Settings, Download, Edit3, Eye, EyeOff, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlayerState, EditingState, Cue, SlideElement } from '@/types/player';
-import { apiClient, Manifest, Slide, CuePatch, ElementPatch, SlidePatch, LessonPatchRequest } from '@/lib/api';
-import { CueEditor } from '@/components/CueEditor';
+import { PlayerState, EditingState, SlideElement } from '@/types/player';
+import { apiClient, Manifest, SlidePatch, LessonPatchRequest } from '@/lib/api';
 import { ElementEditor } from '@/components/ElementEditor';
-import { AdvancedEffectRenderer } from '@/components/AdvancedEffects';
-
-// Simplified lazy loading hook
-const useLazyImage = (src: string) => {
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [imageRef, setImageRef] = useState<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!imageRef || !src) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setImageSrc(src);
-          observer.unobserve(entry.target);
-        }
-      },
-      { rootMargin: '50px' }
-    );
-
-    observer.observe(imageRef);
-
-    return () => {
-      if (imageRef) {
-        observer.unobserve(imageRef);
-      }
-    };
-  }, [imageRef, src]);
-
-  return [imageSrc, setImageRef] as const;
-};
 
 interface PlayerProps {
   lessonId: string;
@@ -109,7 +78,6 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
 
   const [editingState, setEditingState] = useState<EditingState>({
     isEditing: false,
-    editingCue: null,
     editingElement: null,
     showSubtitles: false,
     dimOthers: false
@@ -117,12 +85,21 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
 
   // Scale-aware state
   const [scale, setScale] = useState({ x: 1, y: 1 });
+  // 🔥 FIX: Get real slide dimensions from manifest metadata instead of hardcoded 1920x1080
   const [slideDimensions, setSlideDimensions] = useState({ width: 1920, height: 1080 });
   const [imageOffset, setImageOffset] = useState({ x: 0, y: 0 });
+  
+  // Swipe gesture state
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const slideRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
+  
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
 
   // Simplified image loading without lazy loading for now
   const currentSlideImageSrc = manifest?.slides[playerState.currentSlide]?.image || '';
@@ -200,11 +177,6 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
     };
   }, [slideDimensions, calculateScale]);
 
-  // Easing function for smooth laser movement
-  const easeInOutQuad = (t: number): number => {
-    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-  };
-
   // Загружаем manifest при монтировании компонента
   useEffect(() => {
     const loadManifest = async () => {
@@ -213,12 +185,16 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
         const data = await apiClient.getManifest(lessonId);
         setManifest(data);
         
-        // Load slide dimensions from manifest
-        const currentSlide = data.slides[playerState.currentSlide];
-        if (currentSlide && currentSlide.width && currentSlide.height) {
-          setSlideDimensions({ width: currentSlide.width, height: currentSlide.height });
-        } else if (data.metadata?.slide_width && data.metadata?.slide_height) {
-          setSlideDimensions({ width: data.metadata.slide_width, height: data.metadata.slide_height });
+        // 🔥 FIX: Extract real slide dimensions from manifest metadata
+        if (data.metadata?.slide_width && data.metadata?.slide_height) {
+          const realDimensions = {
+            width: data.metadata.slide_width,
+            height: data.metadata.slide_height
+          };
+          setSlideDimensions(realDimensions);
+          console.log('[Player] 📐 Using real slide dimensions from manifest:', realDimensions);
+        } else {
+          console.warn('[Player] ⚠️ No slide dimensions in manifest metadata, using default 1920x1080');
         }
         
         setError(null);
@@ -258,224 +234,11 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
     };
   }, [playerState.isPlaying]);
 
-  // Memoized slide effects calculation with support for both old cues and new visual_cues
-  const renderSlideEffects = useMemo(() => {
-    if (!manifest || !manifest.slides[playerState.currentSlide] || !slideRef.current) return null;
-    
-    const currentSlide = manifest.slides[playerState.currentSlide];
-    const effects = [];
-    
-    // Render traditional cues (for backward compatibility)
-    if (currentSlide.cues) {
-      currentSlide.cues.forEach((cue, index) => {
-        const isActive = playerState.currentTime >= cue.t0 && playerState.currentTime <= cue.t1;
-        const isEditing = editingState.editingCue?.cue_id === cue.cue_id;
-        
-        // Show all cues when editing, active cues when playing
-        if (!isActive && !isEditing && !editingState.isEditing) return;
-
-        if (cue.action === 'highlight' && cue.bbox) {
-          const [x, y, width, height] = cue.bbox;
-          const scaledX = x * scale.x + imageOffset.x;
-          const scaledY = y * scale.y + imageOffset.y;
-          const scaledWidth = width * scale.x;
-          const scaledHeight = height * scale.y;
-          
-          effects.push(
-            <div
-              key={`highlight-${index}`}
-              className={`absolute border-2 rounded transition-all duration-300 ${
-                isActive 
-                  ? 'bg-yellow-300 bg-opacity-50 border-yellow-500' 
-                  : isEditing 
-                  ? 'bg-blue-300 bg-opacity-50 border-blue-500' 
-                  : 'bg-gray-300 bg-opacity-30 border-gray-400'
-              } ${editingState.isEditing ? 'cursor-pointer hover:bg-opacity-70' : ''}`}
-              style={{
-                left: `${scaledX}px`,
-                top: `${scaledY}px`,
-                width: `${scaledWidth}px`,
-                height: `${scaledHeight}px`
-              }}
-              onClick={() => editingState.isEditing && startEditingCue(cue)}
-              data-testid="highlight"
-            >
-              {editingState.isEditing && (
-                <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-1 rounded">
-                  {cue.t0.toFixed(1)}s - {cue.t1.toFixed(1)}s
-                </div>
-              )}
-            </div>
-          );
-        }
-
-        if (cue.action === 'underline' && cue.bbox) {
-          const [x, y, width, height] = cue.bbox;
-          const scaledX = x * scale.x + imageOffset.x;
-          const scaledY = y * scale.y + imageOffset.y;
-          const scaledWidth = width * scale.x;
-          const scaledHeight = height * scale.y;
-          
-          effects.push(
-            <div
-              key={`underline-${index}`}
-              className={`absolute border-b-2 transition-all duration-300 ${
-                isActive 
-                  ? 'border-red-500' 
-                  : isEditing 
-                  ? 'border-blue-500' 
-                  : 'border-gray-400'
-              } ${editingState.isEditing ? 'cursor-pointer' : ''}`}
-              style={{
-                left: `${scaledX}px`,
-                top: `${scaledY + scaledHeight - 2}px`,
-                width: `${scaledWidth}px`,
-                height: '2px'
-              }}
-              onClick={() => editingState.isEditing && startEditingCue(cue)}
-            >
-              {editingState.isEditing && (
-                <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-1 rounded">
-                  {cue.t0.toFixed(1)}s - {cue.t1.toFixed(1)}s
-                </div>
-              )}
-            </div>
-          );
-        }
-
-        if (cue.action === 'laser_move' && cue.to) {
-          const [x, y] = cue.to;
-          const scaledX = x * scale.x + imageOffset.x;
-          const scaledY = y * scale.y + imageOffset.y;
-          
-          effects.push(
-            <div
-              key={`laser-${index}`}
-              className={`absolute w-2 h-2 rounded-full transition-all duration-300 ${
-                isActive 
-                  ? 'bg-red-500 shadow-lg shadow-red-500' 
-                  : isEditing 
-                  ? 'bg-blue-500' 
-                  : 'bg-gray-400'
-              } ${editingState.isEditing ? 'cursor-pointer' : ''}`}
-              style={{
-                left: `${scaledX - 4}px`,
-                top: `${scaledY - 4}px`,
-                transform: isActive ? 'scale(1.5)' : 'scale(1)'
-              }}
-              onClick={() => editingState.isEditing && startEditingCue(cue)}
-            >
-              {editingState.isEditing && (
-                <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-1 rounded">
-                  {cue.t0.toFixed(1)}s - {cue.t1.toFixed(1)}s
-                </div>
-              )}
-            </div>
-          );
-        }
-      });
-    }
-    
-    // Render new visual_cues based on talk_track timing
-    if (currentSlide.visual_cues && currentSlide.talk_track) {
-      currentSlide.visual_cues.forEach((visualCue, index) => {
-        const targetElement = currentSlide.elements.find(el => el.id === visualCue.targetId);
-        if (!targetElement) {
-          console.warn(`Target element ${visualCue.targetId} not found for visual cue`);
-          return;
-        }
-        
-        // Find corresponding talk track segment
-        const talkSegment = currentSlide.talk_track.find(segment => segment.kind === visualCue.at);
-        if (!talkSegment) return;
-        
-        // Estimate timing based on talk track position (simplified)
-        const segmentIndex = currentSlide.talk_track.indexOf(talkSegment);
-        const estimatedStartTime = segmentIndex * 10; // 10 seconds per segment
-        const estimatedEndTime = estimatedStartTime + 8; // 8 seconds duration
-        
-        const isActive = playerState.currentTime >= estimatedStartTime && playerState.currentTime <= estimatedEndTime;
-        
-        if (isActive || editingState.isEditing) {
-          const [x, y, width, height] = targetElement.bbox;
-          const scaledX = x * scale.x + imageOffset.x;
-          const scaledY = y * scale.y + imageOffset.y;
-          const scaledWidth = width * scale.x;
-          const scaledHeight = height * scale.y;
-          
-          effects.push(
-            <div
-              key={`visual-cue-${index}`}
-              className={`absolute border-2 rounded transition-all duration-300 ${
-                isActive 
-                  ? 'bg-green-300 bg-opacity-50 border-green-500' 
-                  : 'bg-gray-300 bg-opacity-30 border-gray-400'
-              }`}
-              style={{
-                left: `${scaledX}px`,
-                top: `${scaledY}px`,
-                width: `${scaledWidth}px`,
-                height: `${scaledHeight}px`
-              }}
-            >
-              {editingState.isEditing && (
-                <div className="absolute -top-6 left-0 bg-green-500 text-white text-xs px-1 rounded">
-                  {visualCue.at} ({estimatedStartTime.toFixed(1)}s)
-                </div>
-              )}
-            </div>
-          );
-        }
-      });
-    }
-    
-    // ✅ Render advanced effects (ken_burns, typewriter, particle_highlight, etc.)
-    if (currentSlide.cues) {
-      const advancedEffectTypes = [
-        'ken_burns', 'typewriter', 'particle_highlight', 'slide_in',
-        'fade_in', 'pulse', 'circle_draw', 'arrow_point', 'shake', 'morph'
-      ];
-      
-      currentSlide.cues.forEach((cue, index) => {
-        const isActive = playerState.currentTime >= cue.t0 && playerState.currentTime <= cue.t1;
-        const effectType = cue.effect_type || cue.action;
-        
-        if (advancedEffectTypes.includes(effectType) && (isActive || editingState.isEditing)) {
-          // Get slide text for typewriter effect
-          const slideText = currentSlide.elements
-            .map(el => el.text)
-            .join(' ');
-          
-          effects.push(
-            <AdvancedEffectRenderer
-              key={`advanced-effect-${index}`}
-              cue={cue}
-              active={isActive}
-              text={slideText}
-            />
-          );
-        }
-      });
-    }
-    
-    return effects;
-  }, [manifest, playerState.currentSlide, playerState.currentTime, editingState, scale]);
-
   // Event handlers
-  const startEditingCue = useCallback((cue: Cue) => {
-    setEditingState(prev => ({
-      ...prev,
-      isEditing: true,
-      editingCue: cue,
-      editingElement: null
-    }));
-  }, []);
-
   const startEditingElement = useCallback((element: SlideElement) => {
     setEditingState(prev => ({
       ...prev,
       isEditing: true,
-      editingCue: null,
       editingElement: element
     }));
   }, []);
@@ -484,7 +247,6 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
     setEditingState(prev => ({
       ...prev,
       isEditing: false,
-      editingCue: null,
       editingElement: null
     }));
   }, []);
@@ -509,7 +271,7 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
       // Check if we need to move to next slide
       if (manifest) {
         const currentSlide = manifest.slides[playerState.currentSlide];
-        if (currentSlide && currentTime >= currentSlide.duration) {
+        if (currentSlide && currentSlide.duration && currentTime >= currentSlide.duration) {
           const nextSlide = playerState.currentSlide + 1;
           if (nextSlide < manifest.slides.length) {
             setPlayerState(prev => ({ ...prev, currentSlide: nextSlide }));
@@ -522,35 +284,6 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
       }
     }
   }, [manifest, playerState.currentSlide]);
-
-  const handleVolumeChange = useCallback((volume: number[]) => {
-    const newVolume = volume[0];
-    setPlayerState(prev => ({ ...prev, volume: newVolume }));
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume;
-    }
-  }, []);
-
-  const handlePlaybackRateChange = useCallback((rate: string) => {
-    const newRate = parseFloat(rate);
-    setPlayerState(prev => ({ ...prev, playbackRate: newRate }));
-    if (audioRef.current) {
-      audioRef.current.playbackRate = newRate;
-    }
-  }, []);
-
-  const handleSlideChange = useCallback((slideIndex: number) => {
-    if (manifest && slideIndex >= 0 && slideIndex < manifest.slides.length) {
-      setPlayerState(prev => ({ ...prev, currentSlide: slideIndex }));
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-      }
-    }
-  }, [manifest]);
-
-  const handleExportMP4 = useCallback(() => {
-    onExportMP4();
-  }, [onExportMP4]);
 
   // Handle loading and error states
   if (loading) {
@@ -598,50 +331,31 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
     }
   };
 
+  // Swipe handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
 
-  const saveCueEdit = async (editedCue: Cue) => {
-    if (!manifest) return;
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
 
-    try {
-      const slidePatch: SlidePatch = {
-        slide_id: currentSlide.id,
-        cues: [{
-          cue_id: editedCue.cue_id,
-          t0: editedCue.t0,
-          t1: editedCue.t1,
-          action: editedCue.action,
-          bbox: editedCue.bbox,
-          to: editedCue.to,
-          element_id: editedCue.element_id
-        }]
-      };
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
 
-      const patchRequest: LessonPatchRequest = {
-        lesson_id: lessonId,
-        slides: [slidePatch]
-      };
-
-      await apiClient.patchLesson(lessonId, patchRequest);
-      
-      // Update local manifest
-      setManifest(prev => {
-        if (!prev) return prev;
-        const updatedSlides = prev.slides.map(slide => {
-          if (slide.id === currentSlide.id) {
-            const updatedCues = slide.cues.map(cue => 
-              cue.cue_id === editedCue.cue_id ? editedCue : cue
-            );
-            return { ...slide, cues: updatedCues };
-          }
-          return slide;
-        });
-        return { ...prev, slides: updatedSlides };
-      });
-
-      cancelEditing();
-    } catch (error) {
-      console.error('Failed to save cue edit:', error);
-      alert('Failed to save changes');
+    if (isLeftSwipe) {
+      setSwipeDirection('left');
+      setTimeout(() => setSwipeDirection(null), 300);
+      changeSlide('next');
+    } else if (isRightSwipe) {
+      setSwipeDirection('right');
+      setTimeout(() => setSwipeDirection(null), 300);
+      changeSlide('prev');
     }
   };
 
@@ -688,25 +402,6 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
     }
   };
 
-  const previewCue = (t0: number, t1: number) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = t0;
-      audioRef.current.play();
-      
-      // Stop at t1
-      const stopTime = t1;
-      const checkTime = () => {
-        if (audioRef.current && audioRef.current.currentTime >= stopTime) {
-          audioRef.current.pause();
-        } else {
-          requestAnimationFrame(checkTime);
-        }
-      };
-      checkTime();
-    }
-  };
-
-
   const renderElementOverlays = () => {
     if (!currentSlide || !editingState.isEditing) return null;
 
@@ -739,37 +434,49 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Slide Display */}
-      <Card className="relative overflow-hidden card-gradient card-shadow">
-        <div 
-          ref={slideRef}
-          className={`relative w-full aspect-video bg-white rounded-lg ${editingState.dimOthers ? 'opacity-50' : ''}`}
-          style={{ 
-            backgroundImage: imageUrl ? `url(${imageUrl})` : 'none',
-            backgroundSize: 'contain', 
-            backgroundRepeat: 'no-repeat', 
-            backgroundPosition: 'center' 
-          }}
-          role="img"
-          aria-label={`Slide ${playerState.currentSlide + 1} of ${manifest.slides.length}`}
-          aria-live="polite"
-          aria-describedby="slide-description"
-        >
+    <TooltipProvider delayDuration={300}>
+      <div className="space-y-6">
+        {/* Slide Display */}
+        <Card className="relative overflow-hidden card-gradient card-shadow">
+          <div 
+            ref={slideRef}
+            className={`relative w-full aspect-video bg-white rounded-lg ${editingState.dimOthers ? 'opacity-50' : ''}`}
+            style={{ 
+              backgroundImage: imageUrl ? `url(${imageUrl})` : 'none',
+              backgroundSize: 'contain', 
+              backgroundRepeat: 'no-repeat', 
+              backgroundPosition: 'center' 
+            }}
+            role="img"
+            aria-label={`Slide ${playerState.currentSlide + 1} of ${manifest.slides.length}`}
+            aria-live="polite"
+            aria-describedby="slide-description"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+          {/* Swipe indicator */}
+          {swipeDirection && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none z-20">
+              {swipeDirection === 'left' ? (
+                <ChevronRight className="h-16 w-16 text-white animate-pulse" />
+              ) : (
+                <ChevronLeft className="h-16 w-16 text-white animate-pulse" />
+              )}
+            </div>
+          )}
+          
           {/* Lazy loading placeholder */}
           {!imageUrl && (
             <div 
               className="absolute inset-0 bg-gray-200 flex items-center justify-center"
               aria-label="Loading slide"
             >
-              <div className="text-gray-500">Loading slide...</div>
-            </div>
+            <div className="text-gray-500">Loading slide...</div>
+          </div>
           )}
-          {renderSlideEffects}
           {renderElementOverlays()}
-        </div>
-        
-        {/* Slide Counter */}
+        </div>        {/* Slide Counter */}
         <div 
           className="absolute top-4 right-4 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-1 text-sm"
           aria-label={`Current slide ${playerState.currentSlide + 1} of ${manifest.slides.length}`}
@@ -851,40 +558,125 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
             </div>
           </div>
 
-          {/* Main Controls */}
-          <div className="flex items-center justify-between">
+          {/* Mobile Controls (touch-friendly) */}
+          <div className="md:hidden">
+            <div className="flex items-center justify-center space-x-4 mb-4">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-14 w-14 touch-target button-press"
+                    onClick={() => changeSlide('prev')}
+                    disabled={playerState.currentSlide === 0}
+                    aria-label="Предыдущий слайд"
+                  >
+                    <SkipBack className="h-6 w-6" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Предыдущий слайд</p>
+                  <kbd className="ml-2 text-xs">←</kbd>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className="h-16 w-16 touch-target button-press"
+                    onClick={togglePlayPause}
+                    variant="gradient-glow"
+                    aria-label={playerState.isPlaying ? "Пауза" : "Воспроизвести"}
+                  >
+                    {playerState.isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{playerState.isPlaying ? "Пауза" : "Воспроизвести"}</p>
+                  <kbd className="ml-2 text-xs">Space</kbd>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-14 w-14 touch-target button-press"
+                    onClick={() => changeSlide('next')}
+                    disabled={playerState.currentSlide === manifest.slides.length - 1}
+                    aria-label="Следующий слайд"
+                  >
+                    <SkipForward className="h-6 w-6" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Следующий слайд</p>
+                  <kbd className="ml-2 text-xs">→</kbd>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <p className="text-xs text-center text-muted-foreground mb-4">
+              Свайп влево/вправо для переключения слайдов
+            </p>
+          </div>
+
+          {/* Desktop Controls */}
+          <div className="hidden md:flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => changeSlide('prev')}
-                disabled={playerState.currentSlide === 0}
-                aria-label="Previous slide"
-                title="Previous slide"
-              >
-                <SkipBack className="h-4 w-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="button-press"
+                    onClick={() => changeSlide('prev')}
+                    disabled={playerState.currentSlide === 0}
+                    aria-label="Previous slide"
+                  >
+                    <SkipBack className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Предыдущий слайд</p>
+                  <kbd className="ml-2 text-xs">←</kbd>
+                </TooltipContent>
+              </Tooltip>
               
-              <Button
-                size="icon"
-                onClick={togglePlayPause}
-                variant="gradient-glow"
-                aria-label={playerState.isPlaying ? "Pause" : "Play"}
-                title={playerState.isPlaying ? "Pause" : "Play"}
-              >
-                {playerState.isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    className="button-press"
+                    onClick={togglePlayPause}
+                    variant="gradient-glow"
+                    aria-label={playerState.isPlaying ? "Pause" : "Play"}
+                  >
+                    {playerState.isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{playerState.isPlaying ? "Пауза" : "Воспроизвести"}</p>
+                  <kbd className="ml-2 text-xs">Space</kbd>
+                </TooltipContent>
+              </Tooltip>
               
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => changeSlide('next')}
-                disabled={playerState.currentSlide === manifest.slides.length - 1}
-                aria-label="Next slide"
-                title="Next slide"
-              >
-                <SkipForward className="h-4 w-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="button-press"
+                    onClick={() => changeSlide('next')}
+                    disabled={playerState.currentSlide === manifest.slides.length - 1}
+                    aria-label="Next slide"
+                  >
+                    <SkipForward className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Следующий слайд</p>
+                  <kbd className="ml-2 text-xs">→</kbd>
+                </TooltipContent>
+              </Tooltip>
             </div>
 
             <div className="flex items-center space-x-4">
@@ -935,51 +727,80 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
               </Select>
 
               {/* Edit Mode Toggle */}
-              <Button
-                variant={editingState.isEditing ? "default" : "outline"}
-                onClick={() => setEditingState(prev => ({ ...prev, isEditing: !prev.isEditing }))}
-                className="flex items-center space-x-2"
-                aria-label={editingState.isEditing ? "Exit edit mode" : "Enter edit mode"}
-                aria-pressed={editingState.isEditing}
-              >
-                <Edit3 className="h-4 w-4" aria-hidden="true" />
-                <span>{editingState.isEditing ? 'Exit Edit' : 'Edit'}</span>
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={editingState.isEditing ? "default" : "outline"}
+                    onClick={() => setEditingState(prev => ({ ...prev, isEditing: !prev.isEditing }))}
+                    className="flex items-center space-x-2 button-press"
+                    aria-label={editingState.isEditing ? "Exit edit mode" : "Enter edit mode"}
+                    aria-pressed={editingState.isEditing}
+                  >
+                    <Edit3 className="h-4 w-4" aria-hidden="true" />
+                    <span className="hidden lg:inline">{editingState.isEditing ? 'Exit Edit' : 'Edit'}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{editingState.isEditing ? "Выйти из режима редактирования" : "Редактировать синхронизацию"}</p>
+                  <kbd className="ml-2 text-xs">E</kbd>
+                </TooltipContent>
+              </Tooltip>
 
               {/* Subtitles Toggle */}
-              <Button
-                variant={editingState.showSubtitles ? "default" : "outline"}
-                onClick={() => setEditingState(prev => ({ ...prev, showSubtitles: !prev.showSubtitles }))}
-                className="flex items-center space-x-2"
-                aria-label={editingState.showSubtitles ? "Hide subtitles" : "Show subtitles"}
-                aria-pressed={editingState.showSubtitles}
-              >
-                {editingState.showSubtitles ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
-                <span>Subtitles</span>
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={editingState.showSubtitles ? "default" : "outline"}
+                    onClick={() => setEditingState(prev => ({ ...prev, showSubtitles: !prev.showSubtitles }))}
+                    className="flex items-center space-x-2 button-press"
+                    aria-label={editingState.showSubtitles ? "Hide subtitles" : "Show subtitles"}
+                    aria-pressed={editingState.showSubtitles}
+                  >
+                    {editingState.showSubtitles ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+                    <span className="hidden lg:inline">Subtitles</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{editingState.showSubtitles ? "Скрыть субтитры" : "Показать субтитры"}</p>
+                </TooltipContent>
+              </Tooltip>
 
               {/* Dim Others Toggle */}
-              <Button
-                variant={editingState.dimOthers ? "default" : "outline"}
-                onClick={() => setEditingState(prev => ({ ...prev, dimOthers: !prev.dimOthers }))}
-                className="flex items-center space-x-2"
-                aria-label={editingState.dimOthers ? "Show all elements" : "Dim other elements"}
-                aria-pressed={editingState.dimOthers}
-              >
-                <Settings className="h-4 w-4" aria-hidden="true" />
-                <span>Dim Others</span>
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={editingState.dimOthers ? "default" : "outline"}
+                    onClick={() => setEditingState(prev => ({ ...prev, dimOthers: !prev.dimOthers }))}
+                    className="flex items-center space-x-2 button-press"
+                    aria-label={editingState.dimOthers ? "Show all elements" : "Dim other elements"}
+                    aria-pressed={editingState.dimOthers}
+                  >
+                    <Settings className="h-4 w-4" aria-hidden="true" />
+                    <span className="hidden lg:inline">Dim Others</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{editingState.dimOthers ? "Показать все элементы" : "Затемнить другие элементы"}</p>
+                </TooltipContent>
+              </Tooltip>
 
               {/* Export Button */}
-              <Button 
-                variant="outline"
-                onClick={onExportMP4}
-                className="flex items-center space-x-2"
-                aria-label="Export lesson as MP4 video"
-              >
-                <Download className="h-4 w-4" aria-hidden="true" />
-                <span>Export MP4</span>
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="outline"
+                    onClick={onExportMP4}
+                    className="flex items-center space-x-2 button-press"
+                    aria-label="Export lesson as MP4 video"
+                  >
+                    <Download className="h-4 w-4" aria-hidden="true" />
+                    <span className="hidden lg:inline">Export MP4</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Экспортировать как MP4 видео</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </div>
@@ -1041,18 +862,6 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
         </Card>
       )}
 
-      {/* Cue Editor */}
-      {editingState.editingCue && (
-        <CueEditor
-          cue={editingState.editingCue}
-          elements={currentSlide.elements}
-          audioDuration={audioRef.current?.duration || 0}
-          onSave={saveCueEdit}
-          onCancel={cancelEditing}
-          onPreview={previewCue}
-        />
-      )}
-
       {/* Element Editor */}
       {editingState.editingElement && (
         <ElementEditor
@@ -1061,7 +870,8 @@ export const Player: React.FC<PlayerProps> = ({ lessonId, onExportMP4 }) => {
           onCancel={cancelEditing}
         />
       )}
-    </div>
+      </div>
+    </TooltipProvider>
   );
 };
 

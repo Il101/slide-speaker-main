@@ -90,10 +90,12 @@ class PresentationIntelligence:
             elements = slide.get('elements', [])
             
             # Extract main text from elements
+            # ✅ Use translated text for consistent analysis
             texts = []
             for element in elements[:5]:  # Первые 5 элементов
-                if element.get('text'):
-                    texts.append(element['text'][:100])  # Первые 100 символов
+                text = element.get('text_translated') or element.get('text')
+                if text:
+                    texts.append(text[:100])  # Первые 100 символов
             
             slide_text = " | ".join(texts)
             summary_lines.append(f"Slide {i}: {slide_text}")

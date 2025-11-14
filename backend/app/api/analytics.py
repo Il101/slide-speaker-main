@@ -400,7 +400,7 @@ async def get_analytics_dashboard(
         # Users who downloaded - query from exports table
         has_downloads_result = await db.execute(
             select(func.count(func.distinct(Export.user_id)))
-            .where(Export.status == "completed")
+            .where(and_(Export.status == "completed", Export.user_id.isnot(None)))
         )
         has_downloads = has_downloads_result.scalar() or 0
         

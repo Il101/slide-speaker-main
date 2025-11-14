@@ -94,14 +94,39 @@ class SemanticAnalyzer:
     ) -> str:
         """Create optimized prompt for Gemini"""
         
-        # Format elements (limit to 30 for cost)
-        elements_text = []
+        # Separate text and diagram elements
+        text_elements = []
+        diagram_elements = []
+        
         for i, el in enumerate(ocr_elements[:30]):
+            if el.get('type') == 'diagram':
+                diagram_elements.append((i, el))
+            else:
+                text_elements.append((i, el))
+        
+        # Format text elements
+        elements_text = []
+        for i, el in text_elements:
             text = el.get('text', '')[:100]  # Limit text length
             el_type = el.get('type', 'text')
             elements_text.append(f"{i}. [{el_type}] {text}")
         
-        elements_str = "\n".join(elements_text)
+        elements_str = "\n".join(elements_text) if elements_text else "No text elements"
+        
+        # Format diagram elements
+        diagrams_text = []
+        for i, el in diagram_elements:
+            diagram_type = el.get('diagram_type', 'unknown')
+            description = el.get('description', '')
+            complexity = el.get('visual_complexity', 'medium')
+            key_elements = el.get('key_elements', [])
+            
+            diagrams_text.append(
+                f"{i}. [DIAGRAM: {diagram_type}] {description}\n"
+                f"   Complexity: {complexity}, Key elements: {', '.join(key_elements[:3])}"
+            )
+        
+        diagrams_str = "\n".join(diagrams_text) if diagrams_text else "No diagrams"
         
         # Context info
         theme = presentation_context.get('theme', 'unknown')
@@ -112,26 +137,35 @@ class SemanticAnalyzer:
 **Presentation:** {theme} (level: {level})
 **Slide:** {slide_index + 1}
 
-**Elements:**
+**Text Elements:**
 {elements_str}
+
+**Diagrams and Visual Elements:**
+{diagrams_str}
 
 **Task:** Group related elements and assign priorities.
 
 **Rules:**
 1. Titles/headings: HIGH priority
-2. Key content: MEDIUM priority  
-3. Supporting text: LOW priority
-4. Decorations (logos, watermarks): NONE priority
+2. Diagrams/charts/tables: HIGH priority (need detailed explanation)
+3. Key content: MEDIUM priority  
+4. Supporting text: LOW priority
+5. Decorations (logos, watermarks): NONE priority
+
+**Special handling for diagrams:**
+- Each diagram should be in a separate group with type='diagram'
+- Use highlight_strategy='diagram_walkthrough' for diagrams
+- Priority should be HIGH or MEDIUM depending on importance
 
 **Return JSON format:**
 ```json
 {{
   "groups": [
     {{
-      "type": "heading|body|visual|decoration",
+      "type": "heading|body|diagram|decoration",
       "priority": "high|medium|low|none",
       "elements": [0, 1, 2],
-      "highlight_strategy": "spotlight|group_bracket|highlight|sequential|blur_others"
+      "highlight_strategy": "spotlight|group_bracket|highlight|sequential|blur_others|diagram_walkthrough"
     }}
   ]
 }}
@@ -208,13 +242,17 @@ Return ONLY the JSON, no extra text."""
         title_elements = []
         body_elements = []
         decoration_elements = []
+        diagram_elements = []
         
         for i, el in enumerate(ocr_elements[:20]):
             text = el.get('text', '').lower()
             el_type = el.get('type', 'text')
             
+            # Diagrams
+            if el_type == 'diagram':
+                diagram_elements.append((i, el))
             # Decorations
-            if any(word in text for word in ['logo', 'watermark', 'copyright', '©']):
+            elif any(word in text for word in ['logo', 'watermark', 'copyright', '©']):
                 decoration_elements.append(i)
             # Titles (first few, or large text)
             elif i < 3 and len(text) > 5:
@@ -230,6 +268,17 @@ Return ONLY the JSON, no extra text."""
                 "priority": "high",
                 "elements": title_elements,
                 "highlight_strategy": "spotlight"
+            })
+        
+        # Create separate groups for each diagram (important!)
+        for i, (elem_idx, diagram_el) in enumerate(diagram_elements):
+            diagram_type = diagram_el.get('diagram_type', 'unknown')
+            groups.append({
+                "type": "diagram",
+                "priority": "high",  # Diagrams are important
+                "elements": [elem_idx],
+                "highlight_strategy": "diagram_walkthrough",
+                "diagram_type": diagram_type
             })
         
         if body_elements:

@@ -2,6 +2,7 @@
  * Analytics Dashboard Page (Admin Only)
  */
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -19,7 +20,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, Users, DollarSign, BookOpen, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, BookOpen, AlertTriangle, CheckCircle, Info, ArrowLeft } from 'lucide-react';
 
 // Register Chart.js components
 ChartJS.register(
@@ -77,6 +78,7 @@ interface AnalyticsData {
 type TimeRange = '7d' | '30d' | '90d';
 
 export default function AnalyticsPage() {
+  const navigate = useNavigate();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>('30d');
   const [loading, setLoading] = useState(true);
@@ -91,15 +93,17 @@ export default function AnalyticsPage() {
     setError(null);
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/analytics/admin/dashboard?time_range=${timeRange}`, {
+      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+      const response = await fetch(`${API_BASE}/api/analytics/admin/dashboard?time_range=${timeRange}`, {
+        credentials: 'include', // Use cookie-based auth
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch analytics');
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch analytics: ${response.status} - ${errorText}`);
       }
 
       const analyticsData = await response.json();
@@ -164,23 +168,36 @@ export default function AnalyticsPage() {
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold">Analytics Dashboard</h1>
-            <p className="text-muted-foreground mt-2">Monitor your application's performance and growth</p>
-          </div>
+        <div className="space-y-4">
+          {/* Back Button */}
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/')}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Назад
+          </Button>
           
-          {/* Time Range Selector */}
-          <div className="flex gap-2">
-            {(['7d', '30d', '90d'] as TimeRange[]).map((range) => (
-              <Button
-                key={range}
-                variant={timeRange === range ? 'default' : 'outline'}
-                onClick={() => setTimeRange(range)}
-              >
-                Last {range}
-              </Button>
-            ))}
+          {/* Title and Time Range */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold">Analytics Dashboard</h1>
+              <p className="text-muted-foreground mt-2">Monitor your application's performance and growth</p>
+            </div>
+            
+            {/* Time Range Selector */}
+            <div className="flex gap-2">
+              {(['7d', '30d', '90d'] as TimeRange[]).map((range) => (
+                <Button
+                  key={range}
+                  variant={timeRange === range ? 'default' : 'outline'}
+                  onClick={() => setTimeRange(range)}
+                >
+                  Last {range}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
 

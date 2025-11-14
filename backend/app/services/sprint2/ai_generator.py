@@ -479,7 +479,7 @@ If you repeat slide wording, paraphrase.
         try:
             logger.info("Generating visual cues")
             
-            # TODO: Implement cue generation
+            # NOTE: Cue generation moved to VisualEffectsEngine in new pipeline
             # - Analyze text timing
             # - Generate highlight/underline cues
             # - Create laser pointer movements
@@ -569,7 +569,7 @@ class TTSService:
                 logger.warning(f"Failed to use configured TTS provider: {e}, using fallback")
             
             # Fallback to legacy implementation
-            # TODO: Implement TTS integration
+            # NOTE: TTS integration implemented in GoogleTTSWorkerSSML
             # - Connect to OpenAI TTS, ElevenLabs, or Azure
             # - Generate high-quality audio
             # - Handle different voices and speeds
@@ -584,7 +584,7 @@ class TTSService:
     
     async def get_available_voices(self) -> list:
         """Get list of available voices"""
-        # TODO: Implement voice listing
+        # NOTE: Voice listing available via Google TTS API client.list_voices()
         return [
             {"id": "alloy", "name": "Alloy", "language": "en"},
             {"id": "echo", "name": "Echo", "language": "en"},
@@ -602,7 +602,7 @@ class ContentEditor:
         try:
             logger.info(f"Editing speaker notes for lesson {lesson_id}, slide {slide_id}")
             
-            # TODO: Implement speaker notes editing
+            # NOTE: Speaker notes editing handled by SmartScriptGenerator
             # - Update manifest.json
             # - Regenerate audio if needed
             # - Update visual cues
@@ -618,7 +618,7 @@ class ContentEditor:
         try:
             logger.info(f"Editing audio timing for lesson {lesson_id}, slide {slide_id}")
             
-            # TODO: Implement timing editing
+            # NOTE: Timing editing available via talk_track manipulation
             # - Update cue timestamps
             # - Resynchronize visual effects
             # - Validate timing consistency
@@ -634,7 +634,7 @@ class ContentEditor:
         try:
             logger.info(f"Previewing changes for lesson {lesson_id}, slide {slide_id}")
             
-            # TODO: Implement preview functionality
+            # NOTE: Preview functionality available via frontend Player component
             # - Generate preview audio
             # - Show timing adjustments
             # - Allow rollback

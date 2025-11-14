@@ -20,6 +20,13 @@ logger = logging.getLogger(__name__)
 class VisualCuesGenerator:
     """Генератор визуальных cues на основе элементов слайда и аудио"""
     
+    # Константы для настройки тайминга (вместо магических чисел)
+    STARTUP_DELAY = 0.5  # Задержка перед началом первого эффекта (секунды)
+    HIGHLIGHT_DURATION_RATIO = 0.8  # Highlight занимает 80% времени элемента
+    UNDERLINE_START_RATIO = 0.2  # Underline начинается через 20% времени элемента
+    UNDERLINE_DURATION_RATIO = 0.7  # Underline длится 70% времени элемента (заканчивается раньше highlight)
+    LASER_TRANSITION_DURATION = 0.3  # Длительность перехода лазера к следующему элементу (секунды)
+    
     def __init__(self):
         self.logger = logger
     
@@ -218,7 +225,21 @@ class VisualCuesGenerator:
     def _generate_basic_cues(self,
                            elements: List[Dict[str, Any]],
                            audio_duration: float) -> List[Cue]:
-        """Генерирует базовые cues с равномерным распределением времени"""
+        """
+        Генерирует базовые cues с равномерным распределением времени
+        
+        Логика распределения времени:
+        1. Каждому элементу выделяется равная доля общего времени аудио
+        2. Highlight эффект занимает HIGHLIGHT_DURATION_RATIO (80%) времени элемента
+        3. Underline начинается через UNDERLINE_START_RATIO (20%) и длится UNDERLINE_DURATION_RATIO (70%)
+        4. Laser pointer переходит к следующему элементу за LASER_TRANSITION_DURATION секунд
+        
+        Временная линия для одного элемента (пример: 5 секунд):
+        0.0s          1.0s                                    4.0s    4.5s    5.0s
+        |-------------|---------------------------------------|-------|-------|
+        ^ start       ^ underline start                       ^ highlight end ^ underline end
+                                                                      ^ laser transition
+        """
         cues = []
 
         # Фильтруем текстовые элементы (любой тип с текстом)
@@ -231,41 +252,49 @@ class VisualCuesGenerator:
         
         # Равномерно распределяем время между элементами
         time_per_element = audio_duration / len(text_elements)
-        current_time = 0.5  # Начинаем через 0.5 секунды
+        current_time = self.STARTUP_DELAY  # Начинаем после задержки
+        
+        self.logger.info(f"Генерируем базовые cues: {len(text_elements)} элементов, "
+                        f"{time_per_element:.2f}s на элемент")
         
         for i, element in enumerate(text_elements):
             normalized_bbox = self._normalize_bbox(element.get("bbox", [0, 0, 100, 50]))
             
-            # Highlight cue
+            # Highlight cue - основной эффект подсветки элемента
+            highlight_duration = time_per_element * self.HIGHLIGHT_DURATION_RATIO
             highlight_cue = Cue(
                 cue_id=f"cue_{uuid.uuid4().hex[:8]}",
                 t0=current_time,
-                t1=current_time + time_per_element * 0.8,  # 80% времени на highlight
+                t1=current_time + highlight_duration,
                 action=ActionType.HIGHLIGHT,
                 bbox=normalized_bbox,
                 element_id=element.get("id")
             )
             cues.append(highlight_cue)
             
-            # Underline cue (начинается немного позже highlight)
-            underline_start = current_time + time_per_element * 0.2
+            # Underline cue - начинается немного позже highlight для слоистого эффекта
+            underline_start = current_time + time_per_element * self.UNDERLINE_START_RATIO
+            underline_duration = time_per_element * self.UNDERLINE_DURATION_RATIO
             underline_cue = Cue(
                 cue_id=f"cue_{uuid.uuid4().hex[:8]}",
                 t0=underline_start,
-                t1=current_time + time_per_element * 0.9,  # Заканчивается почти одновременно с highlight
+                t1=underline_start + underline_duration,
                 action=ActionType.UNDERLINE,
                 bbox=self._get_underline_bbox(normalized_bbox),
                 element_id=element.get("id")
             )
             cues.append(underline_cue)
             
-            # Laser move to next element (если есть следующий элемент)
+            # Laser move to next element - переход к следующему элементу
             if i < len(text_elements) - 1:
                 next_element = text_elements[i + 1]
                 next_bbox = self._normalize_bbox(next_element.get("bbox", [0, 0, 100, 50]))
+                
+                # Лазер начинает движение перед концом highlight
+                laser_start = current_time + highlight_duration - self.LASER_TRANSITION_DURATION
                 laser_cue = Cue(
                     cue_id=f"cue_{uuid.uuid4().hex[:8]}",
-                    t0=current_time + time_per_element * 0.8,
+                    t0=max(current_time, laser_start),  # Не раньше начала элемента
                     t1=current_time + time_per_element,
                     action=ActionType.LASER_MOVE,
                     to=self._get_element_center(next_bbox)
@@ -274,6 +303,7 @@ class VisualCuesGenerator:
             
             current_time += time_per_element
         
+        self.logger.info(f"Сгенерировано {len(cues)} базовых cues")
         return cues
     
     def _get_underline_bbox(self, element_bbox: List[float]) -> List[float]:

@@ -1,10 +1,12 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { Upload, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { apiClient } from '@/lib/api';
 import { SimpleProcessingProgress } from '@/components/SimpleProcessingProgress';
+import { StepIndicator } from '@/components/StepIndicator';
+import { toast } from 'sonner';
 
 interface FileUploaderProps {
   onUploadSuccess: (lessonId: string) => void;
@@ -19,6 +21,10 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onUploadSuccess }) =
   const [processingStage, setProcessingStage] = useState<string>('initializing');
   const [processingProgress, setProcessingProgress] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  
+  // Fix memory leak: use ref instead of window global
+  const lastProgressUpdateRef = useRef<number>(Date.now());
 
   useEffect(() => {
     if (status !== 'processing' || !lessonId) return;
@@ -29,37 +35,49 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onUploadSuccess }) =
       try {
         const statusData = await apiClient.getLessonStatus(lessonId);
         
-        console.log('[FileUploader] Status poll result:', {
-          lesson_id: statusData.lesson_id,
-          status: statusData.status,
-          stage: statusData.stage,
-          progress: statusData.progress,
-          message: statusData.message
-        });
+        // Log only significant changes (stage or progress change)
+        const prevStage = processingStage;
+        const prevProgress = processingProgress;
         
         setProcessingStage(statusData.stage);
         setProcessingProgress(statusData.progress);
         
-        console.log('[FileUploader] Updated state - stage:', statusData.stage, 'progress:', statusData.progress);
+        if (statusData.stage !== prevStage || Math.abs(statusData.progress - prevProgress) >= 10) {
+          console.log('[FileUploader] Progress update:', {
+            stage: statusData.stage,
+            progress: statusData.progress,
+            message: statusData.message
+          });
+        }
 
         if (statusData.status === 'completed') {
-          console.log('[FileUploader] Processing completed! Keeping status as "processing" for SimpleProcessingProgress');
-          // НЕ меняем status на 'success' здесь!
-          // SimpleProcessingProgress сам вызовет onComplete через 1.5 секунды
+          console.log('✅ [FileUploader] Processing completed!');
+          setCurrentStep(3);
           clearInterval(pollInterval);
         } else if (statusData.status === 'failed') {
-          console.error('[FileUploader] Processing failed:', statusData.message);
+          console.error('❌ [FileUploader] Processing failed:', statusData.message);
           setStatus('error');
           setErrorMessage(statusData.message || 'Ошибка обработки');
           clearInterval(pollInterval);
         }
+        
+        // ⚠️ Check if stuck (same status for too long)
+        if (statusData.status === 'parsed' && statusData.progress === 20) {
+          // Track how long we've been stuck
+          const now = Date.now();
+          const stuckTime = (now - lastProgressUpdateRef.current) / 1000;
+          if (stuckTime > 60) {
+            console.warn('⚠️ [FileUploader] Processing stuck at parsing stage for', Math.round(stuckTime), 'seconds');
+          }
+        } else {
+          lastProgressUpdateRef.current = Date.now();
+        }
       } catch (error) {
         console.error('[FileUploader] Error polling status:', error);
       }
-    }, 2000);
+    }, 3000); // Increased from 2s to 3s to reduce load
 
     return () => {
-      console.log('[FileUploader] Stopping polling');
       clearInterval(pollInterval);
     };
   }, [status, lessonId]);
@@ -74,12 +92,40 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onUploadSuccess }) =
     }
   }, []);
 
-  const handleFileSelection = useCallback(async (file: File) => {
-    const validTypes = ['application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/pdf'];
+  const validateFile = (file: File): string[] => {
+    const errors: string[] = [];
+    
+    if (file.size > 100 * 1024 * 1024) {
+      errors.push('Файл слишком большой (макс 100MB)');
+    }
+    
+    const validTypes = [
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'application/pdf'
+    ];
     
     if (!validTypes.includes(file.type)) {
+      errors.push('Неподдерживаемый формат (только PPTX и PDF)');
+    }
+    
+    return errors;
+  };
+
+  const handleFileSelection = useCallback(async (file: File) => {
+    const errors = validateFile(file);
+    
+    if (errors.length > 0) {
       setStatus('error');
-      setErrorMessage('Поддерживаются только файлы PPTX и PDF');
+      setErrorMessage(errors[0]);
+      toast.error(
+        <div>
+          <div className="font-semibold mb-2">Не удалось загрузить файл:</div>
+          <ul className="list-disc list-inside space-y-1">
+            {errors.map((err, i) => <li key={i}>{err}</li>)}
+          </ul>
+        </div>
+      );
       return;
     }
 
@@ -87,6 +133,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onUploadSuccess }) =
     setStatus('uploading');
     setUploadProgress(0);
     setErrorMessage(null);
+    setCurrentStep(0);
 
     try {
       const progressInterval = setInterval(() => {
@@ -105,6 +152,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onUploadSuccess }) =
       setStatus('processing');
       setProcessingStage('parsing');
       setProcessingProgress(20);
+      setCurrentStep(1);
       
     } catch (error) {
       setStatus('error');
@@ -153,8 +201,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onUploadSuccess }) =
     );
   }
 
+  const steps = ['Загрузка', 'Обработка', 'Озвучка', 'Готово'];
+
   return (
     <Card className="p-8 card-gradient card-shadow">
+      {(status === 'uploading' || status === 'processing') && (
+        <div className="mb-6">
+          <StepIndicator steps={steps} currentStep={currentStep} />
+        </div>
+      )}
       <div
         className={`border-2 border-dashed rounded-xl p-8 text-center smooth-transition ${
           dragActive 

@@ -23,6 +23,7 @@ export interface Slide {
   elements: SlideElement[];
   cues: SlideAction[];
   duration?: number;
+  visual_effects_manifest?: any; // Visual Effects V2 manifest
 }
 
 export interface Presentation {
@@ -42,18 +43,7 @@ export interface PlayerState {
 
 export interface EditingState {
   isEditing: boolean;
-  editingCue: Cue | null;
   editingElement: SlideElement | null;
   showSubtitles: boolean;
   dimOthers: boolean;
-}
-
-export interface Cue {
-  cue_id?: string;
-  t0: number;
-  t1: number;
-  action: 'highlight' | 'underline' | 'laser_move';
-  bbox?: [number, number, number, number];
-  to?: [number, number];
-  element_id?: string;
 }

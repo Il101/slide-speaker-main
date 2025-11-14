@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Clock, FileVideo, Loader2, AlertCircle, Download, Trash2, CheckSquare, Square, ListPlus } from 'lucide-react';
+import { Play, Clock, FileVideo, Loader2, AlertCircle, Download, Trash2, CheckSquare, Square, ListPlus, XCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { apiClient, getImageUrl } from '@/lib/api';
+import { VideoCardSkeleton } from '@/components/LoadingSkeleton';
+import { EmptyVideos } from '@/components/EmptyStates';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +38,7 @@ interface MyVideosSidebarProps {
   currentLessonId?: string;
   onVideoSelect: (lessonId: string) => void;
   onVideoDownload?: (videoUrl: string, title: string) => void;
+  onNavigateToUpload?: () => void;
 }
 
 const formatDuration = (seconds: number | null): string => {
@@ -74,6 +77,7 @@ const getStatusBadge = (status: string) => {
     processing: { label: 'Обработка', variant: 'secondary' },
     failed: { label: 'Ошибка', variant: 'destructive' },
     queued: { label: 'В очереди', variant: 'outline' },
+    cancelled: { label: 'Отменено', variant: 'outline' },
   };
 
   const statusInfo = statusMap[status] || { label: status, variant: 'outline' };
@@ -84,6 +88,7 @@ export const MyVideosSidebar: React.FC<MyVideosSidebarProps> = ({
   currentLessonId,
   onVideoSelect,
   onVideoDownload,
+  onNavigateToUpload,
 }) => {
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,6 +96,9 @@ export const MyVideosSidebar: React.FC<MyVideosSidebarProps> = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [videoToDelete, setVideoToDelete] = useState<VideoItem | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [videoToCancel, setVideoToCancel] = useState<VideoItem | null>(null);
+  const [cancelling, setCancelling] = useState(false);
   
   // Состояние для режима выбора
   const [selectionMode, setSelectionMode] = useState(false);
@@ -185,6 +193,40 @@ export const MyVideosSidebar: React.FC<MyVideosSidebarProps> = ({
     setDeleteDialogOpen(true);
   };
 
+  const handleCancelClick = (e: React.MouseEvent, video: VideoItem) => {
+    e.stopPropagation();
+    setVideoToCancel(video);
+    setCancelDialogOpen(true);
+  };
+
+  const handleCancelConfirm = async () => {
+    if (!videoToCancel) return;
+
+    try {
+      setCancelling(true);
+      
+      // Вызываем API для отмены обработки
+      await apiClient.cancelProcessing(videoToCancel.lesson_id);
+      
+      // Обновляем статус видео в списке
+      setVideos(videos.map(v => 
+        v.lesson_id === videoToCancel.lesson_id 
+          ? { ...v, status: 'cancelled' } 
+          : v
+      ));
+      
+      toast.success('Обработка отменена');
+      
+    } catch (error: any) {
+      console.error('Error cancelling video:', error);
+      toast.error(error?.message || 'Не удалось отменить обработку');
+    } finally {
+      setCancelling(false);
+      setCancelDialogOpen(false);
+      setVideoToCancel(null);
+    }
+  };
+
   const handleDeleteConfirm = async () => {
     if (selectedVideos.size === 0 && !videoToDelete) return;
 
@@ -227,11 +269,13 @@ export const MyVideosSidebar: React.FC<MyVideosSidebarProps> = ({
   if (loading) {
     return (
       <Card className="h-screen w-full flex flex-col p-4 sm:p-6 rounded-lg border-2 border-border/50 shadow-xl bg-gradient-to-br from-background to-muted/20">
-        <h2 className="text-xl sm:text-2xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+        <h2 className="text-xl sm:text-2xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
           Мои видео
         </h2>
-        <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+        <div className="space-y-4">
+          <VideoCardSkeleton />
+          <VideoCardSkeleton />
+          <VideoCardSkeleton />
         </div>
       </Card>
     );
@@ -336,11 +380,8 @@ export const MyVideosSidebar: React.FC<MyVideosSidebarProps> = ({
 
         <div className="flex-1 overflow-y-auto p-4 min-h-0">
           {videos.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center p-6">
-              <FileVideo className="h-20 w-20 text-muted-foreground/50 mb-4" />
-              <p className="text-base text-muted-foreground font-medium">
-                У вас пока нет видео
-              </p>
+            <div className="h-full flex items-center justify-center">
+              <EmptyVideos onAction={onNavigateToUpload} />
             </div>
           ) : (
             <div className="space-y-4">
@@ -352,9 +393,9 @@ export const MyVideosSidebar: React.FC<MyVideosSidebarProps> = ({
                   <Card
                     key={video.lesson_id}
                     className={`
-                      cursor-pointer transition-all duration-200
+                      cursor-pointer transition-all duration-200 card-hover button-press
                       ${isActive && !selectionMode ? 'ring-2 ring-primary shadow-lg scale-[1.02]' : ''}
-                      ${isSelected ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:shadow-md hover:scale-[1.01]'}
+                      ${isSelected ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:shadow-md'}
                       ${!video.can_play && !selectionMode ? 'opacity-60' : ''}
                       relative
                     `}
@@ -435,6 +476,18 @@ export const MyVideosSidebar: React.FC<MyVideosSidebarProps> = ({
                       {/* Действия - только когда не в режиме выбора */}
                       {!selectionMode && (
                         <div className="flex gap-2">
+                          {/* Кнопка отмены - только для обрабатываемых видео */}
+                          {(video.status === 'processing' || video.status === 'queued') && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 h-8 text-orange-600 hover:text-orange-700 border-orange-200 hover:border-orange-300"
+                              onClick={(e) => handleCancelClick(e, video)}
+                            >
+                              <XCircle className="h-3.5 w-3.5 mr-1.5" />
+                              Отменить
+                            </Button>
+                          )}
                           {video.video_url && (
                             <Button
                               variant="outline"
@@ -483,6 +536,36 @@ export const MyVideosSidebar: React.FC<MyVideosSidebarProps> = ({
           )}
         </div>
       </Card>
+
+      {/* Диалог отмены обработки */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Отменить обработку?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Обработка видео "{videoToCancel?.title}" будет остановлена.
+              {' '}Вы сможете удалить или перезапустить обработку позже.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cancelling}>Назад</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelConfirm}
+              disabled={cancelling}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {cancelling ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Отмена...
+                </>
+              ) : (
+                'Да, отменить'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Диалог удаления */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

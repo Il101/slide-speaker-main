@@ -72,7 +72,18 @@ class SemanticAnalyzer:
             )
             
             # Call LLM for semantic analysis with vision support
-            system_prompt = "You are an expert at analyzing presentation slides and understanding their semantic structure."
+            # ✅ CRITICAL: Explain language situation to avoid confusion
+            source_lang = ocr_elements[0].get('language_original', 'unknown') if ocr_elements else 'unknown'
+            target_lang = ocr_elements[0].get('language_target', 'ru') if ocr_elements else 'ru'
+            
+            system_prompt = f"""You are an expert at analyzing presentation slides and understanding their semantic structure.
+
+IMPORTANT - LANGUAGE HANDLING:
+- The slide IMAGE contains text in {source_lang}
+- The OCR data below is TRANSLATED to {target_lang}
+- Use the TRANSLATED text ({target_lang}) for all your analysis and output
+- The image is provided for VISUAL context only (layout, diagrams, emphasis)
+- DO NOT extract text from the image - use the provided translated OCR data"""
             
             # Generate using LLM worker with image for multimodal analysis
             result_text = self.llm_worker.generate(
@@ -113,7 +124,8 @@ class SemanticAnalyzer:
         """Prepare OCR elements summary for prompt"""
         lines = []
         for i, elem in enumerate(elements[:20]):  # Limit to 20 elements
-            text = elem.get('text', '')
+            # Use translated text if available, otherwise original
+            text = elem.get('text_translated') or elem.get('text', '')
             bbox = elem.get('bbox', [0, 0, 0, 0])
             elem_type = elem.get('type', 'text')
             elem_id = elem.get('id', f'elem_{i}')
@@ -365,9 +377,10 @@ Output:
         """Create optimized prompt for Gemini"""
         
         # Format elements (limit to 30)
+        # ✅ Use translated text for Gemini analysis (matches target language)
         elements_text = []
         for i, el in enumerate(ocr_elements[:30]):
-            text = el.get('text', '')[:100]
+            text = (el.get('text_translated') or el.get('text', ''))[:100]
             el_type = el.get('type', 'text')
             elements_text.append(f"{i}. [{el_type}] {text}")
         

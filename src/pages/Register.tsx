@@ -74,7 +74,7 @@ const Register: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { register: registerUser, loading } = useAuth();
+  const { register: registerUser, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -102,10 +102,18 @@ const Register: React.FC = () => {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setError(null);
-      await registerUser({
+      
+      // Register user
+      await registerUser.mutateAsync({
         email: data.email,
         password: data.password,
         username: data.username || undefined,
+      });
+      
+      // Auto-login after registration
+      await login.mutateAsync({
+        email: data.email,
+        password: data.password
       });
       
       // Track successful registration
@@ -264,9 +272,9 @@ const Register: React.FC = () => {
             <Button
               type="submit"
               className="w-full"
-              disabled={isSubmitting || loading}
+              disabled={isSubmitting || registerUser.isPending || login.isPending}
             >
-              {isSubmitting || loading ? (
+              {isSubmitting || registerUser.isPending || login.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Регистрация...

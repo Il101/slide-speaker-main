@@ -1,0 +1,559 @@
+"""
+Load Testing Suite for Slide Spea    def register_or_login(self):
+        """Try to register first (most common scenario), fallback to login if user exists"""
+        # First, try to register (simulates new user signup)
+        with self.client.post("/api/auth/register", json={
+            "email": self.email,
+            "password": "TestPassword123!",
+            "name": f"Load Test User"
+        }, name="[Auth] Register", catch_response=True) as response:
+            
+            if response.status_code == 201:
+                # Registration successful, now login to get token
+                response.success()
+            elif response.status_code == 400 or response.status_code == 409:
+                # User already exists, try to login - mark as success since it's expected
+                response.success()
+            else:
+                response.failure(f"Registration failed with status {response.status_code}")
+        
+        # After registration attempt (success or user exists), login to get token
+        self.login()prehensive performance testing using Locust
+
+This file contains various user behaviors and load patterns to test:
+1. Authentication flows
+2. File upload and processing
+3. Content generation (speaker notes, TTS)
+4. Video export operations
+5. Analytics and monitoring
+"""
+
+import json
+import random
+import time
+from pathlib import Path
+from typing import Optional
+
+from locust import HttpUser, task, between, SequentialTaskSet, TaskSet
+from locust.contrib.fasthttp import FastHttpUser
+
+
+class AuthenticatedUser:
+    """Mixin for authenticated user behavior"""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.token: Optional[str] = None
+        self.lesson_id: Optional[str] = None
+        self.user_id: Optional[str] = None
+        # Generate unique email for this user instance
+        self.email = f"loadtest_{random.randint(1, 100000)}_{int(time.time() * 1000)}@example.com"
+    
+    def on_start(self):
+        """Register or login before starting tasks"""
+        self.register_or_login()
+    
+    def register_or_login(self):
+        """Try to register first (most common scenario), fallback to login if user exists"""
+        # First, try to register (simulates new user signup)
+        response = self.client.post("/api/auth/register", json={
+            "email": self.email,
+            "password": "TestPassword123!",
+            "name": f"Load Test User"
+        }, name="[Auth] Register", catch_response=True)
+        
+        if response.status_code == 201:
+            # Registration successful, now login to get token
+            response.success()
+            self.login()
+        elif response.status_code == 400 or response.status_code == 409:
+            # User already exists, try to login
+            response.success()  # Mark as success since it's expected
+            self.login()
+        else:
+            # Unexpected error
+            response.failure(f"Registration failed with status {response.status_code}: {response.text}")
+    
+    def login(self):
+        """Login to get access token"""
+        with self.client.post("/api/auth/login", 
+            json={
+                "email": self.email,
+                "password": "TestPassword123!"
+            },
+            headers={
+                "Origin": "http://localhost:3000"  # Required for cross-origin to get token in response
+            },
+            name="[Auth] Login", 
+            catch_response=True
+        ) as response:
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.token = data.get("access_token")
+                if self.token:
+                    # Also get user_id if available
+                    user_data = data.get("user", {})
+                    response.success()
+                else:
+                    response.failure("No access_token in response")
+            else:
+                response.failure(f"Login failed with status {response.status_code}")
+    
+    @property
+    def headers(self):
+        """Return auth headers"""
+        if self.token:
+            return {"Authorization": f"Bearer {self.token}"}
+        return {}
+
+
+class HealthCheckUser(HttpUser):
+    """Users that only check health endpoints (simulating monitoring systems)"""
+    
+    weight = 1
+    wait_time = between(5, 10)
+    
+    @task(5)
+    def health_check(self):
+        """Basic health check"""
+        self.client.get("/health", name="[Health] Basic")
+    
+    @task(2)
+    def health_detailed(self):
+        """Detailed health check"""
+        self.client.get("/health/detailed", name="[Health] Detailed")
+    
+    @task(1)
+    def readiness_check(self):
+        """Readiness probe"""
+        self.client.get("/health/ready", name="[Health] Ready")
+    
+    @task(1)
+    def liveness_check(self):
+        """Liveness probe"""
+        self.client.get("/health/live", name="[Health] Live")
+
+
+class BrowsingUser(AuthenticatedUser, HttpUser):
+    """Users browsing lessons and content without heavy operations"""
+    
+    weight = 5
+    wait_time = between(2, 5)
+    
+    @task(3)
+    def list_lessons(self):
+        """List user's lessons"""
+        self.client.get(
+            "/api/lessons/my-videos",
+            headers=self.headers,
+            name="[Browse] List Lessons"
+        )
+    
+    @task(2)
+    def get_lesson_status(self):
+        """Check lesson status"""
+        if self.lesson_id:
+            self.client.get(
+                f"/lessons/{self.lesson_id}/status",
+                headers=self.headers,
+                name="[Browse] Lesson Status"
+            )
+    
+    @task(2)
+    def get_playlists(self):
+        """Get user's playlists"""
+        self.client.get(
+            "/api/playlists",
+            headers=self.headers,
+            name="[Browse] Playlists"
+        )
+    
+    @task(1)
+    def get_analytics(self):
+        """View analytics dashboard"""
+        self.client.get(
+            "/api/analytics/admin/dashboard",
+            headers=self.headers,
+            name="[Browse] Analytics"
+        )
+    
+    @task(1)
+    def check_subscription(self):
+        """Check subscription status"""
+        self.client.get(
+            "/api/subscription/info",
+            headers=self.headers,
+            name="[Browse] Subscription"
+        )
+
+
+class ContentCreatorUser(AuthenticatedUser, HttpUser):
+    """Users uploading and processing presentations"""
+    
+    weight = 3
+    wait_time = between(10, 30)
+    
+    @task(1)
+    def upload_and_process(self):
+        """Complete workflow: upload -> generate notes -> generate audio -> export"""
+        
+        # Step 1: Upload a test presentation
+        test_file_content = b"Mock PPTX content for load testing"
+        files = {
+            'file': ('test_presentation.pptx', test_file_content, 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
+        }
+        
+        upload_response = self.client.post(
+            "/upload",
+            files=files,
+            headers=self.headers,
+            name="[Creator] Upload File"
+        )
+        
+        if upload_response.status_code != 200:
+            return
+        
+        data = upload_response.json()
+        lesson_id = data.get("lesson_id")
+        self.lesson_id = lesson_id
+        
+        # Step 2: Wait for processing
+        for _ in range(10):  # Poll up to 10 times
+            time.sleep(2)
+            status_response = self.client.get(
+                f"/lessons/{lesson_id}/status",
+                headers=self.headers,
+                name="[Creator] Poll Status"
+            )
+            
+            if status_response.status_code == 200:
+                status_data = status_response.json()
+                if status_data.get("status") == "ready":
+                    break
+        
+        # Step 3: Generate speaker notes
+        notes_response = self.client.post(
+            f"/lessons/{lesson_id}/generate-speaker-notes",
+            json={
+                "language": "en",
+                "style": "professional",
+                "length": "medium"
+            },
+            headers=self.headers,
+            name="[Creator] Generate Notes"
+        )
+        
+        if notes_response.status_code != 200:
+            return
+        
+        # Step 4: Generate audio
+        audio_response = self.client.post(
+            f"/lessons/{lesson_id}/generate-audio",
+            json={
+                "voice_id": "default",
+                "language": "en"
+            },
+            headers=self.headers,
+            name="[Creator] Generate Audio"
+        )
+
+
+class QuizCreatorUser(AuthenticatedUser, HttpUser):
+    """Users creating and managing quizzes"""
+    
+    weight = 2
+    wait_time = between(15, 30)
+    
+    @task(1)
+    def create_quiz(self):
+        """Generate a quiz from lesson"""
+        if not self.lesson_id:
+            # Get a random lesson first
+            response = self.client.get(
+                "/api/lessons/my-videos",
+                headers=self.headers,
+                name="[Quiz] Get Lessons"
+            )
+            
+            if response.status_code == 200:
+                lessons = response.json()
+                if lessons:
+                    self.lesson_id = lessons[0].get("id")
+        
+        if self.lesson_id:
+            self.client.post(
+                f"/api/quizzes/generate",
+                json={
+                    "lesson_id": self.lesson_id,
+                    "num_questions": 5,
+                    "difficulty": "medium",
+                    "question_types": ["multiple_choice"]
+                },
+                headers=self.headers,
+                name="[Quiz] Generate"
+            )
+    
+    @task(2)
+    def list_quizzes(self):
+        """List user's quizzes"""
+        if self.lesson_id:
+            self.client.get(
+                f"/api/quizzes/lesson/{self.lesson_id}",
+                headers=self.headers,
+                name="[Quiz] List"
+            )
+
+
+class VideoExportUser(AuthenticatedUser, HttpUser):
+    """Users exporting videos (resource-intensive operations)"""
+    
+    weight = 1  # Lower weight as this is expensive
+    wait_time = between(30, 60)
+    
+    @task(1)
+    def export_video(self):
+        """Export lesson to video"""
+        if not self.lesson_id:
+            # Get a random lesson first
+            response = self.client.get(
+                "/api/lessons/my-videos",
+                headers=self.headers,
+                name="[Export] Get Lessons"
+            )
+            
+            if response.status_code == 200:
+                lessons = response.json()
+                if lessons:
+                    self.lesson_id = lessons[0].get("id")
+        
+        if self.lesson_id:
+            export_response = self.client.post(
+                f"/lessons/{self.lesson_id}/export",
+                json={
+                    "format": "mp4",
+                    "quality": "medium",
+                    "include_subtitles": True
+                },
+                headers=self.headers,
+                name="[Export] Start Export"
+            )
+            
+            if export_response.status_code == 200:
+                # Poll export status
+                for _ in range(20):
+                    time.sleep(5)
+                    status_response = self.client.get(
+                        f"/lessons/{self.lesson_id}/export/status",
+                        headers=self.headers,
+                        name="[Export] Poll Status"
+                    )
+                    
+                    if status_response.status_code == 200:
+                        status_data = status_response.json()
+                        if status_data.get("status") in ["completed", "failed"]:
+                            break
+
+
+class AdminUser(AuthenticatedUser, HttpUser):
+    """Admin users performing management operations"""
+    
+    weight = 1
+    wait_time = between(20, 40)
+    
+    @task(2)
+    def view_storage_stats(self):
+        """Check storage statistics"""
+        self.client.get(
+            "/admin/storage-stats",
+            headers=self.headers,
+            name="[Admin] Storage Stats"
+        )
+    
+    @task(1)
+    def view_analytics(self):
+        """View system analytics"""
+        self.client.get(
+            "/api/analytics/admin/dashboard",
+            headers=self.headers,
+            name="[Admin] System Analytics"
+        )
+    
+    @task(1)
+    def view_metrics(self):
+        """View Prometheus metrics"""
+        self.client.get(
+            "/metrics",
+            name="[Admin] Metrics"
+        )
+
+
+class StressTestUser(AuthenticatedUser, HttpUser):
+    """High-intensity user for stress testing"""
+    
+    weight = 0  # Only enabled during stress tests
+    wait_time = between(0.1, 1)
+    
+    @task(10)
+    def rapid_health_checks(self):
+        """Rapid health check requests"""
+        self.client.get("/health", name="[Stress] Health")
+    
+    @task(5)
+    def rapid_status_checks(self):
+        """Rapid status polling"""
+        if self.lesson_id:
+            self.client.get(
+                f"/lessons/{self.lesson_id}/status",
+                headers=self.headers,
+                name="[Stress] Status"
+            )
+    
+    @task(3)
+    def rapid_list_requests(self):
+        """Rapid list requests"""
+        self.client.get(
+            "/api/lessons/my-videos",
+            headers=self.headers,
+            name="[Stress] List"
+        )
+
+
+# Sequential workflow for realistic user journey
+class UserJourneyTaskSet(SequentialTaskSet):
+    """Realistic user journey from registration to video creation"""
+    
+    def on_start(self):
+        """Setup user"""
+        self.token = None
+        self.lesson_id = None
+        # Generate unique email with timestamp
+        self.email = f"journey_{random.randint(1, 100000)}_{int(time.time() * 1000)}@example.com"
+    
+    @task
+    def register_or_login(self):
+        """Step 1: Register or login"""
+        
+        # Try to register first (simulates new user)
+        response = self.client.post("/api/auth/register", json={
+            "email": self.email,
+            "password": "Journey123!",
+            "name": "Journey User"
+        }, name="[Journey] Register", catch_response=True)
+        
+        # Add Origin header for cross-origin requests (to get token in response)
+        headers = {"Origin": "http://localhost:3000"}
+        
+        if response.status_code == 201:
+            # Registration successful, now login to get token
+            response.success()
+            login_response = self.client.post("/api/auth/login", json={
+                "email": self.email,
+                "password": "Journey123!"
+            }, headers=headers, name="[Journey] Login")
+            
+            if login_response.status_code == 200:
+                self.token = login_response.json().get("access_token")
+        elif response.status_code == 400 or response.status_code == 409:
+            # User exists, try login
+            response.success()  # Expected behavior
+            login_response = self.client.post("/api/auth/login", json={
+                "email": self.email,
+                "password": "Journey123!"
+            }, headers=headers, name="[Journey] Login")
+            
+            if login_response.status_code == 200:
+                self.token = login_response.json().get("access_token")
+    
+    @task
+    def upload_presentation(self):
+        """Step 2: Upload a presentation"""
+        if not self.token:
+            return
+        
+        files = {
+            'file': ('journey_presentation.pptx', b"Mock PPTX", 'application/vnd.openxmlformats-officedocument.presentationml.presentation')
+        }
+        
+        response = self.client.post(
+            "/upload",
+            files=files,
+            headers={"Authorization": f"Bearer {self.token}"},
+            name="[Journey] Upload"
+        )
+        
+        if response.status_code == 200:
+            self.lesson_id = response.json().get("lesson_id")
+    
+    @task
+    def wait_for_processing(self):
+        """Step 3: Wait for processing to complete"""
+        if not self.lesson_id or not self.token:
+            return
+        
+        for _ in range(10):
+            time.sleep(2)
+            response = self.client.get(
+                f"/lessons/{self.lesson_id}/status",
+                headers={"Authorization": f"Bearer {self.token}"},
+                name="[Journey] Status"
+            )
+            
+            if response.status_code == 200:
+                if response.json().get("status") == "ready":
+                    break
+    
+    @task
+    def generate_content(self):
+        """Step 4: Generate speaker notes and audio"""
+        if not self.lesson_id or not self.token:
+            return
+        
+        headers = {"Authorization": f"Bearer {self.token}"}
+        
+        # Generate notes
+        self.client.post(
+            f"/lessons/{self.lesson_id}/generate-speaker-notes",
+            json={"language": "en", "style": "professional"},
+            headers=headers,
+            name="[Journey] Generate Notes"
+        )
+        
+        time.sleep(5)
+        
+        # Generate audio
+        self.client.post(
+            f"/lessons/{self.lesson_id}/generate-audio",
+            json={"voice_id": "default"},
+            headers=headers,
+            name="[Journey] Generate Audio"
+        )
+    
+    @task
+    def browse_content(self):
+        """Step 5: Browse lessons and analytics"""
+        if not self.token:
+            return
+        
+        headers = {"Authorization": f"Bearer {self.token}"}
+        
+        self.client.get(
+            "/api/user-videos",
+            headers=headers,
+            name="[Journey] Browse"
+        )
+        
+        time.sleep(2)
+        
+        self.client.get(
+            "/api/analytics/dashboard",
+            headers=headers,
+            name="[Journey] Analytics"
+        )
+
+
+class RealisticUser(AuthenticatedUser, HttpUser):
+    """User with realistic behavior pattern"""
+    tasks = [UserJourneyTaskSet]
+    weight = 2
+    wait_time = between(5, 15)

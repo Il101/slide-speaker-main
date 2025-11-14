@@ -1,7 +1,7 @@
 # Core FastAPI dependencies
 fastapi==0.115.0
 uvicorn[standard]==0.34.0
-python-multipart==0.0.6
+python-multipart==0.0.18
 pydantic==2.5.0
 slowapi==0.1.9
 
@@ -11,8 +11,10 @@ PyMuPDF==1.23.8
 pymupdf==1.23.8
 pdf2image==1.17.0
 Pillow>=10.0.0
-opencv-python==4.8.1.78
-numpy<2.0.0
+# OpenCV headless для серверного окружения (без GUI зависимостей)
+# Используется для оптимизированной генерации видео кадров (в ~5 раз быстрее PIL)
+opencv-python-headless>=4.8.0
+numpy>=1.24.0,<2.0.0
 pytesseract==0.3.10
 easyocr==1.7.0
 
@@ -21,6 +23,14 @@ openai==1.54.0
 anthropic==0.7.8
 elevenlabs==0.2.26
 azure-cognitiveservices-speech==1.34.0
+
+# Silero TTS (Local, Free)
+torch>=2.0.0
+torchaudio>=2.0.0
+omegaconf>=2.3.0
+
+# ✅ Whisper for accurate word-level timing from TTS audio
+openai-whisper>=20231117
 
 # Sprint 3: Video export and queues
 celery==5.3.4
@@ -32,7 +42,8 @@ boto3==1.34.0
 botocore==1.34.0
 
 # Google Cloud Services
-google-cloud-texttospeech==2.16.3
+# ✅ Обновлено до 2.32.0 для поддержки Gemini 2.5 Flash TTS с русским языком
+google-cloud-texttospeech==2.32.0
 google-cloud-documentai==2.20.1
 google-cloud-aiplatform==1.38.1
 google-cloud-storage==2.10.0
@@ -58,10 +69,14 @@ cryptography>=41.0.0
 user-agents==2.2.0
 
 # Error tracking and monitoring
-sentry-sdk[fastapi]==1.40.0
+sentry-sdk[fastapi]==1.45.1
 
 # Payment processing
 stripe==7.0.0
+
+# Translation and language detection
+langdetect==1.0.9
+google-cloud-translate>=3.16.0
 
 # Testing
 pytest==7.4.3

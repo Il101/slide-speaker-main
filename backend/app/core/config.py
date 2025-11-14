@@ -76,7 +76,7 @@ class Settings:
     # Provider Configuration
     OCR_PROVIDER: str = os.getenv("OCR_PROVIDER", "google")  # google|vision|easyocr|paddle
     LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "openrouter")  # gemini|openai|openrouter|ollama|anthropic
-    TTS_PROVIDER: str = os.getenv("TTS_PROVIDER", "google")  # google|azure|mock
+    TTS_PROVIDER: str = os.getenv("TTS_PROVIDER", "google")  # google (with fallback to silero)|azure|silero|mock
     STORAGE: str = os.getenv("STORAGE", "gcs")  # gcs|minio
     
     # Google Cloud Document AI
@@ -94,6 +94,11 @@ class Settings:
     GOOGLE_TTS_SPEAKING_RATE: float = float(os.getenv("GOOGLE_TTS_SPEAKING_RATE", "1.0"))
     GOOGLE_TTS_PITCH: float = float(os.getenv("GOOGLE_TTS_PITCH", "0.0"))
     
+    # Silero TTS (Local, Free)
+    SILERO_TTS_LANGUAGE: str = os.getenv("SILERO_TTS_LANGUAGE", "ru")  # ru|en|de|es|fr|ua|uz|xal|indic|ba|kk|tt
+    SILERO_TTS_SPEAKER: str = os.getenv("SILERO_TTS_SPEAKER", "aidar")  # ru: aidar|baya|kseniya|xenia|eugene
+    SILERO_TTS_SAMPLE_RATE: int = int(os.getenv("SILERO_TTS_SAMPLE_RATE", "48000"))  # 8000|24000|48000
+    
     # Google Cloud Storage
     GCS_BUCKET: str = os.getenv("GCS_BUCKET", "slide-speaker-storage")
     GCS_BASE_URL: str = os.getenv("GCS_BASE_URL", "https://storage.googleapis.com/slide-speaker-storage")
@@ -106,7 +111,10 @@ class Settings:
     # Pipeline Configuration
     USE_NEW_PIPELINE: bool = os.getenv("USE_NEW_PIPELINE", "true").lower() in ("true", "1", "yes")  # Default: TRUE (new pipeline)
     PIPELINE_MAX_PARALLEL_SLIDES: int = int(os.getenv("PIPELINE_MAX_PARALLEL_SLIDES", "5"))
-    PIPELINE_MAX_PARALLEL_TTS: int = int(os.getenv("PIPELINE_MAX_PARALLEL_TTS", "10"))
+    # ✅ CRITICAL FIX: Limit TTS parallelism to prevent memory exhaustion
+    # Silero TTS model + audio tensors consume ~500MB-1GB per concurrent request
+    # Setting to 1 ensures sequential processing and stable memory usage
+    PIPELINE_MAX_PARALLEL_TTS: int = int(os.getenv("PIPELINE_MAX_PARALLEL_TTS", "1"))
     
     # OpenRouter Configuration
     OPENROUTER_API_KEY: Optional[str] = os.getenv("OPENROUTER_API_KEY")

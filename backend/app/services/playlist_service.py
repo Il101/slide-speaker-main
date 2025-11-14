@@ -1,11 +1,12 @@
 """Playlist service for managing playlists and items"""
 import logging
+import os
 from typing import List, Optional, Dict
 from uuid import uuid4
 from datetime import datetime
 import secrets
 import hashlib
-from sqlalchemy import select, func, delete, update
+from sqlalchemy import select, func, delete, update, Integer
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 
@@ -475,7 +476,8 @@ class PlaylistService:
             await db.refresh(playlist)
         
         # Build share URL (you can customize this based on your frontend URL)
-        base_url = "http://localhost:5173"  # TODO: Get from environment
+        # ✅ FIX: Get frontend URL from environment instead of hardcoding
+        base_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
         share_url = f"{base_url}/playlists/shared/{playlist.share_token}"
         
         # Build embed code

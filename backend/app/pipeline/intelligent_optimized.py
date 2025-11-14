@@ -12,14 +12,16 @@ from concurrent.futures import ThreadPoolExecutor
 import time
 
 from .base import BasePipeline
-from ..services.provider_factory import synthesize_slide_text_google_ssml
+from ..services.provider_factory import synthesize_slide_text_google_ssml, synthesize_slide_text_gemini
 from ..services.ocr_cache import get_ocr_cache
 from ..services.presentation_intelligence import PresentationIntelligence
 from ..services.semantic_analyzer import SemanticAnalyzer
 from ..services.smart_script_generator import SmartScriptGenerator
 from ..services.validation_engine import ValidationEngine
 from ..services.ssml_generator import generate_ssml_from_talk_track
-from ..services.bullet_point_sync import BulletPointSyncService
+# ❌ DISABLED: Old visual_cues system (replaced by Visual Effects V2)
+# from ..services.bullet_point_sync import BulletPointSyncService
+from ..services.visual_effects import VisualEffectsEngineV2
 
 logger = logging.getLogger(__name__)
 
@@ -50,8 +52,11 @@ class OptimizedIntelligentPipeline(BasePipeline):
         self.script_generator = SmartScriptGenerator()
         self.validation_engine = ValidationEngine()
         
-        # ✅ NEW: Bullet point sync service with Whisper
-        self.bullet_sync = BulletPointSyncService(whisper_model="base")
+        # ❌ DISABLED: Old bullet point sync for visual_cues (replaced by Visual Effects V2)
+        # self.bullet_sync = BulletPointSyncService(whisper_model="base")
+        
+        # ✅ NEW: Visual Effects V2 engine
+        self.visual_effects_engine = VisualEffectsEngineV2()
         
         import os
         self.max_parallel_slides = int(os.getenv('PIPELINE_MAX_PARALLEL_SLIDES', max_parallel_slides))
@@ -786,6 +791,33 @@ class OptimizedIntelligentPipeline(BasePipeline):
                 talk_track_raw = script.get('talk_track', [])
                 talk_track_clean = self._clean_lang_markers(talk_track_raw)
                 
+                # ✅ SOLUTION #1: Pre-calculate talk_track timing BEFORE TTS
+                # This provides accurate VFX synchronization without additional costs
+                estimated_duration = script.get('estimated_duration', 45)
+                
+                # Calculate total text length for proportional distribution
+                total_chars = sum(len(seg.get('text', '')) for seg in talk_track_raw)
+                current_time = 0.0
+                
+                if total_chars > 0:
+                    for segment in talk_track_raw:
+                        text_len = len(segment.get('text', ''))
+                        segment_duration = (text_len / total_chars) * estimated_duration
+                        
+                        segment['start'] = round(current_time, 3)
+                        segment['end'] = round(current_time + segment_duration, 3)
+                        current_time += segment_duration
+                    
+                    # Also update cleaned version with timing
+                    for i, segment in enumerate(talk_track_clean):
+                        if i < len(talk_track_raw):
+                            segment['start'] = talk_track_raw[i].get('start', 0.0)
+                            segment['end'] = talk_track_raw[i].get('end', 0.0)
+                    
+                    self.logger.info(f"✅ Slide {slides[index]['id']}: Pre-calculated timing for {len(talk_track_raw)} segments")
+                else:
+                    self.logger.warning(f"⚠️ Slide {slides[index]['id']}: No text in talk_track, skipping timing calculation")
+                
                 slides[index]['talk_track_raw'] = talk_track_raw  # For SSML
                 slides[index]['talk_track'] = talk_track_clean  # For subtitles
                 slides[index]['speaker_notes'] = script.get('speaker_notes', '')
@@ -881,43 +913,95 @@ class OptimizedIntelligentPipeline(BasePipeline):
                 
                 self.logger.info(f"   SSML preview: {ssml_preview}...")
             else:
-                self.logger.warning(f"⚠️ Slide {slide_id}: no SSML generated!")
+                self.logger.warning(f"⚠️ Slide {slide_id}: no text generated!")
             
-            # ✅ Use SSML TTS for word-level timings
-            from workers.tts_google_ssml import GoogleTTSWorkerSSML
+            # ✅ NEW: Use Gemini TTS Flash 2.5 (superior voice, sentence-level timing)
+            # ⚠️ Note: Gemini TTS does NOT support SSML, so we extract plain text from talk_track
+            import os
+            tts_provider = os.getenv("TTS_PROVIDER", "gemini").lower()
+            
             loop = asyncio.get_event_loop()
             
-            # ✅ FIX: Add timeout to prevent hanging forever
-            try:
-                # ✅ Use SSML TTS function for proper SSML support
-                audio_path, tts_words = await asyncio.wait_for(
-                    loop.run_in_executor(
-                        self.executor,
-                        lambda: synthesize_slide_text_google_ssml(ssml_texts)
-                    ),
-                    timeout=60.0  # 60 seconds timeout per slide
-                )
-            except asyncio.TimeoutError:
-                self.logger.error(f"⏱️ Slide {slide_id}: TTS timeout after 60 seconds - will retry once")
-                # ✅ RETRY once on timeout
+            if tts_provider == "gemini":
+                # ✅ Gemini TTS: Extract plain text from talk_track (no SSML)
+                if talk_track_raw and isinstance(talk_track_raw, list):
+                    plain_texts = [segment.get('text', '') for segment in talk_track_raw if segment.get('text')]
+                    self.logger.info(f"🎤 Slide {slide_id}: Using Gemini TTS Flash 2.5 with {len(plain_texts)} text segments")
+                else:
+                    # Fallback to OCR text
+                    plain_texts = [speaker_notes]
+                    self.logger.warning(f"⚠️ Slide {slide_id}: Using fallback text for Gemini TTS")
+                
+                # ✅ FIX: Add timeout to prevent hanging forever
                 try:
-                    self.logger.info(f"🔄 Retrying TTS for slide {slide_id}...")
+                    audio_path, tts_words = await asyncio.wait_for(
+                        loop.run_in_executor(
+                            self.executor,
+                            lambda: synthesize_slide_text_gemini(
+                                plain_texts,
+                                voice=os.getenv("GEMINI_TTS_VOICE", "Charon"),
+                                prompt=os.getenv("GEMINI_TTS_PROMPT", "Speak naturally and clearly, with good pacing and intonation.")
+                            )
+                        ),
+                        timeout=60.0  # 60 seconds timeout per slide
+                    )
+                    self.logger.info(f"✅ Slide {slide_id}: Gemini TTS complete (sentence-level timing)")
+                except asyncio.TimeoutError:
+                    self.logger.error(f"⏱️ Slide {slide_id}: Gemini TTS timeout after 60 seconds - will retry once")
+                    # ✅ RETRY once on timeout
+                    try:
+                        self.logger.info(f"🔄 Retrying Gemini TTS for slide {slide_id}...")
+                        audio_path, tts_words = await asyncio.wait_for(
+                            loop.run_in_executor(
+                                self.executor,
+                                lambda: synthesize_slide_text_gemini(plain_texts)
+                            ),
+                            timeout=90.0  # Longer timeout for retry
+                        )
+                    except (asyncio.TimeoutError, ConnectionError, OSError) as retry_error:
+                        self.logger.error(f"❌ Slide {slide_id}: Retry failed: {retry_error}")
+                        return (index, None, {}, 0.0, None)
+                except (ValueError, RuntimeError, OSError, IOError) as e:
+                    self.logger.error(f"❌ Slide {slide_id}: Gemini TTS error: {e}")
+                    return (index, None, {}, 0.0, None)
+                except Exception as e:
+                    self.logger.exception(f"❌ Slide {slide_id}: Unexpected Gemini TTS error: {e}")
+                    return (index, None, {}, 0.0, None)
+            else:
+                # ✅ Fallback: Use SSML TTS (Chirp 3 HD) for word-level timings
+                self.logger.info(f"🎤 Slide {slide_id}: Using Chirp 3 HD TTS with SSML (word-level timing)")
+                
+                # ✅ FIX: Add timeout to prevent hanging forever
+                try:
+                    # ✅ Use SSML TTS function for proper SSML support
                     audio_path, tts_words = await asyncio.wait_for(
                         loop.run_in_executor(
                             self.executor,
                             lambda: synthesize_slide_text_google_ssml(ssml_texts)
                         ),
-                        timeout=90.0  # Longer timeout for retry
+                        timeout=60.0  # 60 seconds timeout per slide
                     )
-                except (asyncio.TimeoutError, ConnectionError, OSError) as retry_error:
-                    self.logger.error(f"❌ Slide {slide_id}: Retry failed: {retry_error}")
+                except asyncio.TimeoutError:
+                    self.logger.error(f"⏱️ Slide {slide_id}: TTS timeout after 60 seconds - will retry once")
+                    # ✅ RETRY once on timeout
+                    try:
+                        self.logger.info(f"🔄 Retrying TTS for slide {slide_id}...")
+                        audio_path, tts_words = await asyncio.wait_for(
+                            loop.run_in_executor(
+                                self.executor,
+                                lambda: synthesize_slide_text_google_ssml(ssml_texts)
+                            ),
+                            timeout=90.0  # Longer timeout for retry
+                        )
+                    except (asyncio.TimeoutError, ConnectionError, OSError) as retry_error:
+                        self.logger.error(f"❌ Slide {slide_id}: Retry failed: {retry_error}")
+                        return (index, None, {}, 0.0, None)
+                except (ValueError, RuntimeError, OSError, IOError) as e:
+                    self.logger.error(f"❌ Slide {slide_id}: TTS error: {e}")
                     return (index, None, {}, 0.0, None)
-            except (ValueError, RuntimeError, OSError, IOError) as e:
-                self.logger.error(f"❌ Slide {slide_id}: TTS error: {e}")
-                return (index, None, {}, 0.0, None)
-            except Exception as e:
-                self.logger.exception(f"❌ Slide {slide_id}: Unexpected TTS error: {e}")
-                return (index, None, {}, 0.0, None)
+                except Exception as e:
+                    self.logger.exception(f"❌ Slide {slide_id}: Unexpected TTS error: {e}")
+                    return (index, None, {}, 0.0, None)
             
             # Get duration
             duration = 0.0
@@ -1058,6 +1142,44 @@ class OptimizedIntelligentPipeline(BasePipeline):
                 
             except Exception as e:
                 self.logger.error(f"Error applying TTS result: {e}")
+        
+        # ✅ NEW: Generate Visual Effects V2 manifests for all slides
+        self.logger.info("🎨 Generating Visual Effects V2 manifests...")
+        vfx_start_time = time.time()
+        vfx_success = 0
+        
+        for slide in slides:
+            try:
+                slide_id = slide.get("id")
+                
+                # Skip slides without audio
+                if not slide.get("audio") or not slide.get("audio_duration"):
+                    self.logger.warning(f"⚠️ Slide {slide_id}: skipping VFX (no audio)")
+                    continue
+                
+                # Generate visual effects manifest
+                vfx_manifest = self.visual_effects_engine.generate_slide_manifest(
+                    semantic_map=slide.get("semantic_map", {"groups": []}),
+                    elements=slide.get("elements", []),
+                    audio_duration=slide.get("audio_duration", 0.0),
+                    slide_id=f"slide_{slide_id}",
+                    tts_words=slide.get("tts_words"),
+                    talk_track=slide.get("talk_track_raw", [])
+                )
+                
+                # Add to slide
+                slide["visual_effects_manifest"] = vfx_manifest
+                vfx_success += 1
+                
+                self.logger.info(f"✅ Slide {slide_id}: VFX manifest generated ({len(vfx_manifest.get('effects', []))} effects)")
+                
+            except Exception as e:
+                self.logger.error(f"❌ Slide {slide_id}: VFX generation failed: {e}")
+                # Continue even if VFX fails - it's not critical
+                continue
+        
+        vfx_elapsed = time.time() - vfx_start_time
+        self.logger.info(f"🎨 Visual Effects V2: completed in {vfx_elapsed:.1f}s ({vfx_success}/{len(slides)} slides)")
         
         # Save updated manifest
         self.save_manifest(lesson_dir, manifest_data)
@@ -1467,45 +1589,46 @@ class OptimizedIntelligentPipeline(BasePipeline):
                         'group_id': group_id  # Add group_id for timing matching
                     })
 
-                logger.info(f"🎯 Using BulletPointSync for visual effects on slide {slide_id}...")
-                logger.info(f"   Synthetic talk_track_raw: {len(talk_track_raw)} segments, {sum(1 for s in talk_track_raw if s.get('group_id'))} with group_id")
-                logger.info(f"   Semantic groups: {[g.get('id') for g in semantic_groups]}")
-                logger.info(f"   Mapped groups: {[s.get('group_id') for s in talk_track_raw if s.get('group_id')]}")
-                logger.info(f"   Elements: {len(elements)} total")
+                # ❌ DISABLED: Old visual_cues generation system (replaced by Visual Effects V2)
+                # logger.info(f"🎯 Using BulletPointSync for visual effects on slide {slide_id}...")
+                # logger.info(f"   Synthetic talk_track_raw: {len(talk_track_raw)} segments, {sum(1 for s in talk_track_raw if s.get('group_id'))} with group_id")
+                # logger.info(f"   Semantic groups: {[g.get('id') for g in semantic_groups]}")
+                # logger.info(f"   Mapped groups: {[s.get('group_id') for s in talk_track_raw if s.get('group_id')]}")
+                # logger.info(f"   Elements: {len(elements)} total")
 
-                cues = self.bullet_sync.sync_bullet_points(
-                    audio_path=str(audio_full_path),
-                    talk_track_raw=talk_track_raw,
-                    semantic_map=semantic_map,
-                    elements=elements,  # ✅ FIX: Pass elements from slide
-                    slide_language="auto",  # Auto-detect through Whisper
-                    audio_duration=duration,  # ✅ FIX: Pass real audio duration for fallback sync
-                    tts_words=tts_words  # ✅ NEW: Pass word-level timing from Google TTS
-                )
+                # cues = self.bullet_sync.sync_bullet_points(
+                #     audio_path=str(audio_full_path),
+                #     talk_track_raw=talk_track_raw,
+                #     semantic_map=semantic_map,
+                #     elements=elements,
+                #     slide_language="auto",
+                #     audio_duration=duration,
+                #     tts_words=tts_words
+                # )
                 
-                # Validate cues
-                cues, cue_errors = self.validation_engine.validate_cues(
-                    cues,
-                    duration,
-                    elements
-                )
+                # # Validate cues
+                # cues, cue_errors = self.validation_engine.validate_cues(
+                #     cues,
+                #     duration,
+                #     elements
+                # )
                 
-                if cue_errors:
-                    self.logger.warning(f"⚠️ Cue validation: {len(cue_errors)} issues")
+                # if cue_errors:
+                #     self.logger.warning(f"⚠️ Cue validation: {len(cue_errors)} issues")
                 
-                # ✅ Save to BOTH 'cues' and 'visual_cues' for compatibility
-                slide['cues'] = cues
-                slide['visual_cues'] = cues  # Frontend expects this field
+                # # ✅ Save to BOTH 'cues' and 'visual_cues' for compatibility
+                # slide['cues'] = cues
+                # slide['visual_cues'] = cues  # Frontend expects this field
 
-                self.logger.info(f"✅ Generated {len(cues)} visual cues")
-                self.logger.info(f"   Slide {slide_id} now has {len(slide.get('cues', []))} cues in memory")
+                # self.logger.info(f"✅ Generated {len(cues)} visual cues")
+                # self.logger.info(f"   Slide {slide_id} now has {len(slide.get('cues', []))} cues in memory")
                 
-                # Keep tts_words for debugging and potential runtime fallback
-                # Don't delete them - they contain sentences needed for text matching
+                # # Keep tts_words for debugging and potential runtime fallback
+                # # Don't delete them - they contain sentences needed for text matching
                 
             except Exception as e:
-                self.logger.error(f"❌ Visual effects failed for slide {slide_id}: {e}")
-                slide['cues'] = []
+                self.logger.error(f"❌ Visual effects generation failed for slide {slide_id}: {e}")
+                # slide['cues'] = []  # Not needed anymore - using visual_effects_manifest
         
         # Build timeline
         timeline = []

@@ -1,12 +1,44 @@
-# Test dependencies
+# Core test dependencies
 pytest==7.4.3
 pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-timeout==2.2.0
+pytest-mock==3.12.0
+pytest-xdist==3.5.0  # Parallel test execution
+
+# HTTP testing
 httpx==0.25.2
-fastapi==0.104.1
+respx==0.20.2  # HTTP mocking
+
+# FastAPI testing
+fastapi==0.115.0
 pydantic==2.5.0
 
+# Database testing
+pytest-postgresql==5.0.0
+pytest-redis==3.0.2
+faker==22.0.0  # Generate test data
+
+# Coverage and reporting
+coverage[toml]==7.4.0
+pytest-html==4.1.1  # HTML test reports
+
+# Code quality
+black==24.1.0
+mypy==1.8.0
+pylint==3.0.3
+flake8==7.0.0
+isort==5.13.2
+
+# Error handling and reliability
+tenacity==8.2.3  # Retry with exponential backoff
+circuitbreaker==1.4.0  # Circuit breaker pattern
+sentry-sdk[fastapi]==1.40.0  # Error tracking
+
 # Optional: Google Cloud dependencies (for real integration tests)
+# Uncomment when running integration tests with real services
 # google-cloud-documentai==2.20.1
 # google-cloud-aiplatform==1.38.1
 # google-cloud-texttospeech==2.16.3
 # google-cloud-storage==2.10.0
+# google-cloud-vision==3.4.4

@@ -3,12 +3,12 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 from ..core.auth import get_current_user
-from ..core.database import get_db, Lesson
-from pydantic import BaseModel, Field
+from ..core.database import get_db, Lesson, Export
+from pydantic import BaseModel, Field, field_serializer
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,14 @@ class VideoPreview(BaseModel):
     video_url: Optional[str] = Field(None, description="URL to exported MP4 (if exists)")
     video_size: Optional[int] = Field(None, description="Video file size in bytes")
     can_play: bool = Field(..., description="Whether video can be played in player")
+
+    @field_serializer('created_at', 'updated_at')
+    def serialize_datetime(self, dt: datetime, _info):
+        """Serialize datetime with explicit UTC timezone for proper client-side conversion"""
+        if dt.tzinfo is None:
+            # Assume UTC if no timezone (PostgreSQL stores in UTC)
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat()
 
 
 class UserVideosResponse(BaseModel):
@@ -189,6 +197,74 @@ async def get_video_details(
     except Exception as e:
         logger.error(f"Error retrieving video details: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to retrieve video: {str(e)}")
+
+
+@router.post("/{lesson_id}/cancel")
+async def cancel_processing(
+    lesson_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Cancel processing of a video that is currently being processed
+    
+    This will:
+    - Revoke the Celery task
+    - Update lesson status to 'cancelled'
+    - Clean up processing resources
+    """
+    try:
+        user_id = current_user["user_id"]
+        
+        # Get lesson
+        query = select(Lesson).where(Lesson.id == lesson_id)
+        result = await db.execute(query)
+        lesson = result.scalar_one_or_none()
+        
+        if not lesson:
+            raise HTTPException(status_code=404, detail="Video not found")
+        
+        # Check ownership
+        if lesson.user_id != user_id and current_user["role"] != "admin":
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Check if lesson is currently processing
+        if lesson.status not in ["processing", "queued"]:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Cannot cancel video with status '{lesson.status}'. Only 'processing' or 'queued' videos can be cancelled."
+            )
+        
+        # Revoke Celery task if task_id exists
+        task_revoked = False
+        if hasattr(lesson, 'task_id') and lesson.task_id:
+            try:
+                from ..celery_app import celery_app
+                # Terminate=True will kill the worker process if task is running
+                celery_app.control.revoke(lesson.task_id, terminate=True, signal='SIGTERM')
+                task_revoked = True
+                logger.info(f"Revoked Celery task {lesson.task_id} for lesson {lesson_id}")
+            except Exception as e:
+                logger.error(f"Error revoking Celery task: {e}")
+        
+        # Update lesson status to cancelled
+        lesson.status = "cancelled"
+        lesson.updated_at = datetime.utcnow()
+        await db.commit()
+        
+        logger.info(f"Cancelled processing for video {lesson_id} (user: {user_id}, task_revoked: {task_revoked})")
+        
+        return {
+            "success": True, 
+            "message": "Processing cancelled successfully",
+            "task_revoked": task_revoked
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error cancelling video processing: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to cancel processing: {str(e)}")
 
 
 @router.delete("/{lesson_id}")

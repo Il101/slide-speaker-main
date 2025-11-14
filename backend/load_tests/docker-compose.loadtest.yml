@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  locust-master:
+    image: locustio/locust:latest
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./locustfile.py:/mnt/locust/locustfile.py
+      - ./config.py:/mnt/locust/config.py
+      - ./reports:/mnt/locust/reports
+    command: -f /mnt/locust/locustfile.py --master --host ${TARGET_HOST:-http://backend:8000}
+    environment:
+      - LOCUST_MODE=master
+      - LOCUST_MASTER_BIND_PORT=5557
+    networks:
+      - loadtest
+
+  locust-worker:
+    image: locustio/locust:latest
+    volumes:
+      - ./locustfile.py:/mnt/locust/locustfile.py
+      - ./config.py:/mnt/locust/config.py
+    command: -f /mnt/locust/locustfile.py --worker --master-host locust-master
+    environment:
+      - LOCUST_MODE=worker
+      - LOCUST_MASTER_NODE_HOST=locust-master
+      - LOCUST_MASTER_NODE_PORT=5557
+    depends_on:
+      - locust-master
+    networks:
+      - loadtest
+    deploy:
+      replicas: 4
+
+networks:
+  loadtest:
+    driver: bridge

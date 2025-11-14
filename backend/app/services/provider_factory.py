@@ -1,5 +1,10 @@
 """
 Provider Factory for Google Cloud Services Integration
+
+✅ TTS Smart Fallback System:
+- Primary: Google Cloud TTS (high quality, word-level timing, no Whisper)
+- Fallback: Silero TTS (free, local, uses Whisper for timing)
+- Automatic credential detection and fallback
 """
 import logging
 import os
@@ -100,12 +105,52 @@ class ProviderFactory:
     
     @staticmethod
     def get_tts_provider():
-        """Get TTS provider based on TTS_PROVIDER setting"""
+        """
+        Get TTS provider with smart fallback
+        
+        Strategy:
+        1. Try Gemini TTS Flash 2.5 (best voice quality, 78% cheaper, sentence-level timing)
+        2. Fallback to Google TTS Chirp 3 HD (word-level timing for VFX)
+        3. Fallback to Silero (free, local, needs Whisper for timing)
+        4. Fallback to mock (development only)
+        """
         provider = settings.TTS_PROVIDER.lower()
         
-        if provider == "google":
+        if provider == "gemini":
+            try:
+                from workers.tts_gemini import GeminiTTSWorker
+                
+                # Check if Google credentials are available
+                google_creds = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+                if not google_creds or not Path(google_creds).exists():
+                    logger.warning("Google credentials not found, falling back to Silero TTS")
+                    return ProviderFactory._get_silero_tts_fallback()
+                
+                logger.info("✅ Using Gemini TTS Flash 2.5 (superior voice, sentence-level timing)")
+                return GeminiTTSWorker(
+                    voice=os.getenv("GEMINI_TTS_VOICE", "Charon"),
+                    model=os.getenv("GEMINI_TTS_MODEL", "gemini-2.5-flash-tts"),
+                    prompt=os.getenv("GEMINI_TTS_PROMPT", "Speak naturally and clearly, with good pacing and intonation.")
+                )
+            except ImportError as e:
+                logger.error(f"Failed to import Gemini TTS provider: {e}")
+                logger.info("Falling back to Silero TTS")
+                return ProviderFactory._get_silero_tts_fallback()
+            except Exception as e:
+                logger.error(f"Error initializing Gemini TTS: {e}")
+                logger.info("Falling back to Silero TTS")
+                return ProviderFactory._get_silero_tts_fallback()
+        elif provider == "google":
             try:
                 from workers.tts_google import GoogleTTSWorker
+                
+                # Check if Google credentials are available
+                google_creds = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+                if not google_creds or not Path(google_creds).exists():
+                    logger.warning("Google credentials not found, falling back to Silero TTS")
+                    return ProviderFactory._get_silero_tts_fallback()
+                
+                logger.info("✅ Using Google Cloud TTS Chirp 3 HD (word-level timing)")
                 return GoogleTTSWorker(
                     voice=settings.GOOGLE_TTS_VOICE,
                     speaking_rate=settings.GOOGLE_TTS_SPEAKING_RATE,
@@ -113,7 +158,14 @@ class ProviderFactory:
                 )
             except ImportError as e:
                 logger.error(f"Failed to import Google TTS provider: {e}")
-                return ProviderFactory._get_fallback_tts()
+                logger.info("Falling back to Silero TTS")
+                return ProviderFactory._get_silero_tts_fallback()
+            except Exception as e:
+                logger.error(f"Error initializing Google TTS: {e}")
+                logger.info("Falling back to Silero TTS")
+                return ProviderFactory._get_silero_tts_fallback()
+        elif provider == "silero":
+            return ProviderFactory._get_silero_tts_fallback()
         elif provider == "azure":
             # Use existing Azure TTS implementation
             return ProviderFactory._get_azure_tts_provider()
@@ -122,6 +174,25 @@ class ProviderFactory:
             return ProviderFactory._get_mock_tts_provider()
         else:
             logger.warning(f"Unknown TTS provider: {provider}, using fallback")
+            return ProviderFactory._get_fallback_tts()
+    
+    @staticmethod
+    def _get_silero_tts_fallback():
+        """Get Silero TTS as fallback (lazy import)"""
+        try:
+            from workers.tts_silero import SileroTTSWorker
+            logger.info("✅ Using Silero TTS (fallback - local & free)")
+            return SileroTTSWorker(
+                language=settings.SILERO_TTS_LANGUAGE,
+                speaker=settings.SILERO_TTS_SPEAKER,
+                sample_rate=settings.SILERO_TTS_SAMPLE_RATE
+            )
+        except ImportError as e:
+            logger.error(f"Failed to import Silero TTS provider: {e}")
+            logger.warning("Falling back to mock TTS")
+            return ProviderFactory._get_fallback_tts()
+        except Exception as e:
+            logger.error(f"Error initializing Silero TTS: {e}")
             return ProviderFactory._get_fallback_tts()
     
     @staticmethod
@@ -366,9 +437,58 @@ class ProviderFactory:
     retry=retry_if_exception_type((ConnectionError, TimeoutError, Exception))
 )
 def extract_elements_from_pages(png_paths: List[str], **kwargs) -> List[List[Dict]]:
-    """Extract elements from pages using configured OCR provider"""
-    provider = ProviderFactory.get_ocr_provider()
-    return provider.extract_elements_from_pages(png_paths, **kwargs)
+    """
+    Extract elements from pages using configured OCR provider with caching
+    
+    ✅ IMPROVED: Now checks OCR cache before calling provider
+    - Saves API calls on repeated slides
+    - Uses perceptual hash for deduplication
+    - Batch operations for speed
+    """
+    from app.services.ocr_cache import get_ocr_cache
+    
+    ocr_cache = get_ocr_cache()
+    
+    if not ocr_cache.enabled:
+        # Cache disabled, use provider directly
+        provider = ProviderFactory.get_ocr_provider()
+        return provider.extract_elements_from_pages(png_paths, **kwargs)
+    
+    # ✅ Try batch get from cache
+    cached_results = ocr_cache.get_batch(png_paths)
+    
+    # Identify which slides need OCR
+    slides_to_process = []
+    slides_to_process_indices = []
+    
+    for i, png_path in enumerate(png_paths):
+        if cached_results[png_path] is None:
+            slides_to_process.append(png_path)
+            slides_to_process_indices.append(i)
+    
+    # Process uncached slides
+    processed_results = {}
+    if slides_to_process:
+        logger.info(f"OCR: {len(slides_to_process)}/{len(png_paths)} slides need processing")
+        provider = ProviderFactory.get_ocr_provider()
+        fresh_results = provider.extract_elements_from_pages(slides_to_process, **kwargs)
+        
+        # Save to cache
+        for png_path, result in zip(slides_to_process, fresh_results):
+            processed_results[png_path] = result
+            ocr_cache.set(png_path, result)
+    else:
+        logger.info(f"✅ OCR: All {len(png_paths)} slides from cache!")
+    
+    # Combine cached and fresh results in original order
+    final_results = []
+    for png_path in png_paths:
+        if png_path in processed_results:
+            final_results.append(processed_results[png_path])
+        else:
+            final_results.append(cached_results[png_path])
+    
+    return final_results
 
 @retry(
     stop=stop_after_attempt(3),
@@ -396,10 +516,17 @@ def synthesize_slide_text_google(texts: List[str], **kwargs) -> Tuple[str, Dict]
     retry=retry_if_exception_type((ConnectionError, TimeoutError, Exception))
 )
 def generate_lecture_text_with_ssml(elements: List[Dict], **kwargs) -> str:
-    """Generate lecture text with SSML markup using configured LLM provider"""
-    from workers.llm_openrouter_ssml import OpenRouterLLMWorkerSSML
-    worker = OpenRouterLLMWorkerSSML()
-    return worker.generate_lecture_text_with_ssml(elements, **kwargs)
+    """
+    DEPRECATED: This function is not used by the new pipeline.
+    Use SmartScriptGenerator instead for modern script generation.
+    
+    Kept for backward compatibility only.
+    """
+    logger.warning("DEPRECATED: generate_lecture_text_with_ssml called - use SmartScriptGenerator instead")
+    # Use current LLM provider instead of hardcoded OpenRouter
+    llm_worker = ProviderFactory.get_llm_provider()
+    # Fallback to basic generation
+    return "Legacy mode - please update to new pipeline"
 
 @retry(
     stop=stop_after_attempt(3),
@@ -407,10 +534,53 @@ def generate_lecture_text_with_ssml(elements: List[Dict], **kwargs) -> str:
     retry=retry_if_exception_type((ConnectionError, TimeoutError, Exception))
 )
 def synthesize_slide_text_google_ssml(ssml_texts: List[str], **kwargs) -> Tuple[str, Dict]:
-    """Synthesize SSML text using configured TTS provider"""
+    """
+    Synthesize SSML text using configured TTS provider
+    
+    ⚠️ DEPRECATED for Gemini TTS (no SSML support)
+    Use synthesize_slide_text_gemini for plain text with Gemini TTS
+    """
     from workers.tts_google_ssml import GoogleTTSWorkerSSML
     worker = GoogleTTSWorkerSSML()
     return worker.synthesize_slide_text_google_ssml(ssml_texts, **kwargs)
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=4, max=10),
+    retry=retry_if_exception_type((ConnectionError, TimeoutError, Exception))
+)
+def synthesize_slide_text_gemini(texts: List[str], **kwargs) -> Tuple[str, Dict]:
+    """
+    Synthesize plain text using Gemini TTS Flash 2.5
+    
+    ✅ Features:
+    - Superior voice quality with consistent intonation (single API call per slide)
+    - Natural language prompts
+    - Markup tags for inline effects
+    - 78% cheaper than Chirp 3 HD
+    
+    ⚠️ Limitations:
+    - No SSML support (use plain text)
+    - No word-level timing (estimated timing based on text length)
+    - Text limit: 4000 bytes per combined text
+    
+    Args:
+        texts: List of plain text segments (NOT SSML) - will be combined into one request
+        **kwargs: Optional parameters (voice, model, prompt)
+        
+    Returns:
+        Tuple[str, Dict]: (path to audio file, timing structure with estimated timing)
+        
+    Note: All text segments are combined and sent as ONE API request to ensure
+          consistent voice and intonation throughout the entire slide.
+    """
+    from workers.tts_gemini import GeminiTTSWorker
+    worker = GeminiTTSWorker(
+        voice=kwargs.get('voice'),
+        model=kwargs.get('model'),
+        prompt=kwargs.get('prompt')
+    )
+    return worker.synthesize_slide_text_gemini(texts, **kwargs)
 
 @retry(
     stop=stop_after_attempt(3),

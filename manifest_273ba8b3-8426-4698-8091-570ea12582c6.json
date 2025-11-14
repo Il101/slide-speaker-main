@@ -1,0 +1,2074 @@
+{
+  "slides": [
+    {
+      "id": 1,
+      "image": "/assets/273ba8b3-8426-4698-8091-570ea12582c6/slides/001.png",
+      "width": 1440,
+      "height": 1080,
+      "elements": [
+        {
+          "id": "slide_1_block_0",
+          "type": "heading",
+          "text": "universität innsbruck",
+          "confidence": 0.9,
+          "bbox": [
+            93,
+            37,
+            237,
+            74
+          ],
+          "text_original": "universität innsbruck",
+          "text_translated": "Университет Инсбрука",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_1_block_1",
+          "type": "paragraph",
+          "text": "Das Blatt",
+          "confidence": 0.9,
+          "bbox": [
+            588,
+            97,
+            265,
+            47
+          ],
+          "text_original": "Das Blatt",
+          "text_translated": "Лист",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_1_block_2",
+          "type": "list_item",
+          "text": "Anatomische Blatt - Typen :",
+          "confidence": 0.9,
+          "bbox": [
+            72,
+            346,
+            515,
+            42
+          ],
+          "text_original": "Anatomische Blatt - Typen :",
+          "text_translated": "Типы анатомических листов:",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_1_block_3",
+          "type": "list_item",
+          "text": "•",
+          "confidence": 0.9,
+          "bbox": [
+            75,
+            440,
+            13,
+            11
+          ],
+          "text_original": "•",
+          "text_translated": "•",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_1_block_4",
+          "type": "paragraph",
+          "text": ".",
+          "confidence": 0.9,
+          "bbox": [
+            75,
+            521,
+            14,
+            12
+          ],
+          "text_original": ".",
+          "text_translated": ".",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_1_block_5",
+          "type": "paragraph",
+          "text": "Monokotyle Pflanzen : parallelnervig Dikotyle Pflanzen : netznervig",
+          "confidence": 0.9,
+          "bbox": [
+            129,
+            429,
+            712,
+            121
+          ],
+          "text_original": "Monokotyle Pflanzen : parallelnervig Dikotyle Pflanzen : netznervig",
+          "text_translated": "Однодольные растения: параллельная нервная система. Двудольные растения: ретикулярная нервная система.",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_1_block_6",
+          "type": "list_item",
+          "text": "Blatt Metamorphosen : z.B. carnivore Pflanzen Blütenbestandteile leiten sich vom Laubblatt ab ( Frucht- , Staub- , Kron- , Kelch- , Hochblätter )",
+          "confidence": 0.9,
+          "bbox": [
+            53,
+            786,
+            900,
+            177
+          ],
+          "text_original": "Blatt Metamorphosen : z.B. carnivore Pflanzen Blütenbestandteile leiten sich vom Laubblatt ab ( Frucht- , Staub- , Kron- , Kelch- , Hochblätter )",
+          "text_translated": "Метаморфозы листьев: например, плотоядные растения; части цветка происходят из листовой пластины (плодолистики, тычинки, лепестки, чашелистики, прицветники).",
+          "language_original": "de",
+          "language_target": "ru"
+        }
+      ],
+      "translation_applied": true,
+      "source_language": "de",
+      "target_language": "ru",
+      "semantic_map": {
+        "slide_type": "content_slide",
+        "groups": [
+          {
+            "id": "group_title",
+            "name": "Slide Title",
+            "type": "title",
+            "priority": "high",
+            "element_ids": [
+              "slide_1_block_1"
+            ],
+            "reading_order": [
+              1
+            ],
+            "educational_intent": "Introduce the topic of the slide: Leaf anatomy and types.",
+            "highlight_strategy": {
+              "when": "start",
+              "effect_type": "spotlight",
+              "duration": 3.0,
+              "intensity": "normal"
+            },
+            "dependencies": {
+              "highlight_before": null,
+              "highlight_together_with": null,
+              "highlight_after": null
+            }
+          },
+          {
+            "id": "group_types",
+            "name": "Leaf Types",
+            "type": "key_point",
+            "priority": "high",
+            "element_ids": [
+              "slide_1_block_2",
+              "slide_1_block_3",
+              "slide_1_block_4",
+              "slide_1_block_5"
+            ],
+            "reading_order": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "educational_intent": "Explain the anatomical types of leaves, focusing on monocot and dicot differences.",
+            "highlight_strategy": {
+              "when": "during_explanation",
+              "effect_type": "sequential_cascade",
+              "duration": 5.0,
+              "intensity": "normal"
+            },
+            "dependencies": {
+              "highlight_before": [
+                "group_title"
+              ],
+              "highlight_together_with": null,
+              "highlight_after": null
+            }
+          },
+          {
+            "id": "group_metamorphoses",
+            "name": "Leaf Metamorphoses",
+            "type": "key_point",
+            "priority": "medium",
+            "element_ids": [
+              "slide_1_block_6"
+            ],
+            "reading_order": [
+              6
+            ],
+            "educational_intent": "Introduce the concept of leaf metamorphoses and provide an example.",
+            "highlight_strategy": {
+              "when": "during_detail",
+              "effect_type": "highlight",
+              "duration": 4.0,
+              "intensity": "normal"
+            },
+            "dependencies": {
+              "highlight_before": [
+                "group_types"
+              ],
+              "highlight_together_with": null,
+              "highlight_after": null
+            }
+          },
+          {
+            "id": "group_university",
+            "name": "University Info",
+            "type": "watermark",
+            "priority": "none",
+            "element_ids": [
+              "slide_1_block_0"
+            ],
+            "reading_order": [],
+            "educational_intent": "University information",
+            "highlight_strategy": {
+              "when": "never",
+              "effect_type": "none",
+              "duration": 0,
+              "intensity": "none"
+            },
+            "dependencies": {
+              "highlight_before": null,
+              "highlight_together_with": null,
+              "highlight_after": null
+            }
+          }
+        ],
+        "noise_elements": [],
+        "visual_density": "medium",
+        "cognitive_load": "medium"
+      },
+      "talk_track_raw": [
+        {
+          "segment": "hook",
+          "text": "Давайте разберёмся вместе, как устроен лист растения! Это как солнечная батарея для дерева, но гораздо сложнее и интереснее.",
+          "group_id": null,
+          "start": 8.76,
+          "end": 18.33
+        },
+        {
+          "segment": "context",
+          "text": "Сегодня мы рассмотрим анатомию листа, его типы и метаморфозы. Это поможет нам лучше понять, как растения приспосабливаются к окружающей среде.",
+          "group_id": "group_title",
+          "start": 8.76,
+          "end": 18.33
+        },
+        {
+          "segment": "explanation",
+          "text": "Начнем с типов анатомических листов. Существуют различные варианты строения, в зависимости от вида растения.",
+          "group_id": "group_types",
+          "start": 18.33,
+          "end": 58.56
+        },
+        {
+          "segment": "example",
+          "text": "Например, лист может быть дорзивентральным, когда верхняя и нижняя стороны листа отличаются по строению. Это характерно для многих двудольных растений.",
+          "group_id": "group_types",
+          "start": 18.33,
+          "end": 58.56
+        },
+        {
+          "segment": "explanation",
+          "text": "Также лист может быть изолатеральным, когда обе стороны листа имеют одинаковое строение. Это часто встречается у однодольных растений.",
+          "group_id": "group_types",
+          "start": 18.33,
+          "end": 58.56
+        },
+        {
+          "segment": "explanation",
+          "text": "Существует центрический тип листа, когда мезофилл расположен вокруг проводящего пучка. И наконец, лист может быть гетеролатеральным, с разным строением сторон и разным расположением устьиц.",
+          "group_id": "group_types",
+          "start": 18.33,
+          "end": 58.56
+        },
+        {
+          "segment": "explanation",
+          "text": "Теперь перейдем к метаморфозам листьев. Это изменения в строении листа, связанные с выполнением особых функций.",
+          "group_id": "group_metamorphoses",
+          "start": 58.56,
+          "end": 92.68
+        },
+        {
+          "segment": "example",
+          "text": "Например, у плотоядных растений листья могут превращаться в ловчие органы для захвата насекомых. Это удивительный пример адаптации!",
+          "group_id": "group_metamorphoses",
+          "start": 58.56,
+          "end": 92.68
+        },
+        {
+          "segment": "emphasis",
+          "text": "Обратите внимание, что строение листа тесно связано с его функцией и условиями произрастания растения. Это важно запомнить!",
+          "group_id": "group_title",
+          "start": 8.76,
+          "end": 18.33
+        },
+        {
+          "segment": "transition",
+          "text": "Теперь, когда мы познакомились с основными типами и метаморфозами, перейдем к более детальному изучению строения листа.",
+          "group_id": null,
+          "start": 84.45,
+          "end": 92.68
+        }
+      ],
+      "talk_track": [
+        {
+          "segment": "hook",
+          "text": "Давайте разберёмся вместе, как устроен лист растения! Это как солнечная батарея для дерева, но гораздо сложнее и интереснее.",
+          "group_id": null,
+          "start": 8.76,
+          "end": 18.33
+        },
+        {
+          "segment": "context",
+          "text": "Сегодня мы рассмотрим анатомию листа, его типы и метаморфозы. Это поможет нам лучше понять, как растения приспосабливаются к окружающей среде.",
+          "group_id": "group_title",
+          "start": 8.76,
+          "end": 18.33
+        },
+        {
+          "segment": "explanation",
+          "text": "Начнем с типов анатомических листов. Существуют различные варианты строения, в зависимости от вида растения.",
+          "group_id": "group_types",
+          "start": 18.33,
+          "end": 58.56
+        },
+        {
+          "segment": "example",
+          "text": "Например, лист может быть дорзивентральным, когда верхняя и нижняя стороны листа отличаются по строению. Это характерно для многих двудольных растений.",
+          "group_id": "group_types",
+          "start": 18.33,
+          "end": 58.56
+        },
+        {
+          "segment": "explanation",
+          "text": "Также лист может быть изолатеральным, когда обе стороны листа имеют одинаковое строение. Это часто встречается у однодольных растений.",
+          "group_id": "group_types",
+          "start": 18.33,
+          "end": 58.56
+        },
+        {
+          "segment": "explanation",
+          "text": "Существует центрический тип листа, когда мезофилл расположен вокруг проводящего пучка. И наконец, лист может быть гетеролатеральным, с разным строением сторон и разным расположением устьиц.",
+          "group_id": "group_types",
+          "start": 18.33,
+          "end": 58.56
+        },
+        {
+          "segment": "explanation",
+          "text": "Теперь перейдем к метаморфозам листьев. Это изменения в строении листа, связанные с выполнением особых функций.",
+          "group_id": "group_metamorphoses",
+          "start": 58.56,
+          "end": 92.68
+        },
+        {
+          "segment": "example",
+          "text": "Например, у плотоядных растений листья могут превращаться в ловчие органы для захвата насекомых. Это удивительный пример адаптации!",
+          "group_id": "group_metamorphoses",
+          "start": 58.56,
+          "end": 92.68
+        },
+        {
+          "segment": "emphasis",
+          "text": "Обратите внимание, что строение листа тесно связано с его функцией и условиями произрастания растения. Это важно запомнить!",
+          "group_id": "group_title",
+          "start": 8.76,
+          "end": 18.33
+        },
+        {
+          "segment": "transition",
+          "text": "Теперь, когда мы познакомились с основными типами и метаморфозами, перейдем к более детальному изучению строения листа.",
+          "group_id": null,
+          "start": 84.45,
+          "end": 92.68
+        }
+      ],
+      "speaker_notes": "Explain leaf types and metamorphoses with examples.",
+      "estimated_duration": 60,
+      "audio": "/assets/273ba8b3-8426-4698-8091-570ea12582c6/audio/001.wav",
+      "duration": 92.67854166666666,
+      "audio_duration": 92.67854166666666,
+      "tts_words": {
+        "audio": "/tmp/audio/synthesized_ssml_fd52dc6b.mp3",
+        "sentences": [
+          {
+            "text": "group_title: Давайте разберёмся вместе, как устроен лист растения! Это как солнечная батарея для дерева, но гораз",
+            "t0": 8.763084411621094,
+            "t1": 18.33099937438965,
+            "group_marker": "group_title"
+          },
+          {
+            "text": "group_types: Давайте разберёмся вместе, как устроен лист растения! Это как солнечная батарея для дерева, но гораз",
+            "t0": 18.33099937438965,
+            "t1": 58.55883026123047,
+            "group_marker": "group_types"
+          },
+          {
+            "text": "group_metamorphoses: Давайте разберёмся вместе, как устроен лист растения! Это как солнечная батарея для дерева, но гораз",
+            "t0": 58.55883026123047,
+            "t1": 92.67854166666666,
+            "group_marker": "group_metamorphoses"
+          }
+        ],
+        "word_timings": [
+          {
+            "mark_name": "w2",
+            "time_seconds": 1.17829167842865,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w5",
+            "time_seconds": 2.8732917308807373,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w8",
+            "time_seconds": 5.5607500076293945,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w11",
+            "time_seconds": 6.893500328063965,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "group_title",
+            "time_seconds": 8.763084411621094,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w14",
+            "time_seconds": 9.455376625061035,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w17",
+            "time_seconds": 10.74070930480957,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w20",
+            "time_seconds": 12.095792770385742,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w23",
+            "time_seconds": 14.201709747314453,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w26",
+            "time_seconds": 15.824501037597656,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "group_types",
+            "time_seconds": 18.33099937438965,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w29",
+            "time_seconds": 18.494415283203125,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w32",
+            "time_seconds": 20.49312400817871,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w35",
+            "time_seconds": 22.81345558166504,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w38",
+            "time_seconds": 25.00899887084961,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w41",
+            "time_seconds": 26.94912338256836,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w44",
+            "time_seconds": 27.72470474243164,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w47",
+            "time_seconds": 29.736289978027344,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w50",
+            "time_seconds": 30.99787139892578,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w53",
+            "time_seconds": 34.00037384033203,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w56",
+            "time_seconds": 35.185829162597656,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w59",
+            "time_seconds": 36.80945587158203,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w62",
+            "time_seconds": 38.26595687866211,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w65",
+            "time_seconds": 39.30432891845703,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w68",
+            "time_seconds": 40.852333068847656,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w71",
+            "time_seconds": 43.842376708984375,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w74",
+            "time_seconds": 46.21962356567383,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w77",
+            "time_seconds": 47.906375885009766,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w80",
+            "time_seconds": 49.48891830444336,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w83",
+            "time_seconds": 51.92241668701172,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w86",
+            "time_seconds": 53.35616683959961,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w89",
+            "time_seconds": 55.24608612060547,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w92",
+            "time_seconds": 56.92754364013672,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "group_metamorphoses",
+            "time_seconds": 58.55883026123047,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w95",
+            "time_seconds": 59.0556640625,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w98",
+            "time_seconds": 61.9970817565918,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w101",
+            "time_seconds": 63.89091491699219,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w104",
+            "time_seconds": 65.73991394042969,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w107",
+            "time_seconds": 68.07149505615234,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w110",
+            "time_seconds": 69.25679016113281,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w113",
+            "time_seconds": 70.82574462890625,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w116",
+            "time_seconds": 73.04637145996094,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w119",
+            "time_seconds": 75.25741577148438,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w122",
+            "time_seconds": 76.82249450683594,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w125",
+            "time_seconds": 78.38436889648438,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w128",
+            "time_seconds": 80.1347885131836,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w131",
+            "time_seconds": 83.48786926269531,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w133",
+            "time_seconds": 84.91291046142578,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w134",
+            "time_seconds": 85.41845703125,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w135",
+            "time_seconds": 85.70970153808594,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w136",
+            "time_seconds": 85.8447036743164,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w137",
+            "time_seconds": 86.74187469482422,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w138",
+            "time_seconds": 87.29737091064453,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w139",
+            "time_seconds": 87.92182922363281,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w140",
+            "time_seconds": 88.95016479492188,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w141",
+            "time_seconds": 89.4819564819336,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w142",
+            "time_seconds": 89.84278869628906,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w143",
+            "time_seconds": 90.45758056640625,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w144",
+            "time_seconds": 91.01512145996094,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w145",
+            "time_seconds": 91.60220336914062,
+            "sentence_index": 0
+          }
+        ],
+        "words": []
+      },
+      "speaker_notes_ssml": "<speak><prosody rate=\"95%\">Давайте разберёмся <mark name=\"w2\"/>вместе, как устроен лист <mark name=\"w5\"/>растения! Это как солнечная батарея <mark name=\"w8\"/>для дерева, но гораздо <mark name=\"w11\"/>сложнее и интереснее.</prosody> <break time=\"300ms\"/> <mark name=\"group_title\"/> <break time=\"150ms\"/> Сегодня <mark name=\"w14\"/>мы рассмотрим анатомию <mark name=\"w17\"/>листа, его типы и <mark name=\"w20\"/>метаморфозы. Это поможет нам <mark name=\"w23\"/>лучше понять, как растения <mark name=\"w26\"/>приспосабливаются к окружающей среде. <break time=\"300ms\"/> <mark name=\"group_types\"/> <break time=\"150ms\"/> <prosody rate=\"95%\"><mark name=\"w29\"/>Начнем с типов анатомических <mark name=\"w32\"/>листов. Существуют различные <mark name=\"w35\"/>варианты строения, в зависимости от <mark name=\"w38\"/>вида растения.</prosody> <break time=\"300ms\"/> <mark name=\"group_types\"/> <break time=\"150ms\"/> <prosody rate=\"103%\">Например, <mark name=\"w41\"/>лист может быть <mark name=\"w44\"/>дорзивентральным, когда верхняя и <mark name=\"w47\"/>нижняя стороны листа <mark name=\"w50\"/>отличаются по строению. Это характерно <mark name=\"w53\"/>для многих двудольных <mark name=\"w56\"/>растений.</prosody> <break time=\"300ms\"/> <mark name=\"group_types\"/> <break time=\"150ms\"/> <prosody rate=\"95%\">Также лист <mark name=\"w59\"/>может быть изолатеральным, <mark name=\"w62\"/>когда обе стороны <mark name=\"w65\"/>листа имеют одинаковое <mark name=\"w68\"/>строение. Это часто встречается у <mark name=\"w71\"/>однодольных растений.</prosody> <break time=\"300ms\"/> <mark name=\"group_types\"/> <break time=\"150ms\"/> <prosody rate=\"95%\">Существует <mark name=\"w74\"/>центрический тип листа, <mark name=\"w77\"/>когда мезофилл расположен <mark name=\"w80\"/>вокруг проводящего пучка. И <mark name=\"w83\"/>наконец, лист может <mark name=\"w86\"/>быть гетеролатеральным, с разным <mark name=\"w89\"/>строением сторон и разным <mark name=\"w92\"/>расположением устьиц.</prosody> <break time=\"300ms\"/> <mark name=\"group_metamorphoses\"/> <break time=\"150ms\"/> <prosody rate=\"95%\">Теперь <mark name=\"w95\"/>перейдем к метаморфозам листьев. Это <mark name=\"w98\"/>изменения в строении листа, <mark name=\"w101\"/>связанные с выполнением особых <mark name=\"w104\"/>функций.</prosody> <break time=\"300ms\"/> <mark name=\"group_metamorphoses\"/> <break time=\"150ms\"/> <prosody rate=\"103%\">Например, у плотоядных <mark name=\"w107\"/>растений листья могут <mark name=\"w110\"/>превращаться в ловчие органы <mark name=\"w113\"/>для захвата насекомых. Это <mark name=\"w116\"/>удивительный пример адаптации!</prosody> <break time=\"300ms\"/> <mark name=\"group_title\"/> <break time=\"150ms\"/> <emphasis level=\"moderate\"><mark name=\"w119\"/>Обратите внимание, что <mark name=\"w122\"/>строение листа тесно <mark name=\"w125\"/>связано с его функцией и <mark name=\"w128\"/>условиями произрастания растения. Это <mark name=\"w131\"/>важно запомнить!</emphasis> <break time=\"300ms\"/><mark name=\"w133\"/>Теперь, <mark name=\"w134\"/>когда <mark name=\"w135\"/>мы <mark name=\"w136\"/>познакомились с <mark name=\"w137\"/>основными <mark name=\"w138\"/>типами и <mark name=\"w139\"/>метаморфозами, <mark name=\"w140\"/>перейдем к <mark name=\"w141\"/>более <mark name=\"w142\"/>детальному <mark name=\"w143\"/>изучению <mark name=\"w144\"/>строения <mark name=\"w145\"/>листа.</speak>",
+      "tts_words_sample": {
+        "total_marks": 60,
+        "first_5_marks": [
+          {
+            "mark_name": "w2",
+            "time_seconds": 1.17829167842865,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w5",
+            "time_seconds": 2.8732917308807373,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w8",
+            "time_seconds": 5.5607500076293945,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w11",
+            "time_seconds": 6.893500328063965,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "group_title",
+            "time_seconds": 8.763084411621094,
+            "sentence_index": 0
+          }
+        ],
+        "sentences_count": 3,
+        "has_word_timing": true
+      },
+      "cues": [
+        {
+          "action": "underline",
+          "bbox": [
+            588,
+            97,
+            265,
+            47
+          ],
+          "t0": 8.76,
+          "t1": 18.33,
+          "group_id": "group_title",
+          "element_id": "slide_1_block_1",
+          "text": "Das Blatt",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            72,
+            346,
+            515,
+            42
+          ],
+          "t0": 18.33,
+          "t1": 28.34,
+          "group_id": "group_types",
+          "element_id": "slide_1_block_2",
+          "text": "Anatomische Blatt - Typen :",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            75,
+            440,
+            13,
+            11
+          ],
+          "t0": 28.39,
+          "t1": 38.39,
+          "group_id": "group_types",
+          "element_id": "slide_1_block_3",
+          "text": "•",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            75,
+            521,
+            14,
+            12
+          ],
+          "t0": 38.44,
+          "t1": 48.45,
+          "group_id": "group_types",
+          "element_id": "slide_1_block_4",
+          "text": ".",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            129,
+            429,
+            712,
+            121
+          ],
+          "t0": 48.5,
+          "t1": 58.56,
+          "group_id": "group_types",
+          "element_id": "slide_1_block_5",
+          "text": "Monokotyle Pflanzen : parallelnervig Dikotyle Pflanzen : netznervig",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            53,
+            786,
+            900,
+            177
+          ],
+          "t0": 58.56,
+          "t1": 92.6,
+          "group_id": "group_metamorphoses",
+          "element_id": "slide_1_block_6",
+          "text": "Blatt Metamorphosen : z.B. carnivore Pflanzen Blütenbestandteile leiten sich vom Laubblatt ab ( Frucht- , Staub- , Kron- , Kelch- , Hochblätter )",
+          "timing_source": "word_level_distributed"
+        }
+      ],
+      "visual_cues": [
+        {
+          "action": "underline",
+          "bbox": [
+            588,
+            97,
+            265,
+            47
+          ],
+          "t0": 8.76,
+          "t1": 18.33,
+          "group_id": "group_title",
+          "element_id": "slide_1_block_1",
+          "text": "Das Blatt",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            72,
+            346,
+            515,
+            42
+          ],
+          "t0": 18.33,
+          "t1": 28.34,
+          "group_id": "group_types",
+          "element_id": "slide_1_block_2",
+          "text": "Anatomische Blatt - Typen :",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            75,
+            440,
+            13,
+            11
+          ],
+          "t0": 28.39,
+          "t1": 38.39,
+          "group_id": "group_types",
+          "element_id": "slide_1_block_3",
+          "text": "•",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            75,
+            521,
+            14,
+            12
+          ],
+          "t0": 38.44,
+          "t1": 48.45,
+          "group_id": "group_types",
+          "element_id": "slide_1_block_4",
+          "text": ".",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            129,
+            429,
+            712,
+            121
+          ],
+          "t0": 48.5,
+          "t1": 58.56,
+          "group_id": "group_types",
+          "element_id": "slide_1_block_5",
+          "text": "Monokotyle Pflanzen : parallelnervig Dikotyle Pflanzen : netznervig",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            53,
+            786,
+            900,
+            177
+          ],
+          "t0": 58.56,
+          "t1": 92.6,
+          "group_id": "group_metamorphoses",
+          "element_id": "slide_1_block_6",
+          "text": "Blatt Metamorphosen : z.B. carnivore Pflanzen Blütenbestandteile leiten sich vom Laubblatt ab ( Frucht- , Staub- , Kron- , Kelch- , Hochblätter )",
+          "timing_source": "word_level_distributed"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "image": "/assets/273ba8b3-8426-4698-8091-570ea12582c6/slides/002.png",
+      "width": 1440,
+      "height": 1080,
+      "elements": [
+        {
+          "id": "slide_2_block_0",
+          "type": "heading",
+          "text": "universität innsbruck",
+          "confidence": 0.9,
+          "bbox": [
+            91,
+            36,
+            239,
+            75
+          ],
+          "text_original": "universität innsbruck",
+          "text_translated": "Университет Инсбрука",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_1",
+          "type": "paragraph",
+          "text": "Histologie des Blattes",
+          "confidence": 0.9,
+          "bbox": [
+            402,
+            118,
+            638,
+            67
+          ],
+          "text_original": "Histologie des Blattes",
+          "text_translated": "Гистология листа",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_2",
+          "type": "paragraph",
+          "text": "Epidermis der Blattoberseite mit Cuticula",
+          "confidence": 0.9,
+          "bbox": [
+            77,
+            273,
+            811,
+            42
+          ],
+          "text_original": "Epidermis der Blattoberseite mit Cuticula",
+          "text_translated": "Эпидермис верхней поверхности листа с кутикулой",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_3",
+          "type": "paragraph",
+          "text": "Hypodermis",
+          "confidence": 0.9,
+          "bbox": [
+            149,
+            358,
+            232,
+            38
+          ],
+          "text_original": "Hypodermis",
+          "text_translated": "Гиподерма",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_4",
+          "type": "paragraph",
+          "text": "Mesophyll = Chlorenchym",
+          "confidence": 0.9,
+          "bbox": [
+            76,
+            440,
+            510,
+            36
+          ],
+          "text_original": "Mesophyll = Chlorenchym",
+          "text_translated": "Мезофилл = Хлоренхима",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_5",
+          "type": "paragraph",
+          "text": "( Assimilationsgewebe )",
+          "confidence": 0.9,
+          "bbox": [
+            75,
+            498,
+            437,
+            39
+          ],
+          "text_original": "( Assimilationsgewebe )",
+          "text_translated": "(Ассимиляционная ткань)",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_6",
+          "type": "paragraph",
+          "text": "Palisadenparenchym",
+          "confidence": 0.9,
+          "bbox": [
+            150,
+            579,
+            396,
+            38
+          ],
+          "text_original": "Palisadenparenchym",
+          "text_translated": "Палисадная паренхима",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_7",
+          "type": "paragraph",
+          "text": "Schwammparenchym",
+          "confidence": 0.9,
+          "bbox": [
+            145,
+            657,
+            415,
+            43
+          ],
+          "text_original": "Schwammparenchym",
+          "text_translated": "Губчатая паренхима",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_8",
+          "type": "paragraph",
+          "text": "Cuticula [",
+          "confidence": 0.9,
+          "bbox": [
+            700,
+            355,
+            89,
+            16
+          ],
+          "text_original": "Cuticula [",
+          "text_translated": "Кутикула [",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_9",
+          "type": "paragraph",
+          "text": "obere Epidermis",
+          "confidence": 0.9,
+          "bbox": [
+            629,
+            378,
+            144,
+            19
+          ],
+          "text_original": "obere Epidermis",
+          "text_translated": "верхний эпидермис",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_10",
+          "type": "paragraph",
+          "text": "Parenchym",
+          "confidence": 0.9,
+          "bbox": [
+            569,
+            530,
+            95,
+            18
+          ],
+          "text_original": "Parenchym",
+          "text_translated": "Паренхима",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_11",
+          "type": "list_item",
+          "text": "Palisaden-",
+          "confidence": 0.9,
+          "bbox": [
+            684,
+            463,
+            89,
+            16
+          ],
+          "text_original": "Palisaden-",
+          "text_translated": "Палисад",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_12",
+          "type": "list_item",
+          "text": "Schwamm-",
+          "confidence": 0.9,
+          "bbox": [
+            674,
+            609,
+            100,
+            14
+          ],
+          "text_original": "Schwamm-",
+          "text_translated": "Губка-",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_13",
+          "type": "paragraph",
+          "text": "untere Epidermis",
+          "confidence": 0.9,
+          "bbox": [
+            620,
+            687,
+            154,
+            16
+          ],
+          "text_original": "untere Epidermis",
+          "text_translated": "нижний эпидермис",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_14",
+          "type": "paragraph",
+          "text": "Cuticula [",
+          "confidence": 0.9,
+          "bbox": [
+            700,
+            707,
+            90,
+            15
+          ],
+          "text_original": "Cuticula [",
+          "text_translated": "Кутикула [",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_15",
+          "type": "paragraph",
+          "text": "isodiametrisches Parenchym",
+          "confidence": 0.9,
+          "bbox": [
+            148,
+            738,
+            549,
+            43
+          ],
+          "text_original": "isodiametrisches Parenchym",
+          "text_translated": "изодиаметрическая паренхима",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_16",
+          "type": "paragraph",
+          "text": "Leitbündel ( = Blattnerven )",
+          "confidence": 0.9,
+          "bbox": [
+            77,
+            819,
+            510,
+            41
+          ],
+          "text_original": "Leitbündel ( = Blattnerven )",
+          "text_translated": "Проводящие пучки (= жилки листа)",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_17",
+          "type": "paragraph",
+          "text": "Epidermis der Blattunterseite i.d.R. mit",
+          "confidence": 0.9,
+          "bbox": [
+            77,
+            904,
+            767,
+            40
+          ],
+          "text_original": "Epidermis der Blattunterseite i.d.R. mit",
+          "text_translated": "Эпидермис нижней стороны листа обычно с",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_18",
+          "type": "paragraph",
+          "text": "Stomata",
+          "confidence": 0.9,
+          "bbox": [
+            74,
+            966,
+            163,
+            28
+          ],
+          "text_original": "Stomata",
+          "text_translated": "Устьица",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_19",
+          "type": "paragraph",
+          "text": "Schließzelle .",
+          "confidence": 0.9,
+          "bbox": [
+            850,
+            792,
+            112,
+            16
+          ],
+          "text_original": "Schließzelle .",
+          "text_translated": "Раздевалка.",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_20",
+          "type": "paragraph",
+          "text": "Stoma",
+          "confidence": 0.9,
+          "bbox": [
+            898,
+            817,
+            58,
+            15
+          ],
+          "text_original": "Stoma",
+          "text_translated": "стома",
+          "language_original": "de",
+          "language_target": "ru"
+        },
+        {
+          "id": "slide_2_block_21",
+          "type": "list_item",
+          "text": "By Zephyris - This file was derived from : Leaf Tissue Structure.svg , CC BY - SA 3.0",
+          "confidence": 0.9,
+          "bbox": [
+            1013,
+            902,
+            409,
+            43
+          ],
+          "text_original": "By Zephyris - This file was derived from : Leaf Tissue Structure.svg , CC BY - SA 3.0",
+          "text_translated": "Zephyris - Этот файл был получен из: Leaf Tissue Structure.svg, CC BY - SA 3.0",
+          "language_original": "de",
+          "language_target": "ru"
+        }
+      ],
+      "translation_applied": true,
+      "source_language": "de",
+      "target_language": "ru",
+      "semantic_map": {
+        "slide_type": "content_slide",
+        "groups": [
+          {
+            "id": "group_title",
+            "name": "Slide Title",
+            "type": "title",
+            "priority": "high",
+            "element_ids": [
+              "slide_2_block_1"
+            ],
+            "reading_order": [
+              1
+            ],
+            "educational_intent": "Introduce the topic of leaf histology.",
+            "highlight_strategy": {
+              "when": "start",
+              "effect_type": "spotlight",
+              "duration": 3.0,
+              "intensity": "normal"
+            },
+            "dependencies": {
+              "highlight_before": null,
+              "highlight_together_with": null,
+              "highlight_after": null
+            }
+          },
+          {
+            "id": "group_upper_leaf_structures",
+            "name": "Upper Leaf Structures",
+            "type": "key_point",
+            "priority": "high",
+            "element_ids": [
+              "slide_2_block_2",
+              "slide_2_block_3"
+            ],
+            "reading_order": [
+              2,
+              3
+            ],
+            "educational_intent": "Describe the structures found on the upper surface of the leaf.",
+            "highlight_strategy": {
+              "when": "during_explanation",
+              "effect_type": "sequential_cascade",
+              "duration": 4.0,
+              "intensity": "normal"
+            },
+            "dependencies": {
+              "highlight_before": [
+                "group_title"
+              ],
+              "highlight_together_with": null,
+              "highlight_after": [
+                "group_mesophyll"
+              ]
+            }
+          },
+          {
+            "id": "group_mesophyll",
+            "name": "Mesophyll Layers",
+            "type": "key_point",
+            "priority": "high",
+            "element_ids": [
+              "slide_2_block_4",
+              "slide_2_block_5",
+              "slide_2_block_6",
+              "slide_2_block_7"
+            ],
+            "reading_order": [
+              4,
+              5,
+              6,
+              7
+            ],
+            "educational_intent": "Explain the different types of mesophyll cells and their function.",
+            "highlight_strategy": {
+              "when": "during_explanation",
+              "effect_type": "group_bracket",
+              "duration": 5.0,
+              "intensity": "normal"
+            },
+            "dependencies": {
+              "highlight_before": [
+                "group_upper_leaf_structures"
+              ],
+              "highlight_together_with": null,
+              "highlight_after": [
+                "group_lower_leaf_structures"
+              ]
+            }
+          },
+          {
+            "id": "group_lower_leaf_structures",
+            "name": "Lower Leaf Structures",
+            "type": "key_point",
+            "priority": "high",
+            "element_ids": [
+              "slide_2_block_15",
+              "slide_2_block_16",
+              "slide_2_block_17",
+              "slide_2_block_18"
+            ],
+            "reading_order": [
+              8,
+              9,
+              10,
+              11
+            ],
+            "educational_intent": "Describe the structures found on the lower surface of the leaf.",
+            "highlight_strategy": {
+              "when": "during_explanation",
+              "effect_type": "sequential_cascade",
+              "duration": 4.0,
+              "intensity": "normal"
+            },
+            "dependencies": {
+              "highlight_before": [
+                "group_mesophyll"
+              ],
+              "highlight_together_with": null,
+              "highlight_after": null
+            }
+          },
+          {
+            "id": "group_diagram_labels",
+            "name": "Diagram Labels",
+            "type": "example",
+            "priority": "medium",
+            "element_ids": [
+              "slide_2_block_8",
+              "slide_2_block_9",
+              "slide_2_block_10",
+              "slide_2_block_11",
+              "slide_2_block_12",
+              "slide_2_block_13",
+              "slide_2_block_14",
+              "slide_2_block_19"
+            ],
+            "reading_order": [
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19
+            ],
+            "educational_intent": "Relate the text descriptions to the visual diagram.",
+            "highlight_strategy": {
+              "when": "during_detail",
+              "effect_type": "highlight",
+              "duration": 2.0,
+              "intensity": "subtle"
+            },
+            "dependencies": {
+              "highlight_before": null,
+              "highlight_together_with": null,
+              "highlight_after": null
+            }
+          },
+          {
+            "id": "group_university_logo",
+            "name": "University Logo",
+            "type": "watermark",
+            "priority": "none",
+            "element_ids": [
+              "slide_2_block_0"
+            ],
+            "reading_order": [],
+            "educational_intent": "University information",
+            "highlight_strategy": {
+              "when": "never",
+              "effect_type": "none",
+              "duration": 0,
+              "intensity": "none"
+            },
+            "dependencies": {
+              "highlight_before": null,
+              "highlight_together_with": null,
+              "highlight_after": null
+            }
+          }
+        ],
+        "noise_elements": [],
+        "visual_density": "medium",
+        "cognitive_load": "medium"
+      },
+      "talk_track_raw": [
+        {
+          "segment": "hook",
+          "text": "Давайте рассмотрим важный концепт.",
+          "group_id": "group_title",
+          "start": 0.0,
+          "end": 5.32
+        },
+        {
+          "segment": "context",
+          "text": "Это связано с тем, что мы обсуждали ранее.",
+          "group_id": null,
+          "start": 0.0,
+          "end": 5.32
+        },
+        {
+          "segment": "explanation",
+          "text": "Ключевая идея здесь в том, что Университет Инсбрука Гистология листа Эпидермис ве...",
+          "group_id": "group_upper_leaf_structures",
+          "start": 5.32,
+          "end": 13.49
+        },
+        {
+          "segment": "example",
+          "text": "Представьте себе ситуацию, когда...",
+          "group_id": null,
+          "start": 11.32,
+          "end": 13.76
+        },
+        {
+          "segment": "emphasis",
+          "text": "Важно запомнить основной принцип.",
+          "group_id": "group_mesophyll",
+          "start": 13.49,
+          "end": 18.76
+        },
+        {
+          "segment": "transition",
+          "text": "Теперь перейдём к следующему вопросу.",
+          "group_id": null,
+          "start": 16.19,
+          "end": 18.76
+        }
+      ],
+      "talk_track": [
+        {
+          "segment": "hook",
+          "text": "Давайте рассмотрим важный концепт.",
+          "group_id": "group_title",
+          "start": 0.0,
+          "end": 5.32
+        },
+        {
+          "segment": "context",
+          "text": "Это связано с тем, что мы обсуждали ранее.",
+          "group_id": null,
+          "start": 0.0,
+          "end": 5.32
+        },
+        {
+          "segment": "explanation",
+          "text": "Ключевая идея здесь в том, что Университет Инсбрука Гистология листа Эпидермис ве...",
+          "group_id": "group_upper_leaf_structures",
+          "start": 5.32,
+          "end": 13.49
+        },
+        {
+          "segment": "example",
+          "text": "Представьте себе ситуацию, когда...",
+          "group_id": null,
+          "start": 11.32,
+          "end": 13.76
+        },
+        {
+          "segment": "emphasis",
+          "text": "Важно запомнить основной принцип.",
+          "group_id": "group_mesophyll",
+          "start": 13.49,
+          "end": 18.76
+        },
+        {
+          "segment": "transition",
+          "text": "Теперь перейдём к следующему вопросу.",
+          "group_id": null,
+          "start": 16.19,
+          "end": 18.76
+        }
+      ],
+      "speaker_notes": "Объяснение основных концептов слайда с примерами.",
+      "estimated_duration": 35,
+      "audio": "/assets/273ba8b3-8426-4698-8091-570ea12582c6/audio/002.wav",
+      "duration": 18.75754166666667,
+      "audio_duration": 18.75754166666667,
+      "tts_words": {
+        "audio": "/tmp/audio/synthesized_ssml_da83a10b.mp3",
+        "sentences": [
+          {
+            "text": "group_title: Давайте рассмотрим важный концепт. Это связано с тем, что мы обсуждали ранее. Ключевая идея здесь в ",
+            "t0": 0.0,
+            "t1": 5.319416522979736,
+            "group_marker": "group_title"
+          },
+          {
+            "text": "group_upper_leaf_structures: Давайте рассмотрим важный концепт. Это связано с тем, что мы обсуждали ранее. Ключевая идея здесь в ",
+            "t0": 5.319416522979736,
+            "t1": 13.491541862487793,
+            "group_marker": "group_upper_leaf_structures"
+          },
+          {
+            "text": "group_mesophyll: Давайте рассмотрим важный концепт. Это связано с тем, что мы обсуждали ранее. Ключевая идея здесь в ",
+            "t0": 13.491541862487793,
+            "t1": 18.75754166666667,
+            "group_marker": "group_mesophyll"
+          }
+        ],
+        "word_timings": [
+          {
+            "mark_name": "group_title",
+            "time_seconds": 0.0,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w0",
+            "time_seconds": 0.14999999105930328,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w1",
+            "time_seconds": 0.6500833630561829,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w2",
+            "time_seconds": 1.2861666679382324,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w3",
+            "time_seconds": 1.670874834060669,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w4",
+            "time_seconds": 2.7276663780212402,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w5",
+            "time_seconds": 3.3277080059051514,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w6",
+            "time_seconds": 3.692999839782715,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w7",
+            "time_seconds": 3.8829996585845947,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w8",
+            "time_seconds": 4.0229997634887695,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w9",
+            "time_seconds": 4.624207973480225,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "group_upper_leaf_structures",
+            "time_seconds": 5.319416522979736,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w10",
+            "time_seconds": 5.482374668121338,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w11",
+            "time_seconds": 6.123208045959473,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w12",
+            "time_seconds": 6.535374641418457,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w13",
+            "time_seconds": 6.9799580574035645,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w14",
+            "time_seconds": 7.360875129699707,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w15",
+            "time_seconds": 7.567708492279053,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w16",
+            "time_seconds": 8.382625579833984,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w17",
+            "time_seconds": 8.958416938781738,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w18",
+            "time_seconds": 9.713958740234375,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w19",
+            "time_seconds": 10.140792846679688,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w20",
+            "time_seconds": 10.852667808532715,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w21",
+            "time_seconds": 11.258708953857422,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w22",
+            "time_seconds": 11.79887580871582,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w23",
+            "time_seconds": 12.04887580871582,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w24",
+            "time_seconds": 12.855084419250488,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "group_mesophyll",
+            "time_seconds": 13.491541862487793,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w25",
+            "time_seconds": 13.623541831970215,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w26",
+            "time_seconds": 14.033209800720215,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w27",
+            "time_seconds": 14.654000282287598,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w28",
+            "time_seconds": 15.123625755310059,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w29",
+            "time_seconds": 15.993000984191895,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w30",
+            "time_seconds": 16.293001174926758,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w31",
+            "time_seconds": 16.902915954589844,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w32",
+            "time_seconds": 17.533916473388672,
+            "sentence_index": 0
+          }
+        ],
+        "words": []
+      },
+      "speaker_notes_ssml": "<speak><mark name=\"group_title\"/> <break time=\"150ms\"/> <prosody rate=\"95%\"><mark name=\"w0\"/>Давайте <mark name=\"w1\"/>рассмотрим <mark name=\"w2\"/>важный <mark name=\"w3\"/>концепт.</prosody> Это <mark name=\"w4\"/>связано с <mark name=\"w5\"/>тем, <mark name=\"w6\"/>что <mark name=\"w7\"/>мы <mark name=\"w8\"/>обсуждали <mark name=\"w9\"/>ранее. <break time=\"300ms\"/> <mark name=\"group_upper_leaf_structures\"/> <break time=\"150ms\"/> <prosody rate=\"95%\"><mark name=\"w10\"/>Ключевая <mark name=\"w11\"/>идея <mark name=\"w12\"/>здесь в <mark name=\"w13\"/>том, <mark name=\"w14\"/>что <mark name=\"w15\"/>Университет <mark name=\"w16\"/>Инсбрука <mark name=\"w17\"/>Гистология <mark name=\"w18\"/>листа <mark name=\"w19\"/>Эпидермис <mark name=\"w20\"/>ве...</prosody> <prosody rate=\"103%\"><mark name=\"w21\"/>Представьте <mark name=\"w22\"/>себе <mark name=\"w23\"/>ситуацию, <mark name=\"w24\"/>когда...</prosody> <break time=\"300ms\"/> <mark name=\"group_mesophyll\"/> <break time=\"150ms\"/> <emphasis level=\"moderate\"><mark name=\"w25\"/>Важно <mark name=\"w26\"/>запомнить <mark name=\"w27\"/>основной <mark name=\"w28\"/>принцип.</emphasis> <break time=\"300ms\"/><mark name=\"w29\"/>Теперь <mark name=\"w30\"/>перейдём к <mark name=\"w31\"/>следующему <mark name=\"w32\"/>вопросу.</speak>",
+      "tts_words_sample": {
+        "total_marks": 36,
+        "first_5_marks": [
+          {
+            "mark_name": "group_title",
+            "time_seconds": 0.0,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w0",
+            "time_seconds": 0.14999999105930328,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w1",
+            "time_seconds": 0.6500833630561829,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w2",
+            "time_seconds": 1.2861666679382324,
+            "sentence_index": 0
+          },
+          {
+            "mark_name": "w3",
+            "time_seconds": 1.670874834060669,
+            "sentence_index": 0
+          }
+        ],
+        "sentences_count": 3,
+        "has_word_timing": true
+      },
+      "cues": [
+        {
+          "action": "underline",
+          "bbox": [
+            402,
+            118,
+            638,
+            67
+          ],
+          "t0": 0.0,
+          "t1": 5.32,
+          "group_id": "group_title",
+          "element_id": "slide_2_block_1",
+          "text": "Histologie des Blattes",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            77,
+            273,
+            811,
+            42
+          ],
+          "t0": 5.32,
+          "t1": 9.36,
+          "group_id": "group_upper_leaf_structures",
+          "element_id": "slide_2_block_2",
+          "text": "Epidermis der Blattoberseite mit Cuticula",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            149,
+            358,
+            232,
+            38
+          ],
+          "t0": 9.41,
+          "t1": 13.49,
+          "group_id": "group_upper_leaf_structures",
+          "element_id": "slide_2_block_3",
+          "text": "Hypodermis",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            76,
+            440,
+            510,
+            36
+          ],
+          "t0": 13.49,
+          "t1": 14.7,
+          "group_id": "group_mesophyll",
+          "element_id": "slide_2_block_4",
+          "text": "Mesophyll = Chlorenchym",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            75,
+            498,
+            437,
+            39
+          ],
+          "t0": 14.75,
+          "t1": 15.96,
+          "group_id": "group_mesophyll",
+          "element_id": "slide_2_block_5",
+          "text": "( Assimilationsgewebe )",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            150,
+            579,
+            396,
+            38
+          ],
+          "t0": 16.01,
+          "t1": 17.22,
+          "group_id": "group_mesophyll",
+          "element_id": "slide_2_block_6",
+          "text": "Palisadenparenchym",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            145,
+            657,
+            415,
+            43
+          ],
+          "t0": 17.27,
+          "t1": 18.53,
+          "group_id": "group_mesophyll",
+          "element_id": "slide_2_block_7",
+          "text": "Schwammparenchym",
+          "timing_source": "word_level_distributed"
+        }
+      ],
+      "visual_cues": [
+        {
+          "action": "underline",
+          "bbox": [
+            402,
+            118,
+            638,
+            67
+          ],
+          "t0": 0.0,
+          "t1": 5.32,
+          "group_id": "group_title",
+          "element_id": "slide_2_block_1",
+          "text": "Histologie des Blattes",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            77,
+            273,
+            811,
+            42
+          ],
+          "t0": 5.32,
+          "t1": 9.36,
+          "group_id": "group_upper_leaf_structures",
+          "element_id": "slide_2_block_2",
+          "text": "Epidermis der Blattoberseite mit Cuticula",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            149,
+            358,
+            232,
+            38
+          ],
+          "t0": 9.41,
+          "t1": 13.49,
+          "group_id": "group_upper_leaf_structures",
+          "element_id": "slide_2_block_3",
+          "text": "Hypodermis",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            76,
+            440,
+            510,
+            36
+          ],
+          "t0": 13.49,
+          "t1": 14.7,
+          "group_id": "group_mesophyll",
+          "element_id": "slide_2_block_4",
+          "text": "Mesophyll = Chlorenchym",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            75,
+            498,
+            437,
+            39
+          ],
+          "t0": 14.75,
+          "t1": 15.96,
+          "group_id": "group_mesophyll",
+          "element_id": "slide_2_block_5",
+          "text": "( Assimilationsgewebe )",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            150,
+            579,
+            396,
+            38
+          ],
+          "t0": 16.01,
+          "t1": 17.22,
+          "group_id": "group_mesophyll",
+          "element_id": "slide_2_block_6",
+          "text": "Palisadenparenchym",
+          "timing_source": "word_level_distributed"
+        },
+        {
+          "action": "underline",
+          "bbox": [
+            145,
+            657,
+            415,
+            43
+          ],
+          "t0": 17.27,
+          "t1": 18.53,
+          "group_id": "group_mesophyll",
+          "element_id": "slide_2_block_7",
+          "text": "Schwammparenchym",
+          "timing_source": "word_level_distributed"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "source_file": "Kurs_10 (verschoben).pdf",
+    "source_type": "pdf",
+    "total_slides": 2,
+    "slide_width": 1440,
+    "slide_height": 1080,
+    "stage": "translation_complete",
+    "translation_applied": true
+  },
+  "presentation_language": "de",
+  "presentation_context": {
+    "theme": "Анатомия и гистология листа",
+    "subject_area": "Биология",
+    "level": "Университетский",
+    "language": "ru",
+    "structure": [
+      "Введение",
+      "Типы анатомических листов",
+      "Гистология листа"
+    ],
+    "key_concepts": [
+      "Анатомия листа",
+      "Гистология листа",
+      "Эпидермис",
+      "Мезофилл",
+      "Хлоренхима"
+    ],
+    "presentation_style": "Академический",
+    "slide_relationships": {},
+    "reference_slides": {},
+    "estimated_duration_per_slide": 45
+  },
+  "timeline": [
+    {
+      "t0": 0.0,
+      "t1": 92.67854166666666,
+      "action": "slide_change",
+      "slide_id": 1
+    },
+    {
+      "t0": 92.67854166666666,
+      "t1": 111.43608333333333,
+      "action": "slide_change",
+      "slide_id": 2
+    }
+  ]
+}

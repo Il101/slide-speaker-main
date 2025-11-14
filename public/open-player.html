@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Навигация к Player</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 600px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .url-box {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 20px 0;
+            word-break: break-all;
+            color: #666;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        .info {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #0369a1;
+        }
+        .check {
+            color: #22c55e;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Открыть Player с визуальными эффектами</h1>
+        
+        <p>Нажмите на кнопку ниже, чтобы открыть презентацию с визуальными эффектами:</p>
+        
+        <a href="http://localhost:3000/player/c3bf4454-5711-4020-a767-6e4e6da29ca1" class="btn">
+            Открыть Player
+        </a>
+        
+        <div class="url-box">
+            http://localhost:3000/player/c3bf4454-5711-4020-a767-6e4e6da29ca1
+        </div>
+        
+        <div class="info">
+            <p><span class="check">✓</span> <strong>Что должно произойти:</strong></p>
+            <ol style="text-align: left; display: inline-block;">
+                <li>Загрузится новая страница PlayerPage</li>
+                <li>В консоли появятся логи [PlayerPage] и [SlideViewer]</li>
+                <li>Слайд отобразится без "зелёных надписей"</li>
+                <li>При нажатии Play появятся визуальные эффекты</li>
+            </ol>
+        </div>
+        
+        <p style="margin-top: 20px; color: #666; font-size: 14px;">
+            Откройте консоль браузера (F12) для просмотра логов
+        </p>
+    </div>
+</body>
+</html>

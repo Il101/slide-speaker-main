@@ -122,9 +122,9 @@ def test_timeline_rules():
     }
     
     try:
-        # Import validation function from main.py
-        sys.path.append(str(Path(__file__).parent / "backend" / "app"))
-        from main import _validate_timeline_smoothness
+        # Import validation function from app.main
+        sys.path.append(str(Path(__file__).parent / "backend"))
+        from app.main import _validate_timeline_smoothness
         
         issues = _validate_timeline_smoothness(test_manifest)
         print(f"✓ Found {len(issues)} timeline issues")

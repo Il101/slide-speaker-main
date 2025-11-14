@@ -12,10 +12,17 @@ export const MobileNav: React.FC = () => {
   const { isAdmin } = useRole();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    setOpen(false);
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await logout.mutateAsync();
+      setOpen(false);
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Close and navigate anyway on error
+      setOpen(false);
+      navigate('/');
+    }
   };
 
   const handleNavigation = (path: string) => {

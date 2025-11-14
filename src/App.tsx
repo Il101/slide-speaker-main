@@ -10,6 +10,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { SkipLink } from "@/components/SkipLink";
 
 // Lazy load pages for better performance
@@ -23,6 +24,9 @@ const QuizGenerator = lazy(() => import("./components/QuizGenerator").then(modul
 const QuizEditor = lazy(() => import("./components/QuizEditor"));
 const PlaylistsPage = lazy(() => import("./pages/PlaylistsPage"));
 const PlaylistPlayerPage = lazy(() => import("./pages/PlaylistPlayerPage"));
+// 🔥 TEMPORARY: Import PlayerPage directly (not lazy) for debugging
+import PlayerPage from "./pages/PlayerPage";
+const VFXTest = lazy(() => import("./pages/VFXTest")); // 🎨 VFX Test page
 
 // Loading fallback component
 const PageLoader = () => (
@@ -34,7 +38,22 @@ const PageLoader = () => (
   </div>
 );
 
-const queryClient = new QueryClient();
+// Configure QueryClient with retry logic and exponential backoff
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+    },
+    mutations: {
+      retry: 1,
+      retryDelay: 1000,
+    },
+  },
+});
 
 // Analytics wrapper component
 function AnalyticsWrapper({ children }: { children: React.ReactNode }) {
@@ -42,11 +61,11 @@ function AnalyticsWrapper({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Initialize analytics on mount
-    analytics.init(user?.id);
+    analytics.init(user?.user_id);
 
     // Identify user when logged in
-    if (user?.id) {
-      analytics.identify(user.id);
+    if (user?.user_id) {
+      analytics.identify(user.user_id);
     }
   }, [user]);
 
@@ -77,44 +96,80 @@ const App = () => (
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/" element={
-                    <ProtectedRoute>
-                      <Index />
-                    </ProtectedRoute>
+                    <RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <Index />
+                      </ProtectedRoute>
+                    </RouteErrorBoundary>
                   } />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
+                  <Route path="/login" element={
+                    <RouteErrorBoundary>
+                      <Login />
+                    </RouteErrorBoundary>
+                  } />
+                  <Route path="/register" element={
+                    <RouteErrorBoundary>
+                      <Register />
+                    </RouteErrorBoundary>
+                  } />
                   <Route path="/subscription" element={
-                    <ProtectedRoute>
-                      <SubscriptionPage />
-                    </ProtectedRoute>
+                    <RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <SubscriptionPage />
+                      </ProtectedRoute>
+                    </RouteErrorBoundary>
                   } />
                   <Route path="/analytics" element={
-                    <ProtectedRoute requireRole="admin">
-                      <Analytics />
-                    </ProtectedRoute>
+                    <RouteErrorBoundary>
+                      <ProtectedRoute requireRole="admin">
+                        <Analytics />
+                      </ProtectedRoute>
+                    </RouteErrorBoundary>
                   } />
                   <Route path="/lessons/:lessonId/quiz" element={
-                    <ProtectedRoute>
-                      <QuizGenerator standalone={true} />
-                    </ProtectedRoute>
+                    <RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <QuizGenerator standalone={true} />
+                      </ProtectedRoute>
+                    </RouteErrorBoundary>
                   } />
                   <Route path="/quiz/:quizId/edit" element={
-                    <ProtectedRoute>
-                      <QuizEditor />
-                    </ProtectedRoute>
+                    <RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <QuizEditor />
+                      </ProtectedRoute>
+                    </RouteErrorBoundary>
                   } />
                   <Route path="/playlists" element={
-                    <ProtectedRoute>
-                      <PlaylistsPage />
-                    </ProtectedRoute>
+                    <RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <PlaylistsPage />
+                      </ProtectedRoute>
+                    </RouteErrorBoundary>
                   } />
                   <Route path="/playlists/:id/play" element={
-                    <ProtectedRoute>
-                      <PlaylistPlayerPage />
-                    </ProtectedRoute>
+                    <RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <PlaylistPlayerPage />
+                      </ProtectedRoute>
+                    </RouteErrorBoundary>
+                  } />
+                  <Route path="/player/:lessonId" element={
+                    <RouteErrorBoundary>
+                      <PlayerPage />
+                    </RouteErrorBoundary>
+                  } />
+                  <Route path="/vfx-test" element={
+                    <RouteErrorBoundary>
+                      <VFXTest />
+                    </RouteErrorBoundary>
                   } />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
+                  <Route path="*" element={
+                    <RouteErrorBoundary>
+                      <NotFound />
+                    </RouteErrorBoundary>
+                  } />
                 </Routes>
               </Suspense>
               </main>

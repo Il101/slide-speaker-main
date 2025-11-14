@@ -1,0 +1,345 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, production-deploy, development]
+  pull_request:
+    branches: [main, production-deploy]
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+jobs:
+  # ============================================================================
+  # Backend Tests
+  # ============================================================================
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_slidespeaker
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libreoffice poppler-utils ffmpeg
+      
+      - name: Install Python dependencies
+        run: |
+          cd backend
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+      
+      - name: Run linting
+        run: |
+          cd backend
+          # Black - code formatting
+          black --check app tests
+          
+          # isort - import sorting
+          isort --check-only app tests
+          
+          # Flake8 - code style
+          flake8 app tests --max-line-length=120 --exclude=venv,__pycache__
+      
+      - name: Run type checking
+        run: |
+          cd backend
+          mypy app --ignore-missing-imports --no-strict-optional
+      
+      - name: Run unit tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test_slidespeaker
+          REDIS_URL: redis://localhost:6379/0
+          TESTING: true
+        run: |
+          cd backend
+          pytest tests/unit -v --cov=app --cov-report=xml --cov-report=term-missing
+      
+      - name: Run integration tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test_slidespeaker
+          REDIS_URL: redis://localhost:6379/0
+          TESTING: true
+        run: |
+          cd backend
+          pytest tests/integration -v --cov=app --cov-append --cov-report=xml
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./backend/coverage.xml
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: true
+      
+      - name: Check coverage threshold
+        run: |
+          cd backend
+          coverage report --fail-under=70
+
+  # ============================================================================
+  # Frontend Tests
+  # ============================================================================
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linting
+        run: npm run lint
+      
+      - name: Run type checking
+        run: npm run type-check
+      
+      - name: Run unit tests
+        run: npm run test:coverage
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/coverage-final.json
+          flags: frontend
+          name: frontend-coverage
+      
+      - name: Build project
+        run: npm run build
+        env:
+          VITE_API_BASE: http://localhost:8000
+      
+      - name: Check bundle size
+        run: |
+          npm run build
+          du -sh dist/
+          # Fail if bundle is too large (>2MB)
+          size=$(du -sb dist/ | cut -f1)
+          if [ $size -gt 2097152 ]; then
+            echo "Bundle size too large: $(du -sh dist/)"
+            exit 1
+          fi
+
+  # ============================================================================
+  # Security Scanning
+  # ============================================================================
+  security:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Run Bandit security scanner
+        run: |
+          pip install bandit
+          cd backend
+          bandit -r app -ll -f json -o bandit-report.json || true
+          bandit -r app -ll
+      
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level=moderate || true
+      
+      - name: Scan for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+  # ============================================================================
+  # Docker Build
+  # ============================================================================
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: false
+          tags: slidespeaker/backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Build frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: slidespeaker/frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Test docker-compose
+        run: |
+          # Test that docker-compose builds successfully
+          docker-compose -f docker-compose.yml config
+
+  # ============================================================================
+  # Smoke Tests
+  # ============================================================================
+  smoke-tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_slidespeaker
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+      
+      - name: Start backend
+        env:
+          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test_slidespeaker
+          REDIS_URL: redis://localhost:6379/0
+        run: |
+          cd backend
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          sleep 10
+      
+      - name: Test health endpoint
+        run: |
+          curl -f http://localhost:8000/health || exit 1
+          curl -f http://localhost:8000/health/ready || exit 1
+      
+      - name: Test API endpoints
+        run: |
+          # Test that API is responding
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/auth/me)
+          if [ "$response" != "401" ] && [ "$response" != "200" ]; then
+            echo "Unexpected response code: $response"
+            exit 1
+          fi
+
+  # ============================================================================
+  # Code Quality
+  # ============================================================================
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for SonarCloud
+      
+      - name: Run SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=your-org
+            -Dsonar.projectKey=slidespeaker
+            -Dsonar.sources=backend/app,src
+            -Dsonar.tests=backend/tests,src/test
+            -Dsonar.python.coverage.reportPaths=backend/coverage.xml
+
+  # ============================================================================
+  # Notification
+  # ============================================================================
+  notify:
+    name: Notify Status
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, security, docker-build]
+    if: always()
+    
+    steps:
+      - name: Send notification
+        if: failure()
+        run: |
+          echo "CI/CD pipeline failed. Check the logs for details."
+          # Add Slack/Discord/Email notification here

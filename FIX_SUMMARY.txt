@@ -1,0 +1,76 @@
+🎯 Визуальные эффекты - Исправлено
+
+ПРОБЛЕМЫ:
+1. duration = null блокировал генерацию cues
+2. semantic_map отсутствовал у старых уроков  
+3. Неправильные пути к аудио (audio vs audio_path)
+4. Баги в _fallback_sync (group_id vs id)
+5. Dedup cache с mock результатами
+6. httpx version conflict (0.28.1 vs 0.25.2)
+7. LLM в mock mode из-за конфликта зависимостей
+
+ИСПРАВЛЕНИЯ:
+✅ Автоматический расчет duration из audio файла (wave/pydub)
+✅ Создание простой semantic_map для старых уроков
+✅ Правильный путь: audio_path || audio
+✅ Исправлен _fallback_sync: group.get('id'), group.get('element_ids')
+✅ Очищен dedup cache (56 слайдов)
+✅ Откат httpx до 0.25.2 для совместимости с openai
+✅ LLM Provider работает: Gemini (Docker), OpenRouter (local)
+
+РЕЗУЛЬТАТ:
+До:   duration=null, semantic_map={}, cues=2 (хардкод)
+После: duration=87.22s, semantic_map=5 groups, cues=5, visual_cues=5
+
+ТЕСТЫ:
+✅ test_visual_effects_fix.py - генерация cues работает
+✅ test_real_llm.py - Gemini LLM работает (не mock)
+✅ Translation Service - готов к работе (de→ru)
+
+ДОКУМЕНТАЦИЯ:
+📝 VISUAL_EFFECTS_FIXED.md - полное описание исправлений
+📝 HTTPX_CONFLICT_SOLUTION.md - решение конфликта версий
+📝 TRANSLATION_VISUAL_EFFECTS_FLOW.md - архитектура перевода
+📝 VISUAL_EFFECTS_COMPLETE_FIX_SUMMARY.md - итоговый summary
+
+ИЗМЕНЕННЫЕ ФАЙЛЫ:
+- backend/app/pipeline/intelligent_optimized.py (3 fix)
+- backend/app/services/bullet_point_sync.py (fallback fix)
+
+Статус: ✅ ВСЕ РАБОТАЕТ!
+
+=== УТОЧНЕНИЕ: Whisper vs Google TTS Timing ===
+
+ВОПРОС: Зачем Whisper если Google TTS может timing отдавать?
+
+ОТВЕТ: Whisper используется ТОЛЬКО с Silero TTS, НЕ с Google!
+
+Логика работы:
+├─ TTS_PROVIDER=google
+│  ├─ Google TTS возвращает word_timings через SSML <mark> tags
+│  ├─ Whisper НЕ загружается
+│  └─ Экономия памяти: ~500MB
+│
+└─ TTS_PROVIDER=silero (или нет Google credentials)
+   ├─ Silero TTS НЕ поддерживает word timing
+   ├─ Whisper загружается автоматически (lazy load)
+   └─ Whisper распознает аудио → извлекает word_timings
+
+Код в BulletPointSyncService:
+```python
+tts_provider = os.getenv("TTS_PROVIDER", "google")
+self.needs_whisper = tts_provider in ("silero", "azure", "mock")
+
+if not self.needs_whisper:
+    logger.info("✅ Native timing (Whisper not needed)")
+```
+
+Текущая конфигурация Docker:
+TTS_PROVIDER=google → Whisper НЕ используется ✅
+
+ИСПРАВЛЕНО:
+✅ Обновлены комментарии в intelligent_optimized.py
+   "Whisper + Silero hybrid" → "Smart timing strategy"
+   "Using Whisper" → "Using BulletPointSync"
+✅ Создана документация WHISPER_VS_GOOGLE_TTS_TIMING.md
+

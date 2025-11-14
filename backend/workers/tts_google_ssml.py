@@ -32,8 +32,13 @@ class GoogleTTSWorkerSSML:
         self.speaking_rate = float(speaking_rate or os.getenv("GOOGLE_TTS_SPEAKING_RATE", "1.0"))
         self.pitch = float(pitch or os.getenv("GOOGLE_TTS_PITCH", "0.0"))
         
+        # ✅ FIX: Check environment to prevent mock mode in production
+        environment = os.getenv("ENVIRONMENT", "development")
+        
         if not GOOGLE_TTS_AVAILABLE:
-            logger.warning("Google Cloud TTS not available, will use mock mode")
+            if environment == "production":
+                raise RuntimeError("Google Cloud TTS library not available in production! Install google-cloud-texttospeech")
+            logger.warning("Google Cloud TTS not available, will use mock mode (development only)")
             self.use_mock = True
         else:
             self.use_mock = False

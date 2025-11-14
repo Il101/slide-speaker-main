@@ -20,6 +20,11 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+def _check_whisper_availability() -> bool:
+    """Check if Whisper is available"""
+    return WHISPER_AVAILABLE
+
+
 class BulletPointSyncService:
     """
     Сервис для точной синхронизации bullet points с аудио

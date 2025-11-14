@@ -29,7 +29,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ ./app/
 COPY workers/ ./workers/
 COPY storage_gcs.py .
-COPY main.py .
 COPY alembic.ini .
 COPY alembic/ ./alembic/
 

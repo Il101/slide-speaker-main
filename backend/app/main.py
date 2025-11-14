@@ -23,7 +23,7 @@ from .core.metrics import (
     start_metrics_server, record_request, record_lesson_created,
     record_lesson_exported, record_error, monitor_operation
 )
-from .core.validators import validate_api_keys
+from .core.validators import validate_api_keys, validate_lesson_id
 from .core.sentry import init_sentry, sentry_middleware
 from .models.schemas import (
     UploadResponse, ExportResponse, ProcessingStatus,
@@ -41,6 +41,7 @@ from .api.quizzes import router as quizzes_router
 from .api.playlists import router as playlists_router
 from .core.database import get_db, Lesson
 from .core.auth import get_current_user, get_current_user_optional
+from .dependencies.lessons import create_lesson_ownership_check
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from fastapi import Depends
@@ -348,20 +349,7 @@ def pipeline_for_request(request) -> BasePipeline:
     logger.info(f"Using pipeline: {name} ({pipeline_class.__name__})")
     return pipeline_class()
 
-# Security: UUID validation helper
-def validate_lesson_id(lesson_id: str) -> str:
-    """
-    Validate that lesson_id is a valid UUID v4
-    Prevents path traversal attacks
-    """
-    try:
-        uuid_obj = uuid.UUID(lesson_id, version=4)
-        return str(uuid_obj)
-    except (ValueError, AttributeError):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid lesson_id format. Must be a valid UUID."
-        )
+# Security: UUID validation helper moved to core.validators
 
 # Global exception handler
 @app.exception_handler(SlideSpeakerException)
@@ -476,25 +464,12 @@ async def upload_file(
 async def get_lesson_status(
     request: Request,
     lesson_id: str,
-    current_user: dict = Depends(get_current_user),  # ✅ Require authentication
+    lesson_data: dict = Depends(create_lesson_ownership_check("access")),
     db: AsyncSession = Depends(get_db)
 ):
     """Get lesson processing status - requires authentication"""
-    # ✅ Validate lesson_id format (prevent path traversal)
-    lesson_id = validate_lesson_id(lesson_id)
-    
-    # ✅ Check ownership
-    result_check = await db.execute(
-        text("SELECT user_id FROM lessons WHERE id = :lesson_id"),
-        {"lesson_id": lesson_id}
-    )
-    lesson_owner = result_check.scalar_one_or_none()
-    
-    if not lesson_owner:
-        raise HTTPException(status_code=404, detail="Lesson not found")
-    
-    if lesson_owner != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="Not authorized to access this lesson")
+    # ✅ Validate lesson_id format (prevent path traversal) - done in dependency
+    lesson_id = lesson_data["lesson_id"]
     
     try:
         from .tasks import process_lesson_full_pipeline
@@ -704,30 +679,78 @@ async def get_manifest(
     # ✅ Validate lesson_id format (prevent path traversal)
     lesson_id = validate_lesson_id(lesson_id)
     
-    # ✅ Check ownership for non-demo lessons
+    # ✅ Get lesson from database (with manifest_data)
     result_check = await db.execute(
-        text("SELECT user_id FROM lessons WHERE id = :lesson_id"),
+        text("SELECT user_id, manifest_data FROM lessons WHERE id = :lesson_id"),
         {"lesson_id": lesson_id}
     )
-    lesson_owner = result_check.scalar_one_or_none()
+    lesson_data = result_check.one_or_none()
+    
+    if not lesson_data:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+    
+    lesson_owner, manifest_json = lesson_data
     
     # If lesson has an owner, require authentication and ownership check
+    # Note: This endpoint allows optional auth (for demo), so we check manually
     if lesson_owner:
         if not current_user:
             raise HTTPException(status_code=401, detail="Authentication required")
         if lesson_owner != current_user["user_id"]:
             raise HTTPException(status_code=403, detail="Not authorized to access this lesson")
     
-    # ✅ Additional path safety check
-    manifest_path = settings.DATA_DIR / lesson_id / "manifest.json"
-    if not manifest_path.resolve().is_relative_to(settings.DATA_DIR.resolve()):
-        raise HTTPException(status_code=403, detail="Access denied")
+    # ✅ Check if manifest exists in database
+    if not manifest_json:
+        raise HTTPException(status_code=404, detail="Manifest not found")
     
-    if not manifest_path.exists():
-        raise HTTPException(status_code=404, detail="Lesson not found")
+    # ✅ Parse manifest from JSON (already stored as JSON in DB)
+    manifest = json.loads(manifest_json) if isinstance(manifest_json, str) else manifest_json
 
-    with open(manifest_path, "r", encoding="utf-8") as f:
-        manifest = json.load(f)
+    # 🔥 Transform visual_effects_manifest for frontend compatibility
+    # Frontend expects flattened timing fields (t0, t1, duration) and effect_id
+    if "slides" in manifest:
+        for slide in manifest["slides"]:
+            if "visual_effects_manifest" in slide and slide["visual_effects_manifest"]:
+                vfx = slide["visual_effects_manifest"]
+                
+                # Transform effects: flatten timing object
+                if "effects" in vfx and vfx["effects"]:
+                    for effect in vfx["effects"]:
+                        # Add effect_id alias if missing
+                        if "id" in effect and "effect_id" not in effect:
+                            effect["effect_id"] = effect["id"]
+                        
+                        # Flatten timing fields if they're nested
+                        if "timing" in effect and effect["timing"]:
+                            timing = effect["timing"]
+                            # Only flatten if not already present
+                            if "t0" not in effect:
+                                effect["t0"] = timing.get("t0", 0)
+                            if "t1" not in effect:
+                                effect["t1"] = timing.get("t1", 0)
+                            if "duration" not in effect:
+                                effect["duration"] = timing.get("duration", 0)
+                            if "confidence" not in effect:
+                                effect["confidence"] = timing.get("confidence", 1.0)
+                            if "source" not in effect:
+                                effect["source"] = timing.get("source", "fallback")
+                            if "precision" not in effect:
+                                effect["precision"] = timing.get("precision", "segment")
+                
+                # Transform timeline events: add aliases
+                if "timeline" in vfx and vfx["timeline"] and "events" in vfx["timeline"]:
+                    for event in vfx["timeline"]["events"]:
+                        # Add 't' alias if missing
+                        if "time" in event and "t" not in event:
+                            event["t"] = event["time"]
+                        elif "t" in event and "time" not in event:
+                            event["time"] = event["t"]
+                        
+                        # Add 'type' alias if missing
+                        if "event_type" in event and "type" not in event:
+                            event["type"] = event["event_type"]
+                        elif "type" in event and "event_type" not in event:
+                            event["event_type"] = event["type"]
 
     # ✅ Add cache busting header to prevent browser caching stale manifests
     from fastapi.responses import JSONResponse
@@ -764,26 +787,13 @@ async def generate_speaker_notes(lesson_id: str, slide_id: int, request: Speaker
 async def generate_audio(
     lesson_id: str,
     request: Request,
-    current_user: dict = Depends(get_current_user),  # ✅ Require authentication
+    lesson_data: dict = Depends(create_lesson_ownership_check("modify")),
     db: AsyncSession = Depends(get_db)
 ):
     """Generate audio for lesson using pipeline"""
     
-    # ✅ Validate lesson_id format (prevent path traversal)
-    lesson_id = validate_lesson_id(lesson_id)
-    
-    # ✅ Check ownership
-    result_check = await db.execute(
-        text("SELECT user_id FROM lessons WHERE id = :lesson_id"),
-        {"lesson_id": lesson_id}
-    )
-    lesson_owner = result_check.scalar_one_or_none()
-    
-    if not lesson_owner:
-        raise HTTPException(status_code=404, detail="Lesson not found")
-    
-    if lesson_owner != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="Not authorized to modify this lesson")
+    # ✅ Validate lesson_id format (prevent path traversal) - done in dependency
+    lesson_id = lesson_data["lesson_id"]
     
     try:
         # Check if lesson exists
@@ -858,26 +868,13 @@ async def preview_changes(lesson_id: str, slide_id: int):
 async def patch_lesson(
     lesson_id: str,
     request: LessonPatchRequest,
-    current_user: dict = Depends(get_current_user),  # ✅ Require authentication
+    lesson_data: dict = Depends(create_lesson_ownership_check("modify")),
     db: AsyncSession = Depends(get_db)
 ):
     """Patch lesson content (cues, elements, speaker notes)"""
     
-    # ✅ Validate lesson_id format (prevent path traversal)
-    lesson_id = validate_lesson_id(lesson_id)
-    
-    # ✅ Check ownership
-    result_check = await db.execute(
-        text("SELECT user_id FROM lessons WHERE id = :lesson_id"),
-        {"lesson_id": lesson_id}
-    )
-    lesson_owner = result_check.scalar_one_or_none()
-    
-    if not lesson_owner:
-        raise HTTPException(status_code=404, detail="Lesson not found")
-    
-    if lesson_owner != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="Not authorized to modify this lesson")
+    # ✅ Validate lesson_id format (prevent path traversal) - done in dependency
+    lesson_id = lesson_data["lesson_id"]
     
     try:
         # Validate lesson exists
@@ -1060,25 +1057,12 @@ def _validate_timeline_smoothness(manifest_data: Dict[str, Any]) -> List[str]:
 async def export_lesson(
     request: Request,
     lesson_id: str,
-    current_user: dict = Depends(get_current_user),  # ✅ Require authentication
+    lesson_data: dict = Depends(create_lesson_ownership_check("export")),
     db: AsyncSession = Depends(get_db)
 ):
     """Export lesson to MP4 video - requires authentication"""
-    # ✅ Validate lesson_id format (prevent path traversal)
-    lesson_id = validate_lesson_id(lesson_id)
-    
-    # ✅ Check ownership
-    result_check = await db.execute(
-        text("SELECT user_id FROM lessons WHERE id = :lesson_id"),
-        {"lesson_id": lesson_id}
-    )
-    lesson_owner = result_check.scalar_one_or_none()
-    
-    if not lesson_owner:
-        raise HTTPException(status_code=404, detail="Lesson not found")
-    
-    if lesson_owner != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="Not authorized to export this lesson")
+    # ✅ Validate lesson_id format (prevent path traversal) - done in dependency
+    lesson_id = lesson_data["lesson_id"]
     
     try:
         # Check if lesson exists
@@ -1110,26 +1094,13 @@ async def export_lesson(
 async def get_export_status(
     lesson_id: str,
     job_id: str,
-    current_user: dict = Depends(get_current_user),  # ✅ Require authentication
+    lesson_data: dict = Depends(create_lesson_ownership_check("view")),
     db: AsyncSession = Depends(get_db)
 ):
     """Get export task status"""
     
-    # ✅ Validate lesson_id format (prevent path traversal)
-    lesson_id = validate_lesson_id(lesson_id)
-    
-    # ✅ Check ownership
-    result_check = await db.execute(
-        text("SELECT user_id FROM lessons WHERE id = :lesson_id"),
-        {"lesson_id": lesson_id}
-    )
-    lesson_owner = result_check.scalar_one_or_none()
-    
-    if not lesson_owner:
-        raise HTTPException(status_code=404, detail="Lesson not found")
-    
-    if lesson_owner != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="Not authorized to view this export status")
+    # ✅ Validate lesson_id format (prevent path traversal) - done in dependency
+    lesson_id = lesson_data["lesson_id"]
     
     try:
         from .tasks import export_video_task
@@ -1179,26 +1150,13 @@ async def get_export_status(
 @app.get("/exports/{lesson_id}/download")
 async def download_export(
     lesson_id: str,
-    current_user: dict = Depends(get_current_user),  # ✅ Require authentication
+    lesson_data: dict = Depends(create_lesson_ownership_check("download")),
     db: AsyncSession = Depends(get_db)
 ):
     """Download exported video"""
     
-    # ✅ Validate lesson_id format (prevent path traversal)
-    lesson_id = validate_lesson_id(lesson_id)
-    
-    # ✅ Check ownership
-    result_check = await db.execute(
-        text("SELECT user_id FROM lessons WHERE id = :lesson_id"),
-        {"lesson_id": lesson_id}
-    )
-    lesson_owner = result_check.scalar_one_or_none()
-    
-    if not lesson_owner:
-        raise HTTPException(status_code=404, detail="Lesson not found")
-    
-    if lesson_owner != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="Not authorized to download this video")
+    # ✅ Validate lesson_id format (prevent path traversal) - done in dependency
+    lesson_id = lesson_data["lesson_id"]
     
     try:
         download_url = await video_exporter.get_export_download_url(lesson_id)

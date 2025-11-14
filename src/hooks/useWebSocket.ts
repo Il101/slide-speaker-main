@@ -63,7 +63,6 @@ export const useWebSocket = ({
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const maxReconnectAttempts = 5;
-  const reconnectDelay = 3000;
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -132,13 +131,16 @@ export const useWebSocket = ({
         // Attempt reconnection if not closed intentionally
         if (event.code !== 1000 && reconnectAttemptsRef.current < maxReconnectAttempts) {
           reconnectAttemptsRef.current += 1;
+          
+          // Exponential backoff: 1s, 2s, 4s, 8s, 16s (max 30s)
+          const delay = Math.min(1000 * 2 ** reconnectAttemptsRef.current, 30000);
           console.log(
-            `Reconnecting... (attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts})`
+            `Reconnecting in ${delay}ms... (attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts})`
           );
           
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();
-          }, reconnectDelay);
+          }, delay);
         } else if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
           setError('Failed to connect after multiple attempts');
         }

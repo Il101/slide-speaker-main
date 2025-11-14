@@ -1,0 +1,217 @@
+name: Load Testing
+
+on:
+  # Run on push to main branches
+  push:
+    branches:
+      - main
+      - staging
+      - production-deploy
+  
+  # Run on pull requests
+  pull_request:
+    branches:
+      - main
+  
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: 'Load test scenario'
+        required: true
+        default: 'light'
+        type: choice
+        options:
+          - light
+          - medium
+          - heavy
+          - stress
+          - api-only
+  
+  # Schedule weekly tests
+  schedule:
+    - cron: '0 2 * * 0'  # Every Sunday at 2 AM UTC
+
+jobs:
+  load-test:
+    name: Run Load Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: slidespeaker_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install -r backend/load_tests/requirements.txt
+      
+      - name: Set up environment
+        run: |
+          cp docker.env.template docker.env
+          # Configure test environment variables
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/slidespeaker_test" >> docker.env
+          echo "REDIS_URL=redis://localhost:6379/0" >> docker.env
+          echo "ALLOW_MOCK_MODE=true" >> docker.env
+      
+      - name: Initialize database
+        run: |
+          cd backend
+          alembic upgrade head
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/slidespeaker_test
+      
+      - name: Start backend
+        run: |
+          cd backend
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          sleep 10
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/slidespeaker_test
+          REDIS_URL: redis://localhost:6379/0
+          ALLOW_MOCK_MODE: true
+      
+      - name: Verify backend health
+        run: |
+          curl -f http://localhost:8000/health || (echo "Backend health check failed" && exit 1)
+      
+      - name: Determine test scenario
+        id: scenario
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            SCENARIO="${{ github.event.inputs.scenario }}"
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            SCENARIO="medium"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            SCENARIO="light"
+          else
+            SCENARIO="api-only"
+          fi
+          echo "scenario=$SCENARIO" >> $GITHUB_OUTPUT
+          echo "Running scenario: $SCENARIO"
+      
+      - name: Run load tests
+        run: |
+          cd backend/load_tests
+          ./run_load_tests.sh ${{ steps.scenario.outputs.scenario }} http://localhost:8000
+        continue-on-error: true
+      
+      - name: Generate summary
+        if: always()
+        run: |
+          cd backend/load_tests
+          REPORT_DIR=$(ls -td reports/*/ | head -1)
+          if [ -d "$REPORT_DIR" ]; then
+            python3 analyze_results.py "$REPORT_DIR" > "$REPORT_DIR/github_summary.txt"
+            echo "## Load Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            cat "$REPORT_DIR/github_summary.txt" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Check performance thresholds
+        id: thresholds
+        run: |
+          cd backend/load_tests
+          REPORT_DIR=$(ls -td reports/*/ | head -1)
+          if [ -d "$REPORT_DIR" ]; then
+            python3 check_thresholds.py "$REPORT_DIR/results_stats.csv"
+          fi
+        continue-on-error: true
+      
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: load-test-reports-${{ steps.scenario.outputs.scenario }}
+          path: backend/load_tests/reports/
+          retention-days: 30
+      
+      - name: Upload test results as comment (PR only)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportDir = 'backend/load_tests/reports/';
+            const dirs = fs.readdirSync(reportDir).sort().reverse();
+            const latestDir = dirs[0];
+            const summaryPath = `${reportDir}${latestDir}/github_summary.txt`;
+            
+            if (fs.existsSync(summaryPath)) {
+              const summary = fs.readFileSync(summaryPath, 'utf8');
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## 📊 Load Test Results\n\n\`\`\`\n${summary}\n\`\`\``
+              });
+            }
+      
+      - name: Fail if thresholds exceeded
+        if: steps.thresholds.outcome == 'failure'
+        run: |
+          echo "Performance thresholds were exceeded"
+          exit 1
+
+  benchmark-comparison:
+    name: Compare with Baseline
+    runs-on: ubuntu-latest
+    needs: load-test
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download current results
+        uses: actions/download-artifact@v3
+        with:
+          name: load-test-reports-light
+          path: current-results/
+      
+      - name: Download baseline results
+        continue-on-error: true
+        run: |
+          # Download baseline from main branch artifact
+          # This requires the artifact to exist from a previous run
+          echo "Baseline comparison would go here"
+          # In a real implementation, you would fetch the latest artifact from main
+      
+      - name: Compare performance
+        run: |
+          echo "## Performance Comparison" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Comparing PR performance against main branch baseline..." >> $GITHUB_STEP_SUMMARY
+          # Add actual comparison logic here

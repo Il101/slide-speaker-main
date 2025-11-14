@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { Brain, Mic, Video, Zap, ArrowRight, PlayCircle } from 'lucide-react';
+import { Brain, Mic, Video, Zap, ArrowRight, PlayCircle, FileQuestion } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { FileUploader } from '@/components/FileUploader';
 import { Player } from '@/components/Player';
 import { MyVideosSidebar } from '@/components/MyVideosSidebar';
+import { QuizGenerator } from '@/components/QuizGenerator';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
 import { trackEvent } from '@/lib/analytics';
 
-type AppState = 'landing' | 'upload' | 'player';
+type AppState = 'landing' | 'upload' | 'player' | 'quiz';
 
 const Index = () => {
   const { isAuthenticated, user } = useAuth();
@@ -50,6 +52,7 @@ const Index = () => {
     }
     return null;
   });
+  const [quizDialogOpen, setQuizDialogOpen] = useState(false);
 
   // Функция для сохранения состояния в localStorage
   const saveAppState = (newAppState: AppState, newLessonId: string | null) => {
@@ -124,6 +127,14 @@ const Index = () => {
     toast.success('Загрузка видео начата');
   };
 
+  const handleOpenQuizGenerator = () => {
+    setQuizDialogOpen(true);
+    trackEvent.featureUsed({
+      feature: 'quiz_generator',
+      details: { lessonId: lessonId || 'unknown' }
+    });
+  };
+
   if (appState === 'player') {
     return (
       <div className="min-h-screen hero-gradient">
@@ -141,14 +152,25 @@ const Index = () => {
                     Интерактивная лекция с озвучкой и визуальными эффектами
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCreateNewLesson}
-                  className="w-full sm:w-auto"
-                >
-                  Создать новую лекцию
-                </Button>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleOpenQuizGenerator}
+                    className="flex-1 sm:flex-initial"
+                  >
+                    <FileQuestion className="mr-2 h-4 w-4" />
+                    Создать тест
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCreateNewLesson}
+                    className="flex-1 sm:flex-initial"
+                  >
+                    Новая лекция
+                  </Button>
+                </div>
               </div>
               
               {lessonId && (
@@ -167,10 +189,20 @@ const Index = () => {
                 currentLessonId={lessonId || undefined}
                 onVideoSelect={handleVideoSelect}
                 onVideoDownload={handleVideoDownload}
+                onNavigateToUpload={() => setAppState('upload')}
               />
             </div>
           )}
         </div>
+
+        {/* Quiz Generator Dialog */}
+        <Dialog open={quizDialogOpen} onOpenChange={setQuizDialogOpen}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            {lessonId && (
+              <QuizGenerator lessonId={lessonId} />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
@@ -213,6 +245,7 @@ const Index = () => {
                 currentLessonId={lessonId || undefined}
                 onVideoSelect={handleVideoSelect}
                 onVideoDownload={handleVideoDownload}
+                onNavigateToUpload={() => setAppState('upload')}
               />
             </div>
           )}
@@ -340,6 +373,7 @@ const Index = () => {
           currentLessonId={lessonId || undefined}
           onVideoSelect={handleVideoSelect}
           onVideoDownload={handleVideoDownload}
+          onNavigateToUpload={() => setAppState('upload')}
         />
       </div>
     )}

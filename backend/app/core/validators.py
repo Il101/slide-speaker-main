@@ -2,8 +2,10 @@
 import os
 import re
 import logging
+import uuid
 from pathlib import Path
 from typing import List, Tuple
+from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
@@ -177,3 +179,27 @@ def validate_api_keys():
     except Exception as e:
         logger.error(f"API validation error: {e}")
         raise
+
+
+def validate_lesson_id(lesson_id: str) -> str:
+    """
+    Validate that lesson_id is a valid UUID v4
+    Prevents path traversal attacks
+    
+    Args:
+        lesson_id: Lesson ID string to validate
+        
+    Returns:
+        Validated lesson_id as string
+        
+    Raises:
+        HTTPException 400: If lesson_id is not a valid UUID v4
+    """
+    try:
+        uuid_obj = uuid.UUID(lesson_id, version=4)
+        return str(uuid_obj)
+    except (ValueError, AttributeError):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid lesson_id format. Must be a valid UUID."
+        )

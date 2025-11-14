@@ -126,7 +126,14 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    return {"user_id": user.id, "email": user.email, "role": user.role}
+    # ✅ FIX: Return "sub" field for JWT standard compatibility
+    # Many endpoints expect current_user["sub"] not current_user["user_id"]
+    return {
+        "sub": user.id,  # JWT standard field for subject (user ID)
+        "user_id": user.id,  # Keep for backward compatibility
+        "email": user.email,
+        "role": user.role
+    }
 
 # Optional dependency for endpoints that can work with or without auth
 async def get_current_user_optional(

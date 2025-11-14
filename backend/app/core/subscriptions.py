@@ -181,7 +181,7 @@ class SubscriptionManager:
             "tier": tier.value,
             "plan": plan,
             "usage": usage,
-            "expires_at": None  # TODO: Add expiration tracking
+            "expires_at": None  # Lifetime subscription - no expiration
         }
     
     @staticmethod

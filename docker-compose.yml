@@ -5,10 +5,12 @@ services:
       - "8000:8000"
     volumes:
       - ./.data:/app/.data
-      - ./backend/.env:/app/.env
       - ./backend/app:/app/app
       - ./backend/workers:/app/workers
       - ./keys/gcp-sa.json:/app/keys/gcp-sa.json:ro
+    environment:
+      - TZ=Europe/Berlin  # Set timezone to match host (CEST = UTC+2)
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/keys/gcp-sa.json
     env_file:
       - ./docker.env
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
@@ -41,6 +43,8 @@ services:
     image: postgres:15-alpine
     ports:
       - "5432:5432"
+    environment:
+      - TZ=Europe/Berlin  # Set timezone to match host
     env_file:
       - ./docker.env
     volumes:
@@ -101,9 +105,17 @@ services:
       - ./backend/app:/app/app
       - ./backend/workers:/app/workers
       - ./keys/gcp-sa.json:/app/keys/gcp-sa.json:ro
-    command: celery -A app.celery_app worker --loglevel=info --queues=default,processing,ai_generation,tts,export,maintenance
+    # ✅ FIX: Limit concurrency to prevent OOM with Silero TTS
+    # With only 3.8GB Docker memory total, use 1 worker to prevent SIGKILL
+    # Silero TTS model + presentation processing can use 1-1.5GB
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=1 --queues=default,processing,ai_generation,tts,export,maintenance
     environment:
       - PYTHONPATH=/app
+      - TZ=Europe/Berlin  # Set timezone to match host (CEST = UTC+2)
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/keys/gcp-sa.json
+      # ✅ Optimize PyTorch memory usage
+      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
+      - OMP_NUM_THREADS=2
     env_file:
       - ./docker.env
     depends_on:
@@ -111,6 +123,10 @@ services:
       - postgres
       - minio
       - db-init
+    # ✅ FIX: Set realistic memory limit (Docker has only 3.8GB total)
+    # Process slides sequentially with aggressive GC to stay under 2.5GB
+    mem_limit: 2.5g
+    mem_reservation: 1g
     healthcheck:
       test: ["CMD", "celery", "-A", "app.celery_app", "inspect", "ping"]
       interval: 30s

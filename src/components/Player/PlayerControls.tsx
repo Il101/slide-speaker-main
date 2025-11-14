@@ -13,6 +13,7 @@ interface PlayerControlsProps {
 export const PlayerControls: React.FC<PlayerControlsProps> = ({ totalDuration = 0 }) => {
   const {
     playerState,
+    manifest,
     togglePlayPause,
     nextSlide,
     prevSlide,
@@ -20,6 +21,11 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({ totalDuration = 
     setPlaybackRate,
     audioRef,
   } = usePlayer();
+
+  // Get duration from audio element or use totalDuration prop
+  const duration = audioRef.current?.duration || totalDuration || 0;
+  const currentSlideNumber = playerState.currentSlide + 1;
+  const totalSlides = manifest?.slides.length || 0;
 
   const handleSeek = (value: number[]) => {
     if (audioRef.current) {
@@ -41,7 +47,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({ totalDuration = 
       <div className="space-y-2">
         <Slider
           value={[playerState.currentTime]}
-          max={totalDuration || 100}
+          max={duration || 100}
           step={0.1}
           onValueChange={handleSeek}
           className="w-full"
@@ -49,7 +55,7 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({ totalDuration = 
         />
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>{formatTime(playerState.currentTime)}</span>
-          <span>{formatTime(totalDuration)}</span>
+          <span>{formatTime(duration)}</span>
         </div>
       </div>
 

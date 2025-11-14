@@ -34,15 +34,31 @@ class BasePipeline(ABC):
         """Build final manifest.json with all data"""
         pass
     
-    def process_full_pipeline(self, lesson_dir: str) -> Dict[str, Any]:
-        """Run complete pipeline processing"""
+    def process_full_pipeline(self, lesson_dir: str, progress_callback=None) -> Dict[str, Any]:
+        """Run complete pipeline processing
+        
+        Args:
+            lesson_dir: Path to lesson directory
+            progress_callback: Optional callback(stage: str, progress: int, message: str)
+        """
         try:
             self.logger.info(f"Starting {self.__class__.__name__} pipeline for {lesson_dir}")
             
-            # Run pipeline steps
+            # Run pipeline steps with progress updates
+            if progress_callback:
+                progress_callback('parsing', 20, 'Parsing presentation...')
             self.ingest(lesson_dir)
+            
+            if progress_callback:
+                progress_callback('generating_notes', 40, 'Generating lecture notes...')
             self.plan(lesson_dir)
+            
+            if progress_callback:
+                progress_callback('generating_audio', 70, 'Synthesizing audio...')
             self.tts(lesson_dir)
+            
+            if progress_callback:
+                progress_callback('generating_cues', 90, 'Creating visual effects...')
             self.build_manifest(lesson_dir)
             
             self.logger.info(f"Completed {self.__class__.__name__} pipeline for {lesson_dir}")

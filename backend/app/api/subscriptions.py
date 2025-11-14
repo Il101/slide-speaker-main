@@ -97,7 +97,7 @@ async def get_subscription_info(
             "tier": tier.value,
             "plan": plan,
             "usage": usage,
-            "expires_at": None  # TODO: Add expiration date from DB
+            "expires_at": None  # Lifetime subscription - no expiration
         }
         
     except HTTPException:

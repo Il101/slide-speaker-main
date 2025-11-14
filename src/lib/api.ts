@@ -131,7 +131,8 @@ export interface Slide {
   }>;
   visual_cues?: Array<{
     at: string;
-    targetId: string;
+    targetId?: string;
+    element_id?: string;
   }>;
   concepts?: {
     title?: string;
@@ -140,6 +141,7 @@ export interface Slide {
   };
   terms_to_define?: string[];
   duration?: number;
+  visual_effects_manifest?: any; // Visual Effects V2 manifest
 }
 
 export interface TimelineRule {
@@ -175,6 +177,16 @@ export interface Manifest {
   lecture_title?: string;
   audience_level?: string;
   style_preset?: string;
+  // 🔥 FIX: Add metadata field to read real slide dimensions
+  metadata?: {
+    slide_width?: number;
+    slide_height?: number;
+    total_slides?: number;
+    source_file?: string;
+    source_type?: string;
+    stage?: string;
+    translation_applied?: boolean;
+  };
 }
 
 export interface ExportResponse {
@@ -431,22 +443,19 @@ export class ApiClient {
   }
 
   async getLessonStatus(lessonId: string): Promise<ProcessingStatus> {
-    console.log('[API] Fetching lesson status for:', lessonId);
-    
-    const token = this.getAuthToken();
-    console.log('[API] Token for status request:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN');
-    
-    const headers = this.getHeaders(true, false);
-    console.log('[API] Headers:', headers);
-    
     const response = await fetch(`${this.baseUrl}/lessons/${lessonId}/status`, {
       method: 'GET',
-      credentials: 'include',  // ✅ Include cookies
-      headers: headers,
+      credentials: 'include',
+      headers: this.getHeaders(true, false),
     });
 
     const result = await this.handleResponse<ProcessingStatus>(response);
-    console.log('[API] Lesson status response:', result);
+    
+    // Log only state changes, not every poll
+    if (result.status === 'failed' || result.status === 'completed') {
+      console.log('[API] Lesson status changed:', result.status, result.message);
+    }
+    
     return result;
   }
 
@@ -512,6 +521,16 @@ export class ApiClient {
     });
 
     return this.handleResponse<{ success: boolean; message: string }>(response);
+  }
+
+  async cancelProcessing(lessonId: string): Promise<{ success: boolean; message: string; task_revoked: boolean }> {
+    const response = await fetch(`${this.baseUrl}/api/lessons/${lessonId}/cancel`, {
+      method: 'POST',
+      credentials: 'include',  // ✅ Include cookies
+      headers: this.getHeaders(true, true),
+    });
+
+    return this.handleResponse<{ success: boolean; message: string; task_revoked: boolean }>(response);
   }
 
   // New V2 API methods
