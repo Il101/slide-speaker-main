@@ -13,7 +13,7 @@ export default defineConfig({
       'slide-speaker-main.onrender.com',
       'slide-speaker-main-1.onrender.com'
     ],
-    // Proxy only for local Docker development
+    // Proxy only for local Docker development (not in Render production)
     ...(process.env.NODE_ENV !== 'production' && !process.env.RENDER && {
       proxy: {
         '/api': {
