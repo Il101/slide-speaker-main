@@ -81,6 +81,31 @@ async def startup_event():
     """Validate API keys on application startup"""
     logger.info("🚀 Starting application...")
     
+    # Handle GCP credentials from environment variable (for Render deployment)
+    gcp_json = os.getenv("GCP_SERVICE_ACCOUNT_JSON")
+    if gcp_json and not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+        try:
+            import json as json_lib
+            import tempfile
+            
+            # Parse JSON to validate it
+            creds_data = json_lib.loads(gcp_json)
+            
+            # Create temporary credentials file
+            temp_dir = Path("/tmp/gcp_credentials")
+            temp_dir.mkdir(parents=True, exist_ok=True)
+            creds_file = temp_dir / "service_account.json"
+            
+            with open(creds_file, 'w') as f:
+                json_lib.dump(creds_data, f)
+            
+            # Set environment variable to point to the file
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(creds_file)
+            logger.info(f"✅ Created GCP credentials file from GCP_SERVICE_ACCOUNT_JSON: {creds_file}")
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to create GCP credentials file from JSON: {e}")
+    
     try:
         validate_api_keys()
         logger.info("✅ API keys validated successfully")

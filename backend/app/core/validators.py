@@ -59,10 +59,31 @@ class APIKeyValidator:
     @staticmethod
     def validate_google_credentials() -> Tuple[bool, str]:
         """Validate Google Cloud credentials"""
+        import json
+        
+        # Check if GCP_SERVICE_ACCOUNT_JSON env var is set (for Render deployment)
+        gcp_json = os.getenv("GCP_SERVICE_ACCOUNT_JSON")
+        if gcp_json:
+            try:
+                creds_data = json.loads(gcp_json)
+                
+                if 'type' not in creds_data or creds_data['type'] != 'service_account':
+                    return False, "Invalid GCP_SERVICE_ACCOUNT_JSON format"
+                    
+                if 'project_id' not in creds_data:
+                    return False, "Missing project_id in GCP_SERVICE_ACCOUNT_JSON"
+                
+                logger.info(f"✅ Google credentials valid (from JSON env): project={creds_data.get('project_id')}")
+                return True, "OK"
+                
+            except json.JSONDecodeError as e:
+                return False, f"Failed to parse GCP_SERVICE_ACCOUNT_JSON: {e}"
+        
+        # Fall back to GOOGLE_APPLICATION_CREDENTIALS file path
         creds_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
         
         if not creds_path:
-            return False, "GOOGLE_APPLICATION_CREDENTIALS environment variable not set"
+            return False, "Neither GCP_SERVICE_ACCOUNT_JSON nor GOOGLE_APPLICATION_CREDENTIALS is set"
         
         creds_file = Path(creds_path)
         if not creds_file.exists():
@@ -70,7 +91,6 @@ class APIKeyValidator:
         
         # Check if file is valid JSON
         try:
-            import json
             with open(creds_file, 'r') as f:
                 creds_data = json.load(f)
                 
