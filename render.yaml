@@ -10,6 +10,9 @@ services:
     plan: free
     region: oregon
     maxmemoryPolicy: allkeys-lru
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
   - type: web
     name: slide-speaker-backend
     env: docker
@@ -41,7 +44,7 @@ services:
     rootDir: backend
     dockerContext: backend
     dockerfilePath: backend/Dockerfile
-    startCommand: celery -A app.celery_app worker --loglevel=info --concurrency=1 --queues=default,processing,ai_generation,tts,export,maintenance
+    dockerCommand: celery -A app.celery_app worker --loglevel=info --concurrency=1 --queues=default,processing,ai_generation,tts,export,maintenance
     envVars:
       - fromGroup: slide-speaker-shared
       - fromGroup: slide-speaker-secrets
