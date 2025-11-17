@@ -2,6 +2,8 @@
 
 Этот репозиторий — Vite + React приложение, которое после `npm run build` собирается в папку `dist`. Чтобы задеплоить его на Render, создайте статический сайт и укажите в качестве публикации эту папку.
 
+> ⚙️ Для backend и Celery worker используйте отдельный гайд `RENDER_BACKEND_DEPLOYMENT.md`, в нём описан blueprint `render.yaml` и список обязательных переменных окружения.
+
 ## 1. Настройка сервиса Render
 1. Зайдите на https://render.com и создайте новый **Static Site**.
 2. Подключите аккаунт GitHub/GitLab/Bitbucket и выберите репозиторий `slide-speaker-main` (ветку `production-deploy` или другую нужную). 

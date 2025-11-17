@@ -38,6 +38,14 @@ PASSED_CHECKS=0
 FAILED_CHECKS=0
 WARNING_CHECKS=0
 
+# Подгружаем локальные переменные, если есть backend/.env
+if [ -f "./backend/.env" ]; then
+    set -a
+    # shellcheck disable=SC1091
+    source ./backend/.env
+    set +a
+fi
+
 # Функция для проверки
 check_item() {
     local description="$1"
@@ -62,6 +70,26 @@ check_item() {
     fi
 }
 
+check_env_var() {
+    local var_name="$1"
+    local required="$2"
+    local value="${!var_name}"
+
+    TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
+    if [ -n "$value" ]; then
+        log_info "Переменная $var_name задана"
+        PASSED_CHECKS=$((PASSED_CHECKS + 1))
+    else
+        if [ "$required" = "true" ]; then
+            log_error "Переменная $var_name не задана"
+            FAILED_CHECKS=$((FAILED_CHECKS + 1))
+        else
+            log_warn "Переменная $var_name не задана (необязательно)"
+            WARNING_CHECKS=$((WARNING_CHECKS + 1))
+        fi
+    fi
+}
+
 echo ""
 echo "📋 Проверка файлов конфигурации..."
 
@@ -76,6 +104,7 @@ check_item "Dockerfile.netlify существует" "[ -f 'Dockerfile.netlify' 
 check_item "nginx.conf существует" "[ -f 'nginx.conf' ]" "true"
 check_item "netlify.toml существует" "[ -f 'netlify.toml' ]" "true"
 check_item "netlify.env.template существует" "[ -f 'netlify.env.template' ]" "true"
+check_item "render.yaml существует" "[ -f 'render.yaml' ]" "true"
 
 # Проверка скриптов
 check_item "deploy.sh существует и исполняемый" "[ -x 'deploy.sh' ]" "true"
@@ -117,6 +146,21 @@ else
     WARNING_CHECKS=$((WARNING_CHECKS + 1))
 fi
 TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
+
+echo ""
+echo "🔐 Критичные переменные окружения (Render)..."
+check_env_var "JWT_SECRET_KEY" "true"
+check_env_var "DATABASE_URL" "true"
+check_env_var "REDIS_URL" "true"
+
+TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
+if [ -n "$GCP_SERVICE_ACCOUNT_JSON" ] || [ -f "./keys/gcp-sa.json" ]; then
+    log_info "GCP credentials доступны (env или файл)"
+    PASSED_CHECKS=$((PASSED_CHECKS + 1))
+else
+    log_error "GCP credentials не найдены (нет GCP_SERVICE_ACCOUNT_JSON и keys/gcp-sa.json)"
+    FAILED_CHECKS=$((FAILED_CHECKS + 1))
+fi
 
 echo ""
 echo "📊 Проверка конфигурации проекта..."

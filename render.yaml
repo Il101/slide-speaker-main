@@ -1,0 +1,119 @@
+$schema: https://render.com/static/schema(render.yaml)
+
+databases:
+  - name: slide-speaker-db
+    plan: free
+    databaseName: slide_speaker
+    user: slidespeaker
+
+services:
+  - type: keyvalue
+    name: slide-speaker-cache
+    plan: free
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+  - type: web
+    name: slide-speaker-backend
+    env: docker
+    plan: free
+    region: oregon
+    branch: production-deploy
+    rootDir: backend
+    dockerContext: backend
+    dockerfilePath: backend/Dockerfile
+    healthCheckPath: /health/live
+    envVars:
+      - fromGroup: slide-speaker-shared
+      - fromGroup: slide-speaker-secrets
+      - key: DATABASE_URL
+        fromDatabase:
+          name: slide-speaker-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: slide-speaker-cache
+          type: keyvalue
+          property: connectionString
+  - type: worker
+    name: slide-speaker-worker
+    env: docker
+    plan: free
+    region: oregon
+    branch: production-deploy
+    rootDir: backend
+    dockerContext: backend
+    dockerfilePath: backend/Dockerfile
+    startCommand: celery -A app.celery_app worker --loglevel=info --concurrency=1 --queues=default,processing,ai_generation,tts,export,maintenance
+    envVars:
+      - fromGroup: slide-speaker-shared
+      - fromGroup: slide-speaker-secrets
+      - key: DATABASE_URL
+        fromDatabase:
+          name: slide-speaker-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: slide-speaker-cache
+          type: keyvalue
+          property: connectionString
+
+envVarGroups:
+  - name: slide-speaker-shared
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: API_HOST
+        value: 0.0.0.0
+      - key: API_PORT
+        value: 8000
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: /app/keys/gcp-sa.json
+      - key: GCP_PROJECT_ID
+        value: inspiring-keel-473421-j2
+      - key: GCP_LOCATION
+        value: us
+      - key: GCP_DOC_AI_PROCESSOR_ID
+        value: b3533937391f6b44
+      - key: OCR_PROVIDER
+        value: vision
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: TTS_PROVIDER
+        value: google
+      - key: STORAGE
+        value: gcs
+      - key: GCS_BUCKET
+        value: slide-speaker-production-storage
+      - key: GCS_BASE_URL
+        value: https://storage.googleapis.com/slide-speaker-production-storage
+      - key: CORS_ORIGINS
+        value: https://*.netlify.app,https://*.netlify.com,https://*.onrender.com
+      - key: PIPELINE_MAX_PARALLEL_SLIDES
+        value: "5"
+      - key: PIPELINE_MAX_PARALLEL_TTS
+        value: "1"
+      - key: OCR_CACHE_TTL
+        value: "604800"
+      - key: ALLOW_MOCK_MODE
+        value: "false"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: SENTRY_TRACES_SAMPLE_RATE
+        value: "0.1"
+      - key: SENTRY_PROFILES_SAMPLE_RATE
+        value: "0.1"
+  - name: slide-speaker-secrets
+    envVars:
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: GCP_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+
