@@ -77,23 +77,67 @@ deploy_railway() {
         railway init --name slide-speaker-backend
     fi
     
+    # Создание Postgres и Redis если не существуют
+    log_info "Проверка Postgres и Redis..."
+    
+    # Проверяем наличие Postgres
+    if ! railway variables get DATABASE_URL &> /dev/null; then
+        log_info "Создание PostgreSQL базы данных..."
+        railway add -d postgres
+        log_info "✅ PostgreSQL создан. Railway автоматически установит DATABASE_URL"
+    else
+        log_info "✅ PostgreSQL уже существует"
+    fi
+    
+    # Проверяем наличие Redis
+    if ! railway variables get REDIS_URL &> /dev/null; then
+        log_info "Создание Redis..."
+        railway add -d redis
+        log_info "✅ Redis создан. Railway автоматически установит REDIS_URL"
+    else
+        log_info "✅ Redis уже существует"
+    fi
+    
     # Настройка переменных окружения
     log_info "Настройка переменных окружения..."
     
     if [ -f "gcp-sa-production.json" ]; then
-        railway variables set GOOGLE_APPLICATION_CREDENTIALS_JSON="$(cat gcp-sa-production.json)"
+        railway variables set GCP_SERVICE_ACCOUNT_JSON="$(cat gcp-sa-production.json)"
+        log_info "✅ GCP Service Account JSON загружен"
+    elif [ -f "keys/gcp-sa.json" ]; then
+        railway variables set GCP_SERVICE_ACCOUNT_JSON="$(cat keys/gcp-sa.json)"
+        log_info "✅ GCP Service Account JSON загружен из keys/gcp-sa.json"
+    else
+        log_warn "⚠️ GCP Service Account JSON не найден. Установите вручную в Railway Dashboard"
     fi
     
-    railway variables set GOOGLE_API_KEY="AIzaSyDNEtewj8q9qGWELrR-KS0mwcMTr4TGjA0"
+    # Генерация JWT_SECRET_KEY если не установлен
+    if ! railway variables get JWT_SECRET_KEY &> /dev/null; then
+        JWT_SECRET=$(python3 -c "import secrets; print(secrets.token_urlsafe(64))" 2>/dev/null || openssl rand -base64 48 | tr -d "=+/" | cut -c1-64)
+        railway variables set JWT_SECRET_KEY="$JWT_SECRET"
+        log_info "✅ JWT_SECRET_KEY сгенерирован и установлен"
+    else
+        log_info "✅ JWT_SECRET_KEY уже установлен"
+    fi
+    
+    # GOOGLE_API_KEY - установите вручную или через переменную окружения
+    if [ -n "$GOOGLE_API_KEY" ]; then
+        railway variables set GOOGLE_API_KEY="$GOOGLE_API_KEY"
+        log_info "✅ GOOGLE_API_KEY установлен из переменной окружения"
+    else
+        log_warn "⚠️ GOOGLE_API_KEY не установлен. Установите вручную в Railway Dashboard"
+    fi
     railway variables set GCP_PROJECT_ID="inspiring-keel-473421-j2"
     railway variables set OCR_PROVIDER="vision"
     railway variables set LLM_PROVIDER="gemini"
     railway variables set TTS_PROVIDER="google"
     railway variables set STORAGE="gcs"
-    railway variables set CORS_ORIGINS="https://*.netlify.app,https://*.netlify.com"
+    railway variables set CORS_ORIGINS="https://*.netlify.app,https://*.netlify.com,https://*.up.railway.app"
     railway variables set PIPELINE_MAX_PARALLEL_SLIDES="5"
     railway variables set PIPELINE_MAX_PARALLEL_TTS="10"
     railway variables set OCR_CACHE_TTL="604800"
+    railway variables set ENVIRONMENT="production"
+    railway variables set ALLOW_MOCK_MODE="false"
     
     # Деплой
     log_info "Запуск деплоя..."
