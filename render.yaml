@@ -38,7 +38,7 @@ services:
   - type: worker
     name: slide-speaker-worker
     env: docker
-    plan: free
+    plan: starter
     region: oregon
     branch: production-deploy
     rootDir: backend
@@ -64,7 +64,7 @@ services:
     region: oregon
     branch: production-deploy
     buildCommand: npm install && npm run build
-    publishPath: dist
+    staticPublishPath: dist
     envVars:
       - key: VITE_API_BASE
         fromService:
