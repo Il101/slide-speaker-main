@@ -57,6 +57,24 @@ services:
           name: slide-speaker-cache
           type: keyvalue
           property: connectionString
+  - type: static
+    name: slide-speaker-frontend
+    region: oregon
+    branch: production-deploy
+    buildCommand: npm install && npm run build
+    publishPath: dist
+    envVars:
+      - key: VITE_API_BASE
+        fromService:
+          name: slide-speaker-backend
+          type: web
+          property: url
+      - key: VITE_API_URL
+        value: https://slide-speaker-backend.onrender.com/api
+      - key: VITE_WS_URL
+        value: wss://slide-speaker-backend.onrender.com/ws
+      - key: NODE_ENV
+        value: production
 
 envVarGroups:
   - name: slide-speaker-shared
