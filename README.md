@@ -1,99 +1,99 @@
-# Slide Speaker - ИИ-Лектор
+# Slide Speaker - AI Lecturer
 
-Превращаем презентации в интерактивные лекции с озвучкой и визуальными эффектами.
+Transform your presentations into interactive lectures with voiceovers and visual effects.
 
-## 📁 Структура проекта
+## 📁 Project Structure
 
 ```
 slide-speaker-main/
-├── backend/              # Backend приложение (FastAPI)
-├── src/                  # Frontend приложение (React + TypeScript)
-├── docs/                 # Документация
-│   ├── reports/          # Отчеты о тестировании и интеграции
-│   └── guides/           # Руководства пользователя
-├── scripts/              # Утилитные скрипты
-│   ├── integration/      # Интеграционные тесты
-│   ├── setup/            # Скрипты настройки
-│   └── maintenance/      # Скрипты обслуживания
-├── tests/                # Тесты
+├── backend/              # Backend application (FastAPI)
+├── src/                  # Frontend application (React + TypeScript)
+├── docs/                 # Documentation
+│   ├── reports/          # Testing and integration reports
+│   └── guides/           # User guides
+├── scripts/              # Utility scripts
+│   ├── integration/      # Integration tests
+│   ├── setup/            # Setup scripts
+│   └── maintenance/      # Maintenance scripts
+├── tests/                # Tests
 ├── .github/              # GitHub Actions CI/CD
-├── docker-compose.yml    # Оркестрация Docker
-└── README.md             # Эта документация
+├── docker-compose.yml    # Docker orchestration
+└── README.md             # This documentation
 ```
 
-## Архитектура
+## Architecture
 
 - **Frontend**: React + TypeScript + Vite + Tailwind CSS
 - **Backend**: FastAPI + Python
-- **Очереди**: Redis + Celery
-- **Хранилище**: S3-совместимое (MinIO)
-- **Видео**: FFmpeg для рендера MP4
-- **Данные**: Mock-данные с placeholder слайдами
-- **Пайплайны**: Classic (OCR+LLM), Vision (мультимодальная LLM), Hybrid (Vision+OCR alignment)
+- **Queues**: Redis + Celery
+- **Storage**: S3-compatible (MinIO)
+- **Video**: FFmpeg for MP4 rendering
+- **Data**: Mock data with placeholder slides
+- **Pipelines**: Classic (OCR+LLM), Vision (Multimodal LLM), Hybrid (Vision+OCR alignment)
 
-## Пайплайны обработки
+## Processing Pipelines
 
-Slide Speaker поддерживает три режима обработки презентаций:
+Slide Speaker supports three presentation processing modes:
 
-### 1. Classic Pipeline (по умолчанию)
-- **Технология**: OCR (Document AI) + LLM + TTS
-- **Применение**: Точное извлечение текста и элементов из слайдов
-- **Преимущества**: Высокая точность bbox, поддержка таблиц и сложных макетов
-- **Недостатки**: Зависимость от качества OCR
+### 1. Classic Pipeline (Default)
+- **Technology**: OCR (Document AI) + LLM + TTS
+- **Use Case**: Accurate extraction of text and elements from slides
+- **Pros**: High bbox accuracy, support for tables and complex layouts
+- **Cons**: Depends on OCR quality
 
 ### 2. Vision Pipeline
-- **Технология**: Мультимодальная LLM (GPT-4o, Gemini, Claude)
-- **Применение**: Анализ изображений слайдов для генерации объяснений
-- **Преимущества**: Понимание контекста, качественные объяснения, независимость от OCR
-- **Недостатки**: Приблизительные координаты элементов
+- **Technology**: Multimodal LLM (GPT-4o, Gemini, Claude)
+- **Use Case**: Image analysis of slides for explanation generation
+- **Pros**: Context understanding, high-quality explanations, OCR independence
+- **Cons**: Approximate element coordinates
 
 ### 3. Hybrid Pipeline
-- **Технология**: Vision LLM + OCR alignment
-- **Применение**: Комбинация лучшего из двух подходов
-- **Преимущества**: Качественные объяснения + точные координаты
-- **Недостатки**: Более сложная обработка, требует настройки alignment
+- **Technology**: Vision LLM + OCR alignment
+- **Use Case**: Combination of the best of both approaches
+- **Pros**: High-quality explanations + accurate coordinates
+- **Cons**: More complex processing, requires alignment tuning
 
-### Переключение пайплайнов
+### Switching Pipelines
 
-#### Через переменную окружения
+#### Via Environment Variable
 ```bash
-# В .env файле
+# In the .env file
 PIPELINE=classic    # classic | vision | hybrid
 ```
 
-#### Через параметр запроса
+#### Via Query Parameter
 ```bash
-# При загрузке файла
+# When uploading a file
 curl -F "file=@presentation.pdf" "http://localhost:8000/upload?pipeline=vision"
 
-# При генерации аудио
+# When generating audio
 curl -X POST "http://localhost:8000/lessons/{id}/generate-audio" \
   -H "X-Pipeline: hybrid"
 ```
 
-#### Через фронтенд
+#### Via Frontend
 ```javascript
-// В URL параметрах
+// In URL parameters
 /?lesson=demo&pipeline=vision
 ```
 
-### Конфигурация Vision моделей
+### Vision Models Configuration
 
 ```bash
-# В .env файле
-VISION_MODEL=x-ai/grok-4-fast:free  # xAI Grok (через OpenRouter) - по умолчанию
+# In the .env file
+VISION_MODEL=x-ai/grok-4-fast:free  # xAI Grok (via OpenRouter) - default
 VISION_MODEL=gpt-4o-mini        # OpenAI
 VISION_MODEL=gemini-1.5-flash   # Google
 VISION_MODEL=claude-3-5-sonnet  # Anthropic
 
-# API ключи
-OPENROUTER_API_KEY=your_key     # Для OpenAI/Claude/Grok через OpenRouter
-GEMINI_API_KEY=your_key         # Для Google Gemini
+# API Keys
+OPENROUTER_API_KEY=your_key     # For OpenAI/Claude/Grok via OpenRouter
+GEMINI_API_KEY=your_key         # For Google Gemini
 ```
 
-## Быстрый запуск
+## Quick Start
 
-### 1. Локальная разработка (рекомендуется)
+### 1. Local Development (Recommended)
 
 #### Backend
 ```bash
@@ -108,19 +108,19 @@ npm install
 npm run dev
 ```
 
-Сервисы будут доступны:
+Services will be available at:
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8000
 - API Docs: http://localhost:8000/docs
 
-### 2. Запуск через Docker Compose (рекомендуется для Sprint 3)
+### 2. Running via Docker Compose (Recommended for Sprint 3)
 
 ```bash
-# Запустите все сервисы
+# Start all services
 docker-compose up --build
 ```
 
-Сервисы будут доступны:
+Services will be available at:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
 - API Docs: http://localhost:8000/docs
@@ -128,23 +128,23 @@ docker-compose up --build
 - MinIO Console: http://localhost:9001 (minioadmin/minioadmin)
 - MinIO API: http://localhost:9000
 
-#### Первоначальная настройка MinIO
+#### Initial MinIO Setup
 
-1. Откройте MinIO Console: http://localhost:9001
-2. Войдите с учетными данными: `minioadmin` / `minioadmin`
-3. Создайте bucket с именем `slide-speaker`
-4. Настройте политику доступа для публичного чтения (опционально)
+1. Open MinIO Console: http://localhost:9001
+2. Login with credentials: `minioadmin` / `minioadmin`
+3. Create a bucket named `slide-speaker`
+4. Configure access policy for public reading (optional)
 
 ## API Endpoints
 
 ### POST /upload
-Загружает файл (PPTX/PDF) и создает lesson с mock-данными.
+Uploads a file (PPTX/PDF) and creates a lesson with mock data.
 
-**Request**: `multipart/form-data` с файлом
+**Request**: `multipart/form-data` with the file
 **Response**: `{"lesson_id": "uuid"}`
 
 ### GET /lessons/{lesson_id}/manifest
-Возвращает manifest.json с данными о слайдах и эффектах.
+Returns manifest.json with data about slides and effects.
 
 **Response**:
 ```json
@@ -165,7 +165,7 @@ docker-compose up --build
 ```
 
 ### POST /lessons/{lesson_id}/export
-Запускает экспорт урока в MP4 видео с визуальными эффектами.
+Triggers lesson export to MP4 video with visual effects.
 
 **Request**:
 ```json
@@ -180,7 +180,7 @@ docker-compose up --build
 **Response**: `{"status": "processing", "task_id": "uuid", "estimated_time": "5-10 minutes"}`
 
 ### GET /exports/{task_id}/status
-Получает статус задачи экспорта.
+Gets the status of the export task.
 
 **Response**:
 ```json
@@ -194,103 +194,103 @@ docker-compose up --build
 ```
 
 ### GET /exports/{lesson_id}/download
-Скачивает готовый MP4 файл.
+Downloads the final MP4 file.
 
-**Response**: MP4 файл или редирект на S3
+**Response**: MP4 file or redirect to S3
 
-## Как это работает
+## How It Works
 
-1. **Загрузка файла**: Пользователь загружает PPTX/PDF через FileUploader
-2. **Обработка**: Backend создает mock-данные (placeholder слайды + пустые аудио)
-3. **Воспроизведение**: Frontend загружает manifest.json и отображает интерактивный плеер
-4. **Эффекты**: Подсветки, подчеркивания и лазерная указка синхронизированы с временными метками
+1. **File Upload**: User uploads PPTX/PDF via FileUploader
+2. **Processing**: Backend creates mock data (placeholder slides + empty audio)
+3. **Playback**: Frontend loads manifest.json and displays an interactive player
+4. **Effects**: Highlights, underlines, and a laser pointer are synced with timestamps
 
-## Mock-данные
+## Mock Data
 
-Для MVP используются:
-- Placeholder слайды из `public/placeholder-slide-*.svg`
-- Пустые аудио файлы (заглушки)
-- Предопределенные cue-эффекты в manifest.json
+For the MVP, the following are used:
+- Placeholder slides from `public/placeholder-slide-*.svg`
+- Empty audio files (placeholders)
+- Predefined cue effects in manifest.json
 
-## Структура проекта
+## Project Structure
 
 ```
 ├── backend/
-│   ├── main.py              # FastAPI приложение
-│   ├── requirements.txt     # Python зависимости
-│   ├── Dockerfile          # Backend контейнер
-│   └── .data/              # Данные уроков
+│   ├── main.py              # FastAPI application
+│   ├── requirements.txt     # Python dependencies
+│   ├── Dockerfile          # Backend container
+│   └── .data/              # Lesson data
 ├── src/
 │   ├── components/
-│   │   ├── FileUploader.tsx # Загрузка файлов
-│   │   └── Player.tsx       # Интерактивный плеер
+│   │   ├── FileUploader.tsx # File uploading
+│   │   └── Player.tsx       # Interactive player
 │   ├── lib/
-│   │   └── api.ts          # API клиент
+│   │   └── api.ts          # API client
 │   └── pages/
-│       └── Index.tsx       # Главная страница
-├── docker-compose.yml      # Оркестрация сервисов
-└── Dockerfile             # Frontend контейнер
+│       └── Index.tsx       # Main page
+├── docker-compose.yml      # Service orchestration
+└── Dockerfile             # Frontend container
 ```
 
 ## Google Cloud Setup
 
-### Настройка Google Cloud Services
+### Google Cloud Services Setup
 
-Slide Speaker поддерживает интеграцию с Google Cloud сервисами для улучшенного качества OCR, LLM и TTS.
+Slide Speaker supports integration with Google Cloud services for enhanced OCR, LLM, and TTS quality.
 
-#### 1. Создание Service Account
+#### 1. Creating a Service Account
 
-1. **Перейдите в Google Cloud Console**: https://console.cloud.google.com
-2. **Выберите проект** или создайте новый
-3. **Перейдите в IAM & Admin > Service Accounts**
-4. **Создайте Service Account**:
-   - Название: `slide-speaker-sa`
-   - Описание: `Service account for Slide Speaker application`
-5. **Назначьте роли**:
+1. **Go to Google Cloud Console**: https://console.cloud.google.com
+2. **Select the project** or create a new one
+3. **Navigate to IAM & Admin > Service Accounts**
+4. **Create a Service Account**:
+   - Name: `slide-speaker-sa`
+   - Description: `Service account for Slide Speaker application`
+5. **Assign roles**:
    - `Document AI API User`
    - `Vertex AI User`
    - `Cloud Text-to-Speech API User`
-   - `Storage Object Admin` (для GCS)
-6. **Создайте ключ**:
-   - Перейдите в созданный Service Account
-   - Вкладка "Keys" → "Add Key" → "Create new key"
-   - Выберите JSON формат
-   - Сохраните файл как `gcp-sa.json`
+   - `Storage Object Admin` (for GCS)
+6. **Create a key**:
+   - Go to the created Service Account
+   - "Keys" tab → "Add Key" → "Create new key"
+   - Select JSON format
+   - Save the file as `gcp-sa.json`
 
-#### 2. Настройка Document AI
+#### 2. Document AI Setup
 
-1. **Включите Document AI API**:
-   - Перейдите в "APIs & Services" → "Library"
-   - Найдите "Document AI API" и включите
-2. **Создайте процессор**:
-   - Перейдите в Document AI → "Processors"
-   - Создайте новый процессор типа "Form Parser" или "OCR"
-   - Скопируйте Processor ID
+1. **Enable Document AI API**:
+   - Go to "APIs & Services" → "Library"
+   - Search for "Document AI API" and enable it
+2. **Create a processor**:
+   - Go to Document AI → "Processors"
+   - Create a new processor of type "Form Parser" or "OCR"
+   - Copy the Processor ID
 
-#### 3. Настройка Vertex AI
+#### 3. Vertex AI Setup
 
-1. **Включите Vertex AI API**:
-   - Перейдите в "APIs & Services" → "Library"
-   - Найдите "Vertex AI API" и включите
-2. **Настройте регион**:
-   - Выберите регион (например, `us-central1`)
+1. **Enable Vertex AI API**:
+   - Go to "APIs & Services" → "Library"
+   - Search for "Vertex AI API" and enable it
+2. **Configure region**:
+   - Choose a region (e.g., `us-central1`)
 
-#### 4. Настройка Text-to-Speech
+#### 4. Text-to-Speech Setup
 
-1. **Включите Cloud Text-to-Speech API**:
-   - Перейдите в "APIs & Services" → "Library"
-   - Найдите "Cloud Text-to-Speech API" и включите
+1. **Enable Cloud Text-to-Speech API**:
+   - Go to "APIs & Services" → "Library"
+   - Search for "Cloud Text-to-Speech API" and enable it
 
-#### 5. Настройка Cloud Storage (опционально)
+#### 5. Cloud Storage Setup (Optional)
 
-1. **Создайте bucket**:
-   - Перейдите в Cloud Storage
-   - Создайте bucket с именем `slide-speaker`
-   - Настройте публичный доступ для чтения
+1. **Create a bucket**:
+   - Go to Cloud Storage
+   - Create a bucket named `slide-speaker`
+   - Configure public access for reading
 
-#### 6. Настройка переменных окружения
+#### 6. Environment Variables Setup
 
-Создайте `.env` файл на основе `.env.example`:
+Create a `.env` file based on `.env.example`:
 
 ```env
 # Google Cloud Configuration
@@ -323,140 +323,140 @@ GCS_BUCKET=slide-speaker
 GCS_BASE_URL=https://storage.googleapis.com/slide-speaker
 ```
 
-#### 7. Размещение ключей
+#### 7. Key Placement
 
 ```bash
-# Создайте директорию для ключей
+# Create a keys directory
 mkdir -p keys
 
-# Скопируйте Service Account ключ
+# Copy the Service Account key
 cp path/to/your/gcp-sa.json keys/gcp-sa.json
 
-# Установите правильные права доступа
+# Set correct permissions
 chmod 600 keys/gcp-sa.json
 ```
 
-### Переключение провайдеров
+### Switching Providers
 
-Вы можете легко переключаться между различными провайдерами:
+You can easily switch between different providers:
 
-#### OCR Провайдеры
-- `google` - Google Cloud Document AI (лучшее качество)
-- `easyocr` - EasyOCR (локальный, бесплатный)
-- `paddle` - PaddleOCR (альтернативный локальный)
+#### OCR Providers
+- `google` - Google Cloud Document AI (best quality)
+- `easyocr` - EasyOCR (local, free)
+- `paddle` - PaddleOCR (alternative local)
 
-#### LLM Провайдеры
-- `gemini` - Google Gemini (через Vertex AI)
+#### LLM Providers
+- `gemini` - Google Gemini (via Vertex AI)
 - `openai` - OpenAI GPT
 - `anthropic` - Anthropic Claude
-- `ollama` - Локальный Ollama
+- `ollama` - Local Ollama
 
-#### TTS Провайдеры
+#### TTS Providers
 - `google` - Google Cloud Text-to-Speech
 - `azure` - Azure Speech Services
-- `mock` - Mock TTS (для тестирования)
+- `mock` - Mock TTS (for testing)
 
-#### Storage Провайдеры
+#### Storage Providers
 - `gcs` - Google Cloud Storage
-- `minio` - MinIO (локальный S3-совместимый)
+- `minio` - MinIO (local S3-compatible)
 
-### Стоимость и оптимизация
+### Cost and Optimization
 
-#### Google Cloud Pricing (примерные цены)
+#### Google Cloud Pricing (estimates)
 
-- **Document AI**: $1.50 за 1000 страниц
-- **Vertex AI Gemini**: $0.075 за 1M токенов (вход), $0.30 за 1M токенов (выход)
-- **Text-to-Speech**: $4.00 за 1M символов
-- **Cloud Storage**: $0.020 за GB в месяц
+- **Document AI**: $1.50 per 1000 pages
+- **Vertex AI Gemini**: $0.075 per 1M tokens (input), $0.30 per 1M tokens (output)
+- **Text-to-Speech**: $4.00 per 1M characters
+- **Cloud Storage**: $0.020 per GB per month
 
-#### Оптимизация затрат
+#### Cost Optimization
 
-1. **Кэширование**: Результаты OCR/LLM/TTS кэшируются по хэшу контента
-2. **Батчинг**: OCR обрабатывает несколько страниц за раз
-3. **Мок-режим**: При отсутствии ключей используется мок-режим
-4. **Локальные альтернативы**: Можно использовать EasyOCR и Ollama для экономии
+1. **Caching**: OCR/LLM/TTS results are cached by content hash
+2. **Batching**: OCR processes multiple pages at once
+3. **Mock Mode**: Falls back to mock mode if keys are missing
+4. **Local Alternatives**: You can use EasyOCR and Ollama for cost savings
 
-### Тестирование Google Cloud интеграции
+### Google Cloud Integration Testing
 
 ```bash
-# Запустите тесты с Google Cloud
+# Run tests with Google Cloud
 python test_google_cloud_integration.py
 
-# Или с Docker
+# Or with Docker
 docker-compose up --build
 python test_google_cloud_integration.py
 ```
 
-## Переменные окружения
+## Environment Variables
 
-Создайте `.env` файл:
+Create a `.env` file:
 ```env
 VITE_API_BASE=http://localhost:8000
 ```
 
 ## Roadmap
 
-### Спринт 1: Реальный парсинг документов (2-3 недели)
-**Цель**: Заменить mock-данные реальным парсингом PPTX/PDF файлов
+### Sprint 1: Real Document Parsing (2-3 weeks)
+**Goal**: Replace mock data with actual parsing of PPTX/PDF files
 
-- [ ] **Парсинг PPTX**: Извлечение слайдов в PNG с высоким качеством
-- [ ] **Парсинг PDF**: Конвертация страниц в PNG изображения
-- [ ] **Детекция элементов**: Автоматическое определение текстовых блоков и их координат (bbox)
-- [ ] **Генерация manifest.json**: Создание структурированных данных о слайдах
-- [ ] **Оптимизация изображений**: Сжатие PNG без потери качества
-- [ ] **Валидация файлов**: Проверка корректности загруженных документов
+- [ ] **PPTX Parsing**: High-quality slide extraction to PNG
+- [ ] **PDF Parsing**: Conversion of pages to PNG images
+- [ ] **Element Detection**: Automatic identification of text blocks and their bounding boxes (bbox)
+- [ ] **manifest.json Generation**: Creation of structured data about slides
+- [ ] **Image Optimization**: Lossless PNG compression
+- [ ] **File Validation**: Checking the correctness of uploaded documents
 
-### Спринт 2: ИИ-лектор с озвучкой (3-4 недели)
-**Цель**: Добавить генерацию speaker notes и TTS с синхронизацией
+### Sprint 2: AI Lecturer with Voiceover (3-4 weeks)
+**Goal**: Add speaker notes generation and TTS with synchronization
 
-- [ ] **LLM интеграция**: Подключение к OpenAI/Anthropic для генерации speaker notes
-- [ ] **TTS система**: Преобразование текста в речь с высоким качеством
-- [ ] **Временная синхронизация**: Выравнивание аудио с визуальными эффектами
-- [ ] **Редактор правок**: Интерфейс для корректировки сгенерированного контента
-- [ ] **Предпросмотр**: Возможность прослушать и отредактировать перед финализацией
-- [ ] **Настройки голоса**: Выбор голоса, скорости, тона для TTS
+- [ ] **LLM Integration**: Connection to OpenAI/Anthropic for speaker notes generation
+- [ ] **TTS System**: High-quality text-to-speech conversion
+- [ ] **Time Synchronization**: Aligning audio with visual effects
+- [ ] **Edit Editor**: Interface for correcting generated content
+- [ ] **Preview**: Ability to listen and edit before finalizing
+- [ ] **Voice Settings**: Choice of voice, speed, pitch for TTS
 
-### Спринт 3: Экспорт и стабильность (2-3 недели)
-**Цель**: Финальный экспорт в MP4 и production-ready система
+### Sprint 3: Export and Stability (2-3 weeks)
+**Goal**: Final MP4 export and production-ready system
 
-- [ ] **Видео экспорт**: Генерация MP4 с синхронизированными эффектами
-- [ ] **Очереди задач**: Система фоновой обработки длительных операций
-- [ ] **Хранилище**: Надежное хранение файлов и метаданных
-- [ ] **Мониторинг**: Логирование и отслеживание ошибок
-- [ ] **Производительность**: Оптимизация для больших презентаций
-- [ ] **Тестирование**: Unit и интеграционные тесты
+- [ ] **Video Export**: MP4 generation with synchronized effects
+- [ ] **Task Queues**: Background processing system for long operations
+- [ ] **Storage**: Reliable storage for files and metadata
+- [ ] **Monitoring**: Error logging and tracking
+- [ ] **Performance**: Optimization for large presentations
+- [ ] **Testing**: Unit and integration tests
 
-## Тестирование
+## Testing
 
-### Smoke тесты пайплайнов
+### Pipeline Smoke Tests
 ```bash
-# Тест Classic пайплайна
+# Classic Pipeline test
 ./scripts/smoke.sh classic
 
-# Тест Vision пайплайна  
+# Vision Pipeline test
 ./scripts/smoke.sh vision
 
-# Тест Hybrid пайплайна
+# Hybrid Pipeline test
 ./scripts/smoke.sh hybrid
 
-# С кастомным API
+# With custom API
 API=http://localhost:8000 ./scripts/smoke.sh vision
 ```
 
-### E2E тесты
+### E2E Tests
 ```bash
 cd tests/e2e
 npm install
 npm test
 ```
 
-E2E тесты автоматически проверяют все три пайплайна:
-- Воспроизведение аудио
-- Появление подсветок
-- Автоматическая смена слайдов
-- Отображение субтитров
+E2E tests automatically verify all three pipelines:
+- Audio playback
+- Highlight appearance
+- Automatic slide transitions
+- Subtitle display
 
-### Unit тесты
+### Unit Tests
 ```bash
 cd backend
 python -m pytest app/tests/
@@ -464,45 +464,45 @@ python -m pytest app/tests/
 
 ### Smoke Test
 
-#### Запуск через Docker
+#### Running via Docker
 ```bash
-# Запустите все сервисы
+# Start all services
 docker-compose up --build
 
-# Проверьте здоровье API
+# Check API health
 curl http://localhost:8000/health
-# Ожидаемый ответ: {"status":"ok"}
+# Expected response: {"status":"ok"}
 
-# Проверьте доступность статики
+# Check static files availability
 curl http://localhost:8000/assets/demo-lesson/manifest.json
 ```
 
-#### Запуск локально
+#### Running locally
 ```bash
 # Backend
 cd backend
 pip install -r requirements.txt --break-system-packages
 python3 -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 
-# Frontend (в другом терминале)
+# Frontend (in a different terminal)
 npm install
 npm run dev
 
-# Проверьте здоровье API
+# Check API health
 curl http://localhost:8000/health
-# Ожидаемый ответ: {"status":"ok"}
+# Expected response: {"status":"ok"}
 ```
 
-#### Полный smoke test
+#### Full Smoke Test
 ```bash
-# Убедитесь, что все сервисы запущены
+# Ensure all services are running
 docker-compose up -d
 
-# Запустите smoke test
+# Run the smoke test
 python smoke_test.py
 ```
 
-Smoke test проверяет:
+The smoke test verifies:
 - ✅ API health check
 - ✅ Demo lesson manifest
 - ✅ Export request
@@ -514,51 +514,51 @@ Smoke test проверяет:
 ### Export test
 
 ```bash
-# Запустите все сервисы
+# Start all services
 docker-compose up --build
 
-# Запустите экспорт для demo-lesson
+# Start export for demo-lesson
 curl -X POST http://localhost:8000/lessons/demo-lesson/export
-# Ожидаемый ответ: {"job_id": "uuid", "status": "queued"}
+# Expected response: {"job_id": "uuid", "status": "queued"}
 
-# Проверьте статус экспорта (замените JOB_ID на полученный выше)
+# Check export status (replace JOB_ID with the one obtained above)
 curl "http://localhost:8000/lessons/demo-lesson/export/status?job_id=JOB_ID"
-# Ожидаемый ответ: {"status": "processing", "progress": 50, "message": "..."}
+# Expected response: {"status": "processing", "progress": 50, "message": "..."}
 
-# Когда статус станет "done", скачайте MP4
+# When status becomes "done", download MP4
 curl -O http://localhost:8000/assets/demo-lesson/export.mp4
 ```
 
-### Ручное тестирование
+### Manual Testing
 
-1. **Запустите сервисы**: `docker-compose up --build`
-2. **Откройте фронтенд**: http://localhost:3000
-3. **Нажмите "Посмотреть демо"** для загрузки demo-lesson
-4. **Нажмите "Export"** для запуска экспорта
-5. **Дождитесь завершения** (5-10 минут)
-6. **Скачайте MP4** файл
+1. **Start services**: `docker-compose up --build`
+2. **Open frontend**: http://localhost:3000
+3. **Click "View Demo"** to load the demo lesson
+4. **Click "Export"** to start exporting
+5. **Wait for completion** (5-10 minutes)
+6. **Download MP4** file
 
-### Проверка scale-aware Player
+### Checking the scale-aware Player
 
 ```bash
-# Запустите сервисы
+# Start services
 docker-compose up --build
 
-# Откройте фронтенд: http://localhost:3000
-# Загрузите demo-lesson
+# Open frontend: http://localhost:3000
+# Load demo-lesson
 
-# Проверьте масштабирование:
-# 1. Сузьте окно браузера → рамки и лазер остаются на местах
-# 2. Разверните окно на полный экран → элементы не "уезжают"
-# 3. Измените размер окна во время воспроизведения → плавная адаптация
+# Test scaling:
+# 1. Narrow the browser window → borders and laser stay in place
+# 2. Maximize the window to full screen → elements do not "drift"
+# 3. Resize the window during playback → smooth adaptation
 ```
 
-**Ожидаемое поведение:**
-- При разных размерах окна рамки и указка совпадают с визуальными объектами слайда
-- Движение указки плавное, без телепортов
-- Элементы масштабируются пропорционально размеру контейнера
+**Expected behavior:**
+- At different window sizes, frames and pointers match visual objects on the slide
+- Laser movement is smooth, without teleports
+- Elements scale proportionally to the container size
 
-## Переменные окружения
+## Environment Variables
 
 ### Backend (.env)
 ```env
@@ -600,97 +600,97 @@ VITE_API_BASE=http://localhost:8000
 
 ## TTS Setup
 
-### Получение ключей Azure Speech Services
+### Obtaining Azure Speech Services Keys
 
-1. **Создайте ресурс Speech Services в Azure Portal**:
-   - Перейдите в [Azure Portal](https://portal.azure.com)
-   - Создайте новый ресурс "Speech Services"
-   - Выберите регион (например, "West Europe")
+1. **Create a Speech Services resource in the Azure Portal**:
+   - Go to [Azure Portal](https://portal.azure.com)
+   - Create a new "Speech Services" resource
+   - Choose a region (e.g., "West Europe")
 
-2. **Получите ключ и регион**:
-   - В разделе "Keys and Endpoint" скопируйте ключ
-   - Скопируйте регион из "Location"
+2. **Get the key and region**:
+   - In the "Keys and Endpoint" section, copy the key
+   - Copy the region from "Location"
 
-3. **Настройте переменные окружения**:
+3. **Configure environment variables**:
    ```bash
-   # Создайте .env файл
+   # Create a .env file
    cp .env.example .env
    
-   # Отредактируйте .env
+   # Edit .env
    AZURE_TTS_KEY=your_actual_key_here
    AZURE_TTS_REGION=your_actual_region_here
    ```
 
-4. **Доступные голоса**:
-   - `ru-RU-SvetlanaNeural` - женский русский голос
-   - `ru-RU-DmitryNeural` - мужской русский голос
-   - `en-US-AriaNeural` - женский английский голос
-   - `en-US-GuyNeural` - мужской английский голос
+4. **Available voices**:
+   - `ru-RU-SvetlanaNeural` - female Russian voice
+   - `ru-RU-DmitryNeural` - male Russian voice
+   - `en-US-AriaNeural` - female English voice
+   - `en-US-GuyNeural` - male English voice
 
-### Пример использования
+### Usage Example
 
 ```python
-# В коде Python
+# In Python code
 from workers.tts_edge import synthesize_slide_text
 
-# Генерация аудио для слайда
+# Generate audio for a slide
 slide_notes = [
-    "Добро пожаловать в нашу презентацию",
-    "Сегодня мы обсудим искусственный интеллект"
+    "Welcome to our presentation",
+    "Today we will discuss artificial intelligence"
 ]
 
 result = await synthesize_slide_text(slide_notes, voice="ru-RU-SvetlanaNeural", speed=1.0)
-print(f"Аудио файл: {result['audio_file']}")
-print(f"Длительность: {result['total_duration']} секунд")
+print(f"Audio file: {result['audio_file']}")
+print(f"Duration: {result['total_duration']} seconds")
 ```
 
-## Демо режим
+## Demo Mode
 
-Нажмите "Посмотреть демо" на главной странице для просмотра примера с предустановленными данными.
+Click "View Demo" on the main page to view an example with pre-installed data.
 
-## Финальный Smoke Checklist
+## Final Smoke Checklist
 
-После мержа всех PR выполните следующие проверки:
+After merging all PRs, perform the following checks:
 
-### ✅ Базовая функциональность
-- [ ] `docker compose up --build` поднимает backend, frontend, redis, celery, minio без ошибок
+### ✅ Basic Functionality
+- [ ] `docker compose up --build` brings up backend, frontend, redis, celery, minio without errors
 - [ ] `GET http://localhost:8000/health` → `{"status":"ok"}`
-- [ ] `VITE_API_BASE` из `.env` влияет на фронт
-- [ ] `GET /assets/<lesson>/manifest.json` отдает файл, если он есть
+- [ ] `VITE_API_BASE` from `.env` affects the frontend
+- [ ] `GET /assets/<lesson>/manifest.json` returns the file if it exists
 
-### ✅ Upload и воспроизведение
-- [ ] Upload PDF/PPTX → вижу реальные слайды в Player
-- [ ] Воспроизводится реальный голос TTS (если настроен Azure TTS)
-- [ ] Подсветки синхронны речи (допускается погрешность ≤200 мс)
+### ✅ Upload and Playback
+- [ ] Upload PDF/PPTX → see real slides in Player
+- [ ] Real TTS voice plays (if Azure TTS is configured)
+- [ ] Highlights are synced with speech (tolerance ≤200 ms)
 
-### ✅ Экспорт MP4
-- [ ] Export → выдаёт ссылку на MP4
-- [ ] MP4 файл скачивается и воспроизводится
-- [ ] При пустых/мок-аудио ролик всё равно собирается (без звука)
+### ✅ MP4 Export
+- [ ] Export → returns link to MP4
+- [ ] MP4 file downloads and plays
+- [ ] Even with empty/mock audio, the video is still assembled (without sound)
 
 ### ✅ Scale-aware Player
-- [ ] При ресайзе окна рамки и «лазер» не уходят
-- [ ] При разных размерах окна элементы остаются на местах
-- [ ] Движение лазера плавное, без телепортов
+- [ ] On window resize, frames and "laser" do not drift
+- [ ] Elements stay in place at different window sizes
+- [ ] Laser movement is smooth, no teleports
 
-### Команды для проверки:
+### Commands for checking:
 ```bash
-# 1. Запуск всех сервисов
+# 1. Start all services
 docker-compose up --build
 
-# 2. Проверка здоровья API
+# 2. Check API health
 curl http://localhost:8000/health
 
-# 3. Проверка статики
+# 3. Check static files
 curl http://localhost:8000/assets/demo-lesson/manifest.json
 
-# 4. Экспорт тест
+# 4. Export test
 curl -X POST http://localhost:8000/lessons/demo-lesson/export
-# Получите job_id из ответа, затем:
+# Get the job_id from the response, then:
 curl "http://localhost:8000/lessons/demo-lesson/export/status?job_id=YOUR_JOB_ID"
 
-# 5. Фронтенд тест
-# Откройте http://localhost:3000
-# Нажмите "Посмотреть демо"
-# Проверьте масштабирование окна
+# 5. Frontend test
+# Open http://localhost:3000
+# Click "View Demo"
+# Check window scaling
 ```
