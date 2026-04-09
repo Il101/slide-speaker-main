@@ -32,7 +32,9 @@ backend/.env
 
 # Credentials and secrets
 cookies.txt
-keys/*.json
+keys/
+*-sa.json
+*.pem
 !keys/.gitkeep
 
 # Python
